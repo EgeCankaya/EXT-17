@@ -106,8 +106,31 @@ std::string RunRecord::toJson() const {
     } else {
         w.memberNull("bytes");
     }
+    w.beginArray("parts");
+    for (const std::string& part : captureParts) { w.value(part); }
+    w.endArray();
+    w.member("total_bytes", captureTotalBytes);
     w.member("capture_max_bytes", captureMaxBytes);
     w.member("on_size_limit", onSizeLimit);
+    w.member("read_back", captureRead);
+    if (captureRead) {
+        w.member("end_reason", captureEndReason);
+        // The claim that matters, stated rather than inferable. False means the recorder stopped
+        // at its byte bound before the run did: the capture is complete and valid and does not
+        // cover the whole run.
+        w.member("covers_whole_run", captureCoversWholeRun);
+        w.member("conformant", captureConformant);
+        w.member("samples", static_cast<std::int64_t>(captureSamples));
+        w.member("segment_keys", static_cast<std::int64_t>(captureSegmentKeys));
+        // Equal to segment_keys unless the capture rotated. A segment cut by a
+        // rotation is one segment of the run appearing under two keys.
+        w.member("run_segments", static_cast<std::int64_t>(captureRunSegments));
+        if (captureDiagnostics.empty()) {
+            w.memberNull("diagnostics");
+        } else {
+            w.member("diagnostics", captureDiagnostics);
+        }
+    }
     w.endObject();
 
     w.beginObject("environment");

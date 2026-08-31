@@ -1,5 +1,7 @@
 #include "RunOnce.h"
 
+#include "../capture/CaptureSet.h"
+
 #include "../common/Log.h"
 #include "../proc/Process.h"
 
@@ -354,15 +356,95 @@ RunRecord executeRun(const RunConfig& cfg) {
     if (cfg.attachRecorder) {
         const auto captures = proc::listFilesWithSuffix(cfg.runDir, ".n8rocap.jsonl");
         if (!captures.empty()) {
+            // Every part, not only the first. A run recorded with --on-size-limit rotate is a
+            // set of files whose segment ordinals restart in each one, and a record that named
+            // one of them would send M4 and M6 to a fraction of the run without saying so.
+            rec.captureParts = captures;
             rec.capturePath = captures.front();
             rec.captureBytes = proc::fileSizeBytes(joinPath(cfg.runDir, captures.front()));
+            std::uint64_t total = 0;
+            for (const std::string& part : captures) {
+                total += proc::fileSizeBytes(joinPath(cfg.runDir, part)).value_or(0);
+            }
+            rec.captureTotalBytes = total;
             if (captures.size() > 1) {
                 log::line("capture", std::to_string(captures.size())
                                          + " capture files in the run directory; the recorder "
                                            "rotated. Segment ordinals restart in every part.");
             }
+
+            // Read the capture back with this project's own conformant reader, immediately, on
+            // the run that produced it. It links nothing and needs no install, so the campaign
+            // pays a quarter of a second per run for two answers it cannot get any other way:
+            // whether the file it just wrote is well formed, and whether it covers the run.
+            const capture::SetResult set =
+                capture::readSet(joinPath(cfg.runDir, captures.front()));
+            if (!set.parts.empty()) {
+                rec.captureRead = true;
+                const capture::ReadResult& last = set.parts.back();
+                rec.captureEndReason = last.hasTrailer ? last.trailer.endReason
+                                                       : std::string("(no trailer - truncated)");
+                // Format 6.7's own rule for telling a last part from a stopped one: a part
+                // carrying size_limit with no continued_in is a run that stopped at its limit.
+                rec.captureCoversWholeRun =
+                    last.hasTrailer && last.trailer.endReason != "size_limit";
+                rec.captureConformant = set.conformant();
+                rec.captureSamples = set.counts.samples;
+                rec.captureSegmentKeys = static_cast<long long>(set.segments.size());
+                rec.captureRunSegments = set.runSegments;
+                std::string diags;
+                for (const auto& kv : set.diagnosticCounts) {
+                    diags += (diags.empty() ? "" : ", ") + std::string(capture::name(kv.first))
+                             + " x" + std::to_string(kv.second);
+                }
+                for (const capture::ReadResult& part : set.parts) {
+                    if (part.rejected) {
+                        diags += (diags.empty() ? "" : ", ") + std::string("REJECTED ")
+                                 + capture::name(part.rejectCode);
+                    }
+                    for (const auto& kv : part.diagnosticCounts) {
+                        diags += (diags.empty() ? "" : ", ")
+                                 + std::string(capture::name(kv.first)) + " x"
+                                 + std::to_string(kv.second);
+                    }
+                }
+                rec.captureDiagnostics = diags;
+                log::line("capture", "read back: " + std::to_string(set.counts.samples)
+                                         + " samples over " + std::to_string(set.segments.size())
+                                         + " segment key(s) for "
+                                         + std::to_string(set.runSegments)
+                                         + " run segment(s), end_reason "
+                                         + rec.captureEndReason + ", "
+                                         + (rec.captureConformant ? "conformant"
+                                                                  : "NOT conformant (" + diags + ")"));
+                if (!rec.captureCoversWholeRun) {
+                    // Not an error: a bounded capture that stops is exactly what the operator
+                    // asked --on-size-limit stop for. It is a caveat on everything computed from
+                    // the file afterwards, so it is said once, loudly, and written into the
+                    // record rather than left for whoever opens the file in a month.
+                    log::line("capture", "this capture does NOT cover the whole run - it ended at "
+                                         "its size limit. Anything computed from it is over the "
+                                         "part of the run that was recorded, not the run.");
+                }
+            }
         } else {
+            // A run that was asked to record and recorded nothing is an infrastructure error,
+            // not a completed run. Found at M3 by a probe whose recorder refused to start: the
+            // run executed to its stop predicate, the campaign called it `completed`, and there
+            // was no capture in the directory at all. Tenet 1 - a wrong number is worse than no
+            // number - and CR-EX-5: infrastructure is never a test result. A run reported as
+            // completed is a run M6 will later judge, and it would be judging nothing.
+            //
+            // Only where the run had otherwise succeeded. A run that already failed keeps the
+            // fault it actually had, since the first failure is the informative one.
             log::line("capture", "no capture file in " + cfg.runDir);
+            if (rec.outcome == RunOutcome::Completed) {
+                rec.outcome = fail(rec, "capture",
+                                   "the recorder was attached and no .n8rocap.jsonl file was "
+                                   "written into " + cfg.runDir
+                                       + ". The run reached its stop predicate, but it recorded "
+                                         "nothing and cannot be judged or compared later.");
+            }
         }
     }
 

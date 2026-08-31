@@ -74,12 +74,29 @@ void printHelp() {
 "                           recorded in run.json; there is simply no capture.\n"
 "  --sim-config-host <e>    host-side config entry. Default SimEngineHost_SharedMemory.\n"
 "  --sim-config-client <e>  client-side config entry. Default SimEngineClient_SharedMemory.\n"
-"  --capture-max-bytes <n>  per-capture byte bound, passed to the recorder. Default 0,\n"
-"                           meaning unbounded. A campaign-level ceiling is not this;\n"
-"                           see OQ-6.\n"
-"  --on-size-limit <a>      stop (default) or rotate, on reaching --capture-max-bytes.\n"
-"                           rotate makes a run's capture a set of files whose segment\n"
-"                           ordinals restart in every part.\n"
+"  --capture-max-bytes <n>  per-capture byte bound, passed to the recorder. Default:\n"
+"                           61000 x --frames, which is three times the measured\n"
+"                           per-frame capture cost - a bound that does not fire on\n"
+"                           a normal run and does fire on a runaway. Pass 0 for\n"
+"                           unbounded. A campaign-level ceiling is not this; that\n"
+"                           is --disk-ceiling-bytes below.\n"
+"  --on-size-limit <a>      stop (default, and OQ-6's decision) or rotate, on reaching\n"
+"                           --capture-max-bytes. rotate keeps the run's tail and makes\n"
+"                           the capture a SET of files whose segment ordinals restart\n"
+"                           in every part - measured at M3 to turn one run's two\n"
+"                           segments into five (part, segment) keys. stop keeps one\n"
+"                           file per run and loses the tail, and says so in the file\n"
+"                           and in run.json's capture.covers_whole_run.\n"
+"\n"
+"disk (CR-CAP-5; the upstream bound above is per file, this one is per campaign):\n"
+"  --disk-ceiling-bytes <n> ceiling over the WHOLE campaign directory, captures and logs\n"
+"                           together. Default 8589934592 (8 GiB). Checked against free\n"
+"                           space before run 1 and against actual usage after every run;\n"
+"                           reaching it stops the campaign with a named outcome and\n"
+"                           leaves every completed run valid. 0 disables the ceiling.\n"
+"  --bytes-per-frame <n>    the projection used by the pre-flight check. Default 25400,\n"
+"                           measured over M2's twenty runs: 24.3 MB of capture plus\n"
+"                           5.4 MB of host log per 1200-frame run.\n"
 "\n"
 "environment (both are measured preconditions, not preferences):\n"
 "  --n8ro-release <dir>     N8RO_RELEASE for the child processes. Default C:\\N8RO.\n"
@@ -97,7 +114,8 @@ void printHelp() {
 "\n"
 "exit codes:\n"
 "  0  every run completed - the stop predicate was satisfied and teardown was clean\n"
-"  1  at least one run did not complete (timeout or infrastructure error)\n"
+"  1  at least one run did not complete (timeout or infrastructure error), or the\n"
+"     campaign stopped at its disk ceiling\n"
 "  2  usage or configuration error; no run was attempted");
 }
 
@@ -108,6 +126,19 @@ struct Args {
     unsigned long long frames = 1200;
     int count = 20;
     int firstRun = 0;
+    // CR-CAP-5. Measured at M3 over M2's twenty runs: a 1200-frame run costs 29 MB of campaign
+    // directory - a 24.3 MB capture, a 2.85 MB slice of the host's log and a 2.56 MB host.err,
+    // the last two being the terrain-error flood the install is expected to produce. That is
+    // ~24.8 KB per frame, and the ceiling is over the whole directory rather than over the
+    // captures because the logs are exactly what a capture-only projection leaves out.
+    bool captureBoundGiven = false;
+    unsigned long long diskCeilingBytes = 8ULL * 1024 * 1024 * 1024;   // 8 GiB
+    unsigned long long bytesPerFrame = 25400;
+    // The per-capture bound is derived from --frames unless it is given explicitly, so that
+    // CR-CAP-5's "each run is given a per-capture byte bound" holds by default rather than only
+    // when somebody remembers. `captureBoundGiven` distinguishes "not given" from an explicit 0,
+    // which means unbounded and is a different instruction.
+    static constexpr unsigned long long kCaptureBytesPerFrame = 61000;
     bool help = false;
 };
 
@@ -158,8 +189,10 @@ bool parseArgs(int argc, char** argv, Args& a, std::string& error) {
         else if (opt == "--no-recorder")    { a.run.attachRecorder = false; }
         else if (opt == "--sim-config-host")   { const char* v = next("--sim-config-host"); if (!v) return false; a.run.simConfigHost = v; }
         else if (opt == "--sim-config-client") { const char* v = next("--sim-config-client"); if (!v) return false; a.run.simConfigClient = v; }
-        else if (opt == "--capture-max-bytes") { const char* v = next("--capture-max-bytes"); if (!v) return false; a.run.captureMaxBytes = std::strtoull(v, nullptr, 10); }
+        else if (opt == "--capture-max-bytes") { const char* v = next("--capture-max-bytes"); if (!v) return false; a.run.captureMaxBytes = std::strtoull(v, nullptr, 10); a.captureBoundGiven = true; }
         else if (opt == "--on-size-limit")     { const char* v = next("--on-size-limit"); if (!v) return false; a.run.onSizeLimit = v; }
+        else if (opt == "--disk-ceiling-bytes") { const char* v = next("--disk-ceiling-bytes"); if (!v) return false; a.diskCeilingBytes = std::strtoull(v, nullptr, 10); }
+        else if (opt == "--bytes-per-frame")   { const char* v = next("--bytes-per-frame"); if (!v) return false; a.bytesPerFrame = std::strtoull(v, nullptr, 10); }
         else if (opt == "--n8ro-release")      { const char* v = next("--n8ro-release"); if (!v) return false; a.run.n8roRelease = v; }
         else if (opt == "--path-prepend")      { const char* v = next("--path-prepend"); if (!v) return false; a.run.pathPrepend = v; }
         else if (opt == "--query-catalogue")   { a.run.queryCatalogue = true; }
@@ -297,8 +330,57 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "n8ro-campaign: could not create --out-dir %s\n", a.outDir.c_str());
         return 2;
     }
+    // Absolute, before anything is handed to a child. Every child runs in its own working
+    // directory, so a relative path means something different there than it did here. Measured
+    // at M3: a probe run given a relative --out-dir passed it to the recorder, which resolved it
+    // against the run directory it had just been placed in, found nothing, and refused - and the
+    // run then executed all the way to its stop predicate having recorded nothing at all.
+    a.outDir = ext17::proc::absolutePath(a.outDir);
     ext17::log::mirrorToFile(joinPath(a.outDir, "campaign.log"));
 
+    // ---- CR-CAP-5: the pre-flight check ---------------------------------------------------
+    // The upstream recorder bounds one capture FILE (format 6.6). A campaign is many of them
+    // plus a host log per run, so a per-file bound multiplied by twenty is not a campaign bound
+    // and this check is still this project's own. It names both numbers, because "not enough
+    // space" without them is a message nobody can act on.
+    const int plannedRuns = (a.command == "run-once") ? 1 : a.count;
+    const unsigned long long projected =
+        static_cast<unsigned long long>(plannedRuns) * a.frames * a.bytesPerFrame;
+    line("campaign", "disk: projecting " + std::to_string(projected) + " bytes for "
+                         + std::to_string(plannedRuns) + " run(s) of " + std::to_string(a.frames)
+                         + " frames at " + std::to_string(a.bytesPerFrame) + " bytes/frame");
+    if (a.diskCeilingBytes > 0 && projected > a.diskCeilingBytes) {
+        std::fprintf(stderr, "n8ro-campaign: the projected footprint of %llu bytes exceeds the "
+                             "campaign ceiling of %llu bytes. Raise --disk-ceiling-bytes "
+                             "deliberately, or run fewer or shorter runs.\n",
+                     projected, a.diskCeilingBytes);
+        return 2;
+    }
+    if (const auto freeBytes = ext17::proc::freeSpaceBytes(a.outDir)) {
+        line("campaign", "disk: " + std::to_string(*freeBytes) + " bytes free, ceiling "
+                             + (a.diskCeilingBytes > 0 ? std::to_string(a.diskCeilingBytes)
+                                                       : std::string("none")));
+        if (projected > *freeBytes) {
+            std::fprintf(stderr, "n8ro-campaign: the projected footprint of %llu bytes exceeds "
+                                 "the %llu bytes free on the volume holding %s. Refusing to "
+                                 "start.\n", projected, *freeBytes, a.outDir.c_str());
+            return 2;
+        }
+    } else {
+        // Absence is not evidence (tenet 3). A volume that cannot be queried is reported as
+        // unqueried rather than quietly treated as having room.
+        line("campaign", "disk: free space could not be queried for " + a.outDir
+                             + "; the pre-flight space check did not run");
+    }
+
+    if (!a.captureBoundGiven) {
+        a.run.captureMaxBytes = a.frames * Args::kCaptureBytesPerFrame;
+        line("campaign", "per-capture bound: " + std::to_string(a.run.captureMaxBytes)
+                             + " bytes, derived from " + std::to_string(a.frames)
+                             + " frames. It is three times the measured per-frame capture cost, "
+                               "so a run that reaches it has overrun its projection rather than "
+                               "merely run.");
+    }
     a.run.predicate = ext17::run::StopPredicate::frameBudget(a.frames);
     line("campaign", "stop predicate: " + a.run.predicate.statement());
     line("campaign", "run timeout: " + std::to_string(a.run.runTimeoutMs)
@@ -310,6 +392,7 @@ int main(int argc, char** argv) {
     const int count = (a.command == "run-once") ? 1 : a.count;
     std::vector<ext17::run::RunRecord> records;
     records.reserve(static_cast<std::size_t>(count));
+    bool ceilingReached = false;
 
     for (int n = 0; n < count; ++n) {
         ext17::run::RunConfig cfg = a.run;
@@ -317,6 +400,23 @@ int main(int argc, char** argv) {
         cfg.runDir = joinPath(runsDir, cfg.runId);
         // G1: the failure of any one run does not end the campaign.
         records.push_back(ext17::run::executeRun(cfg));
+
+        // CR-CAP-5, the other half: the ceiling is checked against ACTUAL usage after every run,
+        // not only against a projection before the first. Reaching it stops the campaign with a
+        // named outcome, and every run already completed stays valid and readable - which is the
+        // whole difference between stopping and filling the disk.
+        if (a.diskCeilingBytes > 0) {
+            const unsigned long long used = ext17::proc::directorySizeBytes(a.outDir);
+            if (used >= a.diskCeilingBytes) {
+                ceilingReached = true;
+                line("campaign", "disk ceiling reached: " + std::to_string(used)
+                                     + " bytes used of a " + std::to_string(a.diskCeilingBytes)
+                                     + " byte ceiling. Stopping after run " + cfg.runId + " of "
+                                     + std::to_string(count)
+                                     + "; every completed run remains valid and readable.");
+                break;
+            }
+        }
     }
 
     if (a.command == "repeat") {
@@ -331,5 +431,10 @@ int main(int argc, char** argv) {
                          + " runs completed");
 
     ext17::log::closeMirror();
+    // A campaign stopped at its ceiling did not do what it was asked to do, even if every run it
+    // did attempt completed. That is a distinct thing from a failing run and it is named as one
+    // in the log; the exit code cannot carry a fifth value, so it carries "not everything asked
+    // for happened", which is what 1 means.
+    if (ceilingReached) return 1;
     return completed == static_cast<int>(records.size()) ? 0 : 1;
 }

@@ -8,6 +8,7 @@ project ends up believing it has a ruling it never received.
 |---|---|---|---|---|
 | E-1 | **OQ-3** — is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **Drafted, not yet sent.** Extended at M2 with (e) and (f) below. M2 built on the bus-publish route deliberately and says so — see "Why the answer is worth having" |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | Sent by EXT-08 as its E-1; awaiting reply. This is the downstream half |
+| E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **Drafted, not yet sent.** Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
 
 ---
 
@@ -103,3 +104,88 @@ namespaces" to (a) is therefore one file to rewrite, not a redesign. That was th
 shape, not a coincidence. The rest of (a)–(f) change configuration and documentation rather than
 structure. The answer is still cheaper now than after M4 keys a determinism gate to runs produced
 this way.
+
+---
+
+## E-3 — `capture-format-v1.md` §6.7: a rotated run's segment count is not the sum of its parts'
+
+**Status: drafted at M3, awaiting sending.** It goes to **EXT-08**, not to the brief's author:
+`contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in its own words —
+*"If one of them is wrong or insufficient, that is a defect in EXT-08's contract and it goes back
+there."* This is the first time that rule has had to be used.
+
+**It does not block.** The format is frozen and this is an imprecision in prose rather than in a
+file, so nothing about a capture changes whatever the answer is. What changes is whether every
+downstream consumer has to re-derive the correction independently, which is exactly what a
+specification exists to prevent.
+
+### The question
+
+> §6.7, "Stitching a set", rule 2 reads:
+>
+> > **`counts` in each `trailer` is that file's own.** The run's totals are the sum across parts.
+> > Nothing in any part states the set's total, because no part knows it — part 0's trailer is
+> > written long before the run ends.
+>
+> For `samples`, `entities_added`, `entities_removed` and `verdicts` that is exactly right. For
+> **`segments`** it is not, and the same section says why three paragraphs earlier:
+>
+> > A segment cut by a rotation appears as a `segment_close` with `reason: "size_limit"` at the
+> > end of one part and a `segment_open` at the start of the next — **one segment split across two
+> > files, not two segments.**
+>
+> A cut segment is therefore counted in *both* parts' `counts.segments`, and the sum over-counts
+> a run's segments by one per cut.
+>
+> **Measured here.** One 1200-frame run of `Atacama Air Defense`, recorded with
+> `--capture-max-bytes 8000000 --on-size-limit rotate`, produced four parts:
+>
+> | part | `counts.segments` | `end_reason` | `continued_in` |
+> |---|---:|---|---|
+> | 0 | 1 | `size_limit` | yes |
+> | 1 | 1 | `size_limit` | yes |
+> | 2 | 1 | `size_limit` | yes |
+> | 3 | 2 | `host_lost` | no |
+> | **sum** | **5** | | |
+>
+> The run had **two** segments — the run and its teardown reload — exactly as an unrotated
+> recording of the same scenario produces, and as §16 describes. The other four counters summed
+> correctly and matched an unrotated run of the same configuration exactly (`entities_added: 89`,
+> `entities_removed: 47`).
+>
+> Two things would settle it, and either is enough:
+>
+> **(a) Narrow the sentence.** Something like *"The run's totals for `samples`,
+> `entities_added`, `entities_removed` and `verdicts` are the sum across parts. `segments` is not
+> summable: a segment cut by a rotation is closed in one part and opened in the next, so it appears
+> in both parts' counts. Subtract one per cut — a part carrying both `size_limit` and a
+> `continued_in`."*
+>
+> **(b) Or state that the correction is the reader's** and say how, which is the same sentence
+> without the first clause.
+>
+> This project has implemented (a) and does **not** treat it as settled: `n8ro-capture` computes
+> `counts.segments` exactly as §6.7 specifies, computes the corrected run count beside it, prints
+> both, and says which is which:
+>
+> ```
+>   counts        summed across parts: segments 5 samples 50449 adds 89 removes 47 verdicts 0
+>   segments      5 summed across parts, but the RUN has 2: 3 segment(s) were cut by a rotation
+> ```
+>
+> A confirmation, a correction, or "the sum is what we mean and consumers should not care" are all
+> useful answers. What is not useful is two projects quietly computing different numbers from one
+> frozen specification.
+
+### Why the answer is worth having even though nothing is blocked
+
+EXT-17 chose `--on-size-limit stop` at OQ-6, so no campaign this project runs will produce a
+rotated set — which is exactly why the question should be asked now rather than when one does. The
+reader supports rotation because a capture rotated by somebody else still has to be readable here,
+and a reader that silently disagreed with the specification about how many segments a run had would
+be the kind of quiet divergence the repo split and the frozen format exist to prevent.
+
+`PROVENANCE.md` finding 8 quotes §6.7 for EXT-17's benefit and inherits the same sentence, so a
+correction upstream should carry into the next re-pin of `contract/` rather than being noted only
+here.
+

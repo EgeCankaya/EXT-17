@@ -112,4 +112,20 @@ std::vector<std::string> listFilesWithSuffix(const std::string& dir, const std::
 // The file name portion of a path.
 std::string baseName(const std::string& path);
 
+// The absolute form of `path`, or `path` unchanged if it cannot be resolved. Needed because a
+// child process is started in its own working directory: a relative path handed to it means
+// something different there than it did here. Measured at M3, from a probe run given a relative
+// --out-dir: the recorder resolved it against the run directory it had just been placed in,
+// found nothing, and refused - and the run went on to completion having recorded nothing.
+std::string absolutePath(const std::string& path);
+
+// Free space in bytes on the volume holding `path`, for CR-CAP-5's pre-flight check. nullopt
+// when the volume cannot be queried, which is reported rather than assumed to be plenty.
+std::optional<std::uint64_t> freeSpaceBytes(const std::string& path);
+
+// The total size in bytes of everything under `dir`, recursively. CR-CAP-5's ceiling is over the
+// campaign directory rather than over its captures, because logs are what a projection of
+// capture size alone leaves out - measured at M3 at 5.4 MB per run against a 24.3 MB capture.
+std::uint64_t directorySizeBytes(const std::string& dir);
+
 } // namespace ext17::proc

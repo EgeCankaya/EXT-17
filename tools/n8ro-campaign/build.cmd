@@ -2,6 +2,10 @@
 rem EXT-17 M2 - build n8ro-campaign. Release, x64, C++17.
 rem Links the N8RO SDK only: n8ro-sim + n8ro-core. No EXT-08 anything.
 rem
+rem Since M3 it also links src/capture, the conformant reader, so that a run can read back the
+rem capture it just produced. That direction is fine and the reverse is not: the requirement is
+rem that the READER links no SDK, which tools\n8ro-capture\build.cmd is the proof of.
+rem
 rem The build ends by comparing the binary's own --help against help.golden.txt. That comparison
 rem is the mechanism the PRD names as keeping the CLI authority table true: the document does not
 rem enumerate the options, the golden file does, and a drift fails the build rather than an audit.
@@ -17,6 +21,10 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    /I "C:\N8RO\include\n8ro-sim" /I "C:\N8RO\include\n8ro-core" ^
    "%ROOT%\src\common\Log.cpp" ^
    "%ROOT%\src\common\Json.cpp" ^
+   "%ROOT%\src\common\JsonParse.cpp" ^
+   "%ROOT%\src\capture\Capture.cpp" ^
+   "%ROOT%\src\capture\CaptureReader.cpp" ^
+   "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\proc\Process.cpp" ^
    "%ROOT%\src\control\EngineControl.cpp" ^
    "%ROOT%\src\run\StopPredicate.cpp" ^

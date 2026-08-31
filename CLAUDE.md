@@ -61,11 +61,20 @@ Full detail and numbers in `contract/PROVENANCE.md`. In short:
 3. **An entity's identity is `(name, occupancy)`, never name.** The engine re-creates entities
    under the same name, mid-run and at teardown.
 
-And one that is a choice rather than a trap: the recorder can bound and **rotate** its captures
-(`--capture-max-bytes`, `--on-size-limit`, producer 0.9.0). Choose `rotate` and a run's capture
-becomes a set of `.partNNN` files whose segment ordinals restart in each part; choose `stop` and
-it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-6 and
-`contract/PROVENANCE.md` finding 8.
+And one that was a choice rather than a trap, now **decided at M3 (OQ-6): `stop`.** The recorder
+can bound and rotate its captures (`--capture-max-bytes`, `--on-size-limit`, producer 0.9.0), and
+M3 exercised both on real runs rather than choosing from the documentation. `rotate` works
+completely and is not lossy — a four-part capture stitched back to the same roster lifecycle as an
+unrotated one. It was not chosen because **one run's two segments become five `(part, segment)`
+keys**, four of them fragments of one segment that nothing in any file identifies as such. Every
+run under `stop` is one file; `--capture-max-bytes` defaults to `61 000 × --frames`, three times
+the measured per-frame cost, so the bound exists and does not fire on a normal run. The campaign
+ceiling is `8 GiB` over the whole campaign directory. See `docs/m3-oq6.md`.
+
+**The reader supports rotation anyway**, because a capture rotated elsewhere still has to be
+readable here — and reading a rotated set found one imprecision in the frozen specification: §6.7
+says a run's totals are the sum across its parts, which is false for `segments`. That is E-3 in
+`docs/escalations.md`, back to EXT-08, not worked around.
 
 ## Verified environment — do not re-derive
 
@@ -87,6 +96,13 @@ it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-
   which reads like a crash and is a missing DLL. This is a **second, separate** precondition from
   `N8RO_RELEASE`; setting one does not cover the other. `n8ro-campaign` sets both for its
   children and needs `PATH` itself.
+- **A relative path handed to a child process means something else there.** Every child is started
+  in its own working directory, so a relative `--out-dir` passed to the recorder is resolved
+  against the run directory it was just placed in. Measured at M3: the recorder refused, correctly
+  and with a clear message, into a file nobody was reading — and the run then executed to its stop
+  predicate having recorded nothing while reporting `completed`. `n8ro-campaign` resolves
+  `--out-dir` to an absolute path before anything is handed to a child, and a run asked to record
+  that produces no capture is now an `infrastructure_error`.
 - **Run any N8RO binary from a scratch directory.** `n8ro-sim-local.exe` writes a per-entity
   JSONL dump into its working directory, and `n8ro-sim-app.exe` creates `data/db/` and `logs/`
   there — it did so in this repo's root during M1 before the rule was known.
@@ -118,3 +134,22 @@ it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-
 
 - Files in this repo are ours — **no Arkheon proprietary header**. That convention applies only
   to files created inside `C:\N8RO`, which this project does not do.
+
+## The reader, since M3
+
+`src/capture/` and `tools/n8ro-capture/` implement `n8ro-capture/1` from
+`contract/capture-format-v1.md` alone. **They link nothing** — not EXT-08, not the SDK, not a
+third-party JSON library — and `tools/n8ro-capture/build.cmd` is where that is visible in one
+file, plus two searches over its own sources that fail the build on a hit: one for the SDK's and
+the producer's names, one for any global sort of a capture (the file's own record order is
+authoritative, format §5.2).
+
+`n8ro-campaign` links the reader, which is the allowed direction. The requirement is that the
+reader links no SDK, not that nothing linking the SDK may link the reader.
+
+Three things about the model that are easy to get wrong and are already right here: the segment
+list is built from `segment_open` and not from records carrying samples; a segment's clock is
+three-valued (`running` / `frozen` / **`indeterminate`**, the last because the format's exact test
+cannot fire on an empty or one-frame segment); and a segment's time extent is
+`[first sample, last sample]`, never its boundary records, which both read `0.0` on a reloaded
+scenario.
