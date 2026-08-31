@@ -75,8 +75,20 @@ it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-
 - Headless host: `n8ro-sim-app.exe --sim-config SimEngineHost_SharedMemory --model-path <dir>
   --schema-file <name>`. **It takes no scenario argument** — load and start are published on
   `sim/scenario/command` and `sim/engine/command`. See `contract/PROVENANCE.md` finding 6.
-- `n8ro-sim-local.exe` needs `N8RO_RELEASE` set or it refuses the scenario load, and it writes
-  a per-entity JSONL dump into its working directory — run it from a scratch dir.
+- **`N8RO_RELEASE=C:\N8RO` must be set for the headless host too**, not only for
+  `n8ro-sim-local`. Measured at M1: with it unset the host resolves its plugin directory from the
+  current working directory, skips the plugin scan, never registers `componentPhysics` (from the
+  stock `bin\plugins\sim\n8ro-physics.dll`), and **refuses every 42-entity scenario load** — while
+  sitting idle rather than failing. `contract/PROVENANCE.md` finding 6 omits it; that is the
+  contract's to correct, not ours. See `docs/m1-lifecycle.md` §7(a).
+- **Run any N8RO binary from a scratch directory.** `n8ro-sim-local.exe` writes a per-entity
+  JSONL dump into its working directory, and `n8ro-sim-app.exe` creates `data/db/` and `logs/`
+  there — it did so in this repo's root during M1 before the rule was known.
+- The install ships **no geoid grid and no elevation service**, so every run floods with
+  `TerrainElevationServiceClient` / `GeoidGridModel` errors. **Do not fix this.** Every
+  measurement inherited from EXT-08 was taken in this configuration; provisioning terrain would
+  invalidate the comparability of all of it. Setting `N8RO_RELEASE` does not change it — there is
+  no grid under `C:\N8RO\data\geoid` to find.
 
 ## Conventions
 
