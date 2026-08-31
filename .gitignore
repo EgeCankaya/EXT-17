@@ -1,0 +1,44 @@
+# Source documents supplied to the project, not produced by it. The client brief is the
+# outer contract this work must comply with; docs/prd.md will carry the detailed musts.
+# Deliberately untracked: it is a proprietary binary and its content is Arkheon's, not ours.
+*.docx
+
+# Build output
+build/
+bin/
+obj/
+*.user
+*.aps
+
+# Visual Studio local state
+.vs/
+*.VC.db
+*.VC.VC.opendb
+
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.idb
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Captures and campaign output produced by real runs. A single reference run of
+# Atacama Air Defense is about 64 MB of JSON Lines - artifacts to produce and check, not to
+# version. contract/ carries a trimmed sample as a fixture instead.
+captures/
+runs/
+campaigns/
+out/
+*.n8rocap.jsonl
+
+# ...except the pinned fixture vendored from EXT-08, which is test input and evidence.
+!contract/*.n8rocap.jsonl
+
+# n8ro-sim-local writes a per-entity JSONL dump into ./test_artifacts relative to its
+# working directory, unasked. Hundreds of MB per run.
+test_artifacts/
