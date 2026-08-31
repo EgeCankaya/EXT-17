@@ -46,6 +46,19 @@ void printHelp() {
         "                         present in both, or the verdict is indeterminate rather than\n"
         "                         pass. Default 99. Measured: the worst of all 190 pairs of\n"
         "                         M2's twenty runs was 0.4192%% unmatched.\n"
+        "  --changed-input        the two captures are runs at DIFFERENT inputs, not two runs of\n"
+        "                         one configuration. This is the brief's second diffing half -\n"
+        "                         \"change one input and show exactly where the two runs\n"
+        "                         diverged\" - and it is a different question from the gate.\n"
+        "                         A divergence is the ANSWER, not a failure; agreement means the\n"
+        "                         changed input did not take effect, and is the outcome worth\n"
+        "                         more attention. No gate line is printed and no pass/fail word\n"
+        "                         appears. Exit 0 when they diverged and the point is named,\n"
+        "                         1 when they did not.\n"
+        "\n"
+        "                         n8ro-campaign can only ever produce a self-test pair - two\n"
+        "                         copies of one RunConfig - so nothing in a campaign reaches\n"
+        "                         this framing by accident.\n"
         "  --outcome-a <s>        the four-state run outcome of each run, where the caller\n"
         "  --outcome-b <s>        knows it. Omitted means not supplied, which is reported as\n"
         "                         not supplied rather than as agreement.\n"
@@ -53,8 +66,11 @@ void printHelp() {
         "  --help                 this text.\n"
         "\n"
         "exit codes:\n"
-        "  0  the gate passed\n"
-        "  1  the gate failed, or the comparison was indeterminate\n"
+        "  0  the gate passed - or, under --changed-input, the two runs diverged and the first\n"
+        "     point of divergence is named\n"
+        "  1  the gate failed, or the comparison was indeterminate - or, under --changed-input,\n"
+        "     the two runs did NOT diverge, which for two different inputs means the input did\n"
+        "     not take effect\n"
         "  2  usage error, or the comparison was refused - a precondition was not met and the\n"
         "     refusal names which\n");
 }
@@ -108,6 +124,10 @@ int main(int argc, char** argv) {
             options.coverageFloor = static_cast<double>(pct) / 100.0;
             continue;
         }
+        if (arg == "--changed-input") {
+            options.purpose = ext17::compare::Purpose::ChangedInput;
+            continue;
+        }
         if (wantsValue(argc, argv, i, "--outcome-a", v)) { outcomeA = v; continue; }
         if (wantsValue(argc, argv, i, "--outcome-b", v)) { outcomeB = v; continue; }
         if (!arg.empty() && arg[0] == '-') {
@@ -146,5 +166,13 @@ int main(int argc, char** argv) {
     }
 
     if (r.refusal != ext17::compare::Refusal::None) { return 2; }
+
+    // A changed-input diff has no gate, so it has no pass. Its exit code answers the question it
+    // was asked: 0 when the two runs diverged and the divergence was named, 1 when they did NOT —
+    // because two DIFFERENT inputs producing identical output means the input did not take
+    // effect, and that is the finding worth a non-zero exit in a script.
+    if (options.purpose == ext17::compare::Purpose::ChangedInput) {
+        return r.content.differ > 0 ? 0 : 1;
+    }
     return r.passed() ? 0 : 1;
 }

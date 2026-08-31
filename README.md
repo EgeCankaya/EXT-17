@@ -3,12 +3,14 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
-**Status: milestone 4 of 7.** What exists today is the execution half, the reading half and the
-gate: one run, automated, with an explicit end and a bounded timeout, repeatable unattended; a
-conformant reader for the capture format that **links nothing at all**; and a determinism
-self-test that runs at the start of every campaign and stops it if it does not pass. There is no
-parameterisation sweep (M5) and no assertions or campaign report (M6). `n8ro-campaign` therefore
-reports three outcomes rather than four; see [The four outcomes](#the-four-outcomes).
+**Status: milestone 6 of 7.** Everything the brief asks for is built except its documentation
+milestone: one run, automated, with an explicit end and a bounded timeout; a conformant reader
+for the capture format that **links nothing at all**; a determinism self-test that runs at the
+start of every campaign and stops it if it does not pass; one parameterisation axis declared in
+a file and swept across a campaign; conditions declared outside the code and judged into
+three-valued verdicts; per-run records and a campaign summary, both machine-readable and both
+legible; a re-judge mode over stored captures; and the four ugly realities injected
+deliberately. M7 is the evidence and the recording.
 
 > **The determinism gate passes on content, and that is this project's decision rather than the
 > client's.** The brief asks for two identical runs to *"produce identical captures"*; measured
@@ -184,28 +186,37 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
 tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
 tools\n8ro-compare\build.cmd       ->  build\n8ro-compare\n8ro-compare.exe
+tools\n8ro-judge\build.cmd         ->  build\n8ro-judge\n8ro-judge.exe
 tests\build.cmd                    ->  builds and runs the tests
 ```
 
 `tests\build.cmd` links nothing and needs no N8RO install — it covers the parts whose
 correctness is about our own output rather than about the platform; since M3 the capture reader,
-whose correctness is about somebody else's bytes; and since M4 the determinism comparison, whose
-correctness is what every other result rests on. **78 conformance checks and 75 determinism
-checks.**
+whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
+correctness is what every other result rests on; since M5 the axis; and since M6 the whole
+assertion surface. **78 + 96 + 126 + 166 = 466 checks**, of which the last two suites are each
+run twice, the second time under a comma-decimal locale.
 
-**`tools\n8ro-capture\build.cmd` and `tools\n8ro-compare\build.cmd` need no N8RO install either,
-and that is the point.** Look at their compile lines: no `/I`, no `/LIBPATH`, no `.lib`. Neither
-the reader nor the comparison links EXT-08 or the SDK, and a build script anyone can read in ten
-seconds is a better proof of that than an argument about translation units. Each build then
-searches its own sources for the SDK's and the producer's names, and for any global sort of a
-capture, and fails on a hit. **`n8ro-compare`'s carries two searches more** — for a clock read or
-a formatted time, and for an unordered container or a locale-dependent number conversion —
-because those are CR-DET-2's hazards and they are properties of the comparison's own sources
-rather than of whatever links them.
+**Three of the four tools need no N8RO install to build or to run, and that is the point.** Look
+at the compile lines of `n8ro-capture`, `n8ro-compare` and `n8ro-judge`: no `/I`, no `/LIBPATH`,
+no `.lib`. Neither the reader, nor the comparison, nor the condition evaluator links EXT-08 or
+the SDK, and a build script anyone can read in ten seconds is a better proof of that than an
+argument about translation units. Each build then searches its own sources for the SDK's and the
+producer's names, and for any global sort of a capture, and fails on a hit.
+
+**`n8ro-compare`'s carries two searches more** — for a clock read or a formatted time, and for an
+unordered container or a locale-dependent number conversion — because those are CR-DET-2's
+hazards and they are properties of the comparison's own sources rather than of whatever links
+them.
+
+**`n8ro-judge`'s carries those and one beyond them:** it fails the build if the assertion path
+ever names a process, a bus or the control path. The compile line already makes a host
+unreachable, since none of those symbols could resolve; the search is the second lock, and it
+fires a milestone before the link would notice. That is CR-CAP-1's *"no host started and no bus
+subscription made"* made structural rather than promised.
 
 Each build ends by running its binary's own `--help` and comparing it against the golden file
-beside it — `tools\n8ro-campaign\help.golden.txt`, `tools\n8ro-capture\help.golden.txt`,
-`tools\n8ro-compare\help.golden.txt`. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
+beside it — `help.golden.txt`, one in each of the four tool directories. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
 a list nobody executes is exactly what drifted in the sibling project. **The golden file is the
 CLI's specification.**
 
@@ -239,9 +250,35 @@ n8ro-campaign repeat ^
     --campaign examples\atacama-raid-speed.json ^
     --recorder <...> ^
     --frames 1200
+
+rem The committed twenty-run campaign, judged. One command, no manual step.
+n8ro-campaign repeat ^
+    --out-dir campaigns\m6-campaign ^
+    --campaign examples\atacama-raid-speed-20.json ^
+    --conditions examples\atacama-raid.conditions.json ^
+    --recorder <...>
+
+rem Re-read a stored campaign's report. Starts nothing; needs no N8RO install.
+n8ro-campaign report --out-dir campaigns\m6-campaign ^
+    --campaign examples\atacama-raid-speed-20.json
+
+rem Re-judge stored captures against new conditions, and check the identity.
+n8ro-judge campaign campaigns\m6-campaign ^
+    --conditions <new-conditions> --write verdicts-new.jsonl
+
+rem Change one input, and show exactly where the two runs diverged.
+n8ro-compare --changed-input ^
+    campaigns\m6-campaign\runs\000\capture-atacama-air-defense-000.n8rocap.jsonl ^
+    campaigns\m6-campaign\runs\019\capture-atacama-air-defense-019.n8rocap.jsonl
 ```
 
-`n8ro-campaign --help` is the authority for the options.
+`n8ro-campaign --help` is the authority for the options, and the same is true of the other three
+binaries — each build compares its binary's own `--help` against the golden file beside it.
+
+**A note on `--run-timeout-ms`, because the default is generous.** A 1200-frame run takes about
+70 s here, and the default backstop is 600 000 ms. That costs nothing on a healthy run and ten
+minutes on a host that dies mid-run, which is not detected until the timeout expires (F-27). Size
+it against the frame budget for an unattended campaign.
 
 ## Sweeping one parameter — the axis, and where the trend is
 
@@ -365,6 +402,8 @@ It reads a 24 MB, 50 573-line capture in 0.24 s and a twenty-run campaign in 4.7
   runs/
     000/
       run.json                     the per-run record
+      verdicts.jsonl               one verdict per declared condition, one JSON object per
+                                   line. Written when --conditions is given
       capture-<scenario>-000.n8rocap.jsonl
                                    one file per run under --on-size-limit stop; under
                                    rotate, also .partNNN siblings, listed in run.json
@@ -409,6 +448,79 @@ judge or compare later, and reporting it as completed would be reporting a numbe
 `start` / `stop` / `pause` / `step` — there is no shutdown command, so the host is ended with a
 console control event, and Windows reports `3221225786` (`0xC000013A`) for that. The host still
 shuts down in an orderly way. `terminated_by: "handle"` in the record is the case to look at.
+
+### The judgement, and the two vocabularies it keeps apart
+
+With `--conditions` given, `run.json` gains a `judgement` object and the run directory gains a
+`verdicts.jsonl`:
+
+```json
+"judgement": {
+  "conditions_file": "examples\\atacama-raid.conditions.json",
+  "conditions_declared": 7,
+  "judged_this_run": true,
+  "not_judged_reason": null,
+  "judgeable": true,
+  "verdicts":   { "met": 1, "not_met": 5, "indeterminate": 1,
+                  "indeterminate_is_a_verdict_state_not_a_run_outcome": true },
+  "assertions": { "satisfied": 3, "violated": 3, "undetermined": 1,
+                  "only_a_violation_makes_a_run_fail": true },
+  "verdicts_file": "verdicts.jsonl",
+  "one_verdict_per_declared_condition": true
+}
+```
+
+**`verdicts` is what the run did; `assertions` is whether that was what was asserted.** They are
+counted separately and never merged, because a condition asserting non-occurrence is *satisfied*
+by a `not_met` answer. Only a **violation** fails a run.
+
+**`judged_this_run` is the field to read on anything that is not `pass` or `fail`.** A run whose
+outcome is `infrastructure_error` or `timeout` is **not judged** — inventing verdicts for a run
+the harness broke would turn an infrastructure failure into a test result — so it carries 0
+verdicts against 7 declared conditions, with `not_judged_reason` saying why. That count mismatch
+is deliberate, and it is the cut-short signal: a reader seeing fewer verdicts than conditions
+treats the run as cut short, never as passing.
+
+Each line of `verdicts.jsonl` is one `ext17-verdict/1` object:
+
+```json
+{"schema":"ext17-verdict/1","condition_id":"raid-leader-reaches-airfield","kind":"proximity",
+ "state":"not_met","expect":"met","outcome":"violated","because":"cleared_by_continuity_bound",
+ "segment":{"part":0,"segment":0},
+ "entities":[{"entity":"RedUAV_N_01","occupancy":1,"sim_time_s":"59.99999999999873","line":50634},
+             {"entity":"BlueBase_Airfield","occupancy":1,"sim_time_s":"59.99999999999873","line":50605}],
+ "deciding_sim_time_s":"59.99999999999873",
+ "measured_name":"closest_approach_m","measured":"8693.1695",
+ "threshold_name":"within_m","threshold":"3000",
+ "absence_dependent":true,"bound_applied":true,
+ "margin_m":"5693.17","bound_m":"1.20","largest_gap_s":"0.1000",
+ "reason":"closest approach 8693.1695 m at sim_time_s 59.99999999999873, against a threshold of 3000 m. The margin of 5693.17 m exceeds the 1.20 m they could have closed inside the largest unobserved window (0.1000 s at a relative 11.0 m/s), so they did not reach it"}
+```
+
+**Everything needed to check the verdict by hand is in it**: the entities with their occupancies,
+the exact line in the capture, the deciding `sim_time_s` verbatim, the measured value, the
+threshold, and — for a bounded not-met — the margin, the bound, and the gap it was computed over.
+
+**The capture path is deliberately not a member.** A live judgement runs against a path inside the
+run directory and a re-judgement is handed an absolute one; including it would make
+`n8ro-judge --verify`'s byte-for-byte identity check fail on a difference that means nothing. The
+run record carries the path; the verdict carries the finding.
+
+### The campaign summary
+
+`campaign.json` is `ext17-campaign-summary/4`. Beyond M5's `axis` and `sweep` it carries:
+
+```json
+"outcomes":   { "attempted": 20, "pass": 6, "fail": 12, "timeout": 0,
+                "infrastructure_error": 2, "completed_unjudged": 0,
+                "sums_to_attempted": true,
+                "no_aggregate_merges_two_of_the_four": true },
+"conditions": { "file": "...", "declared": 7, "indeterminate_verdicts": 18,
+                "indeterminate_is_a_verdict_state_not_a_run_outcome": true }
+```
+
+and every entry of `sweep` gains the per-condition verdict at that parameter value — the seam the
+sweep's trend is read from, and the half M5 recorded as unmet because no condition existed yet.
 
 ## Disk — the ceiling, and what it is measured over
 
@@ -462,14 +574,35 @@ readable here.
 
 ## The four outcomes
 
-The PRD requires four, never collapsed: **pass, fail, timeout, infrastructure error.** At M4
-there are three, because nothing judges a run yet:
+The brief requires four, never collapsed: **pass, fail, timeout, infrastructure error.**
 
 | Outcome | Means |
 |---|---|
-| `completed` | The stop predicate was satisfied and teardown was clean. **Not a pass** — no condition has been evaluated. `pass` and `fail` replace it at M6 |
-| `timeout` | The run timeout expired before the predicate was satisfied. Its own outcome, never a failure |
+| `pass` | Every condition the campaign asserted was satisfied |
+| `fail` | The capture read, and a declared condition was **violated** — evaluated, and its answer was not the asserted one |
+| `timeout` | The run timeout expired before the stop predicate was satisfied. Its own outcome, **never a failure**: a run that did not finish has told you nothing about the scenario |
 | `infrastructure_error` | The harness, the host, or the scenario load failed. Never a failing scenario |
+
+A fifth key, `completed`, appears only when **no condition file was declared** — a run nothing
+judged is not a pass, and calling it one would undo the whole distinction. It is 0 in any judged
+campaign.
+
+**Two things route to `infrastructure_error` that are worth knowing about**, because neither
+looks like broken infrastructure at first glance and both are the honest reading of the brief's
+*"never let an infrastructure failure count as a test result"*:
+
+- **A capture with no running segment.** Segment 0 can classify `frozen` — see the limits
+  section — and `sim_time_s` then does not order its samples, so nothing in the file can be
+  judged and the sampling gap a not-met verdict is bounded against cannot be measured. It is not
+  a determinism failure and it is certainly not a failing scenario.
+- **A run in which nothing at all was decided.** Every verdict indeterminate. Calling that a
+  pass is the *"all passed having checked nothing"* failure, turned on the verdicts instead of
+  on the loader.
+
+**`indeterminate` is not a fifth outcome.** It is a **verdict** state (see the limits section),
+and a run carrying one is reported with its four-state outcome plus the indeterminate verdict
+named beside it. Keeping the two vocabularies apart is deliberate, and it is what makes the
+brief's acceptance criterion 5 stay exactly satisfied rather than approximately.
 
 Exit code: `0` if every run completed, `1` if any did not, `2` for a usage error before any run
 was attempted, and `3` if the determinism self-test did not pass — in which case **no campaign run
@@ -522,9 +655,92 @@ untouched; five mutations and one positive one generated into the build tree —
 M2's real producer-0.9.0 captures, read with the same reader, skipped **with a printed message**
 when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-reader.md).
 
-## Limits — what a result here does and does not prove
+## Judging a run — conditions, and what a verdict is entitled to say
 
-Partial at M5; CR-DOC-1 requires the full version at M7.
+Conditions are declared in **their own file**, never in EXT-17's source, and the file is loaded
+and validated **before any host is started**. A duplicate id, an unrecognised kind, an unknown
+key, a key written twice and an empty condition list are each a distinct named error and a
+non-zero exit, so a typo costs ten seconds rather than twenty runs.
+
+```cmd
+n8ro-judge check --conditions examples\atacama-raid.conditions.json
+n8ro-campaign repeat --out-dir campaigns\mine --campaign examples\atacama-raid-speed-20.json ^
+                     --conditions examples\atacama-raid.conditions.json --recorder <path>
+```
+
+**The vocabulary is closed at three kinds** — proximity between two entities, presence in a
+region, reaching a terminal state. A fourth spelling is a named parse error and never a silently
+skipped condition, because a campaign that judged everything except the one that mattered would
+report all passed. Adding a fourth kind is a change to the requirements, which is the point.
+
+**Units are the platform's own and are never converted:** metres, degrees, and the platform's
+`[lat, lon, alt]` order.
+
+**The file shape is EXT-08's**, adopted at M6 by writing this project's conditions in it and
+evaluating them against real captures rather than by reading it — the decision and its
+measurements are in [`docs/m6-oq5.md`](docs/m6-oq5.md). **Three rules around it differ, and one
+key is added**, each for a reason this project measured:
+
+| | |
+|---|---|
+| an unknown key, or a key written twice | **refused by name**, the opposite of the capture format's §13 rule. The difference is who wrote the file: a producer adds keys and an old reader must survive them, whereas `"within_meters"` for `"within_m"` is a threshold that silently did not apply. A key beginning with `_` is a comment |
+| `"scenario_unload"` as a `removal_reason` | **refused**. It is what the engine's stop path writes for every surviving entity at teardown — measured, 267 of 385 removals across the committed sweep, all at `sim_time_s` 0 — so a condition on it is met in every run for every entity, at a time that points at the wrong end of the run |
+| the verdict | **three-valued**, not two. The vendored `met: false` at end of run is a conclusion drawn from absence, and this project does not draw those |
+| **`expect`**, added | `"met"` (the default) or `"not_met"`. The vendored schema is a *referee*: it reports whether a condition was satisfied and says nothing about whether that is welcome. Two of the brief's three questions survive being read as "this should hold"; *"did anything reach a terminal state it **should not** have"* does not, and the vendored shape expresses non-occurrence only for the area kind |
+
+The verdict still records the **fact** in the vendored schema's own terms — `met` or `not_met` —
+so EXT-08's verdicts and a re-judgement here stay directly comparable. Whether the fact was the
+asserted one is a separate field: `satisfied`, `violated`, `undetermined`. **Only a violation
+fails a run.**
+
+### An assertion never reads absence as evidence
+
+A capture is a very high-fidelity **sample** of the published stream, not a guaranteed-complete
+transcript, and loss has been measured with every platform counter reading zero. So *"no record
+says it happened"* is not the same claim as *"it did not happen"*, and a condition that depends
+on the difference reports **`indeterminate`** with its reason.
+
+A `met` verdict is always sound — it is computed from records that are **present**. The whole
+question is what a not-met verdict may claim, and the classification is **per form**, because
+`terminal_state`'s two forms differ completely:
+
+| form | a `not_met` verdict is sound when | what licenses it |
+|---|---|---|
+| `proximity` | the closest observed approach clears the threshold by more than the pair could have closed inside the largest unobserved window, **and** both tracks are bounded over the segment | continuity over present samples |
+| `area` | the same, measured to the region's boundary | continuity over present samples |
+| `terminal_state` + `removal_reason` | every occupancy of the entity is closed by a record stating some *other* reason, or carries a sample at the segment's last sampled instant | **the capture format §8.1**, normatively: *"within one `(entity, occupancy)` pair, no `sample` ever appears after that pair's `entity_remove`"* — so a sample is positive evidence of non-removal, and a gap does not weaken it because a re-created entity carries a **higher** occupancy |
+| `terminal_state` + `field`+`equals` | **never** | nothing in the format bounds a string field's rate of change, so the value could be taken and left between two samples |
+
+The bound is `(v_a + v_b) · Δt_max + ½ · 20 m/s² · Δt_max²`, and every verdict that used it
+carries the margin, the bound and the largest gap, so the claim is checkable rather than
+asserted. Measured across the committed sweep: the largest gap is `0.1000 s` — exactly one missed
+frame at the platform's 0.05 s period — and the tightest not-met margin clears its bound by a
+factor of 64.
+
+**`indeterminate` is a verdict state and never a fifth run outcome.** A run carrying one is
+reported with its four-state outcome plus the indeterminate verdict named.
+
+### Re-judging a stored run
+
+```cmd
+n8ro-judge campaign campaigns\mine --conditions <new-conditions> --write verdicts-new.jsonl
+```
+
+**No host is started and no bus subscription is made — and `n8ro-judge` could not make one.** It
+links nothing that could reach the platform, which its build script proves by naming no include
+path and no library and by failing the build if the assertion path ever names a process, a bus
+or the control path.
+
+The live campaign judges the capture it has just written, through **the same evaluator over the
+same stored file**. So *"a re-judgement produces verdicts identical to the live run's"* is
+structural rather than promised — and `--verify` checks it anyway, byte for byte:
+
+```
+  000  fail   satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+```
+
+## Limits — what a result here does and does not prove
 
 - **The determinism gate passes on content, and that is weaker than the strictest reading of the
   brief.** Two runs of one configuration are **never byte-identical here** — 0 of 190 pairs — and
@@ -622,6 +838,83 @@ Partial at M5; CR-DOC-1 requires the full version at M7.
 - **The headless invocation is not yet confirmed.** It is measured working; whether it is the
   *intended* production shape is OQ-3, open, in `docs/escalations.md`.
 
+### What a verdict does and does not prove
+
+- **A `pass` means every declared condition was satisfied — not that the run was correct.** It
+  is a statement about the questions somebody thought to ask, over the data that reached the
+  file. A condition nobody wrote is a condition nobody checked, and the campaign cannot tell you
+  which those are.
+- **A `not_met` verdict on a proximity or area condition is a *bounded* conclusion, not a
+  record.** Nothing observed the entity between two samples; what the verdict claims is that
+  nothing it could have done in that window would have changed the answer. The margin, the bound
+  and the largest gap are all in the verdict so the claim can be checked. Where the margin does
+  **not** clear the bound, the verdict is `indeterminate` — and that is the correct answer, not
+  a failure of the tool.
+- **The bound rests on one assumption that is inferred rather than measured directly**: that the
+  platform cannot exceed its own measured 20 m/s² acceleration clamp inside one frame. That clamp
+  was measured on one entity profile in one scenario. Its practical weight is small — across the
+  committed sweep the term contributes 0.10 m to bounds of 1.20–22.10 m — but it is the
+  assumption to attack first. **F-28.**
+- **A `terminal_state` condition using `field` + `equals` can never report a sound `not_met`.**
+  It reports `indeterminate` instead, every time, and that is by design rather than by
+  limitation: nothing in the format bounds how fast a field may change. `health` was measured
+  moving through nominal → degraded → disabled → wrecked → destroyed with zero regressions in
+  seven runs, which is a direction and not a guarantee, and this classification does not lean on
+  it.
+- **"No CIWS gun engaged" cannot be expressed**, and it is the cleanest binary result this
+  project has measured. The gun rounds are entities named `BlueGun_East_01_wpn_44749_4` — the
+  numeric parts are generated and differ every run — and conditions name entities, with no
+  pattern matching. Two other conditions flip across the same sweep and are expressible, so
+  nothing required is lost. Note that M5's reason for refusing a glob (it would perturb the
+  publication schedule the gate measures) does **not** apply on a read-back path; this is
+  declined on merit and stays available to a future revision.
+- **A condition asserting non-occurrence is expressible for the `area` kind and, through
+  `expect`, for the other two.** What is not expressible is a condition over more than one run.
+  The sweep's comparison lives in the report, not in the condition language, deliberately — the
+  first step of a general expression language is the rabbit hole ADR-5 exists to close.
+- **The arithmetic every geometric verdict rests on is this project's decision, not an inherited
+  one.** `contract/condition-file-schema.md` documents `within_m` as a threshold "in metres" and
+  stops one heading before the sections that say how a distance is computed and how a boundary
+  is decided. Both exist upstream and neither was vendored, so EXT-17 decided them —
+  ECEF on WGS-84, straight-line Euclidean, `<=` at the threshold, edge-inclusive polygons — and
+  states the constants in `src/assert/Geodesy.h` so a verdict can be recomputed with a
+  calculator. Raised as **E-5**; the decision does not wait on the answer.
+
+### What the campaign costs when the platform does something awkward
+
+- **The determinism gate refuses roughly 1 pair in 14, and more under parameterisation.** Part of
+  the start-up roster burst is published twice with byte-identical values, in a segment whose
+  clock did not reset — which satisfies the format's frozen-clock test and excludes the segment.
+  Measured 2 of 42 ordinary captures; **4 of 35 parameterised runs (11.4%)**. It is not a
+  determinism failure, the refusal names which shape it found, and **there is deliberately no
+  retry**.
+- **The same mechanism can stop a whole campaign, not just one run.** Applying the parameter
+  before `start` can land between two publications of the roster burst, so one run of the
+  self-test pair records the scenario's authored velocity and the other records ours. Measured
+  on the first execution of the committed twenty-run campaign: **23 samples differing, every one
+  at `sim_time_s` 0, every one in `velocityNed`, every one a raider the axis updates**. The gate
+  correctly failed, the campaign correctly stopped at exit 3, and **zero runs were attempted**.
+  That execution is kept at `campaigns/m6-gate-refused/`; it is the first time the content gate
+  has failed on a real pair for a real reason. **F-29**, and it strengthens E-4.
+- **The value that makes that visible is a platform artifact of ~1e-14.** An injected
+  `velocityNed` comes back through the capture as `[-1.0103336092965664e-14, -55, 0]` where the
+  scenario's authored value is exactly `[0, -55, 0]`. This project's arithmetic is exact —
+  `direction × value`, no normalisation — so the artifact is introduced between the update and
+  the capture. With a bit-identical vector the race above would produce no difference at all.
+  **F-30.**
+- **A host that dies mid-run is not noticed until the run timeout expires.** The campaign
+  survives it, reports `infrastructure_error`, and continues — which is what the brief asks —
+  but it pays `--run-timeout-ms` in wall clock for each occurrence, ten minutes at the default.
+  There is deliberately no second timed quantity watching for heartbeat silence, because the run
+  timeout is the only clock a run is allowed. **Size `--run-timeout-ms` against the frame
+  budget**; at 1200 frames a run takes about 65 s here, so 120 000 is generous and 600 000 is
+  ten minutes of waiting for nothing. **F-27.**
+- **The axis has a measured fidelity ceiling at 400 m/s and the tool does not enforce it.** Above
+  it the platform clamps, walking the entity down at 20 m/s²; at 900 m/s a run spends 42% of
+  itself off parameter. Staying inside the range is the campaign author's job on purpose: the
+  ceiling belongs to a scenario's entity profiles, not to the campaign runner, and hard-coding it
+  would be this project asserting something about scenarios it has never loaded. **R13.**
+
 ## Boundaries
 
 - **`contract/` is read-only.** It holds the `n8ro-capture/1` specification and fixtures vendored
@@ -648,12 +941,14 @@ Partial at M5; CR-DOC-1 requires the full version at M7.
 | `src/capture/` | The conformant reader for `n8ro-capture/1`. Links nothing |
 | `src/compare/` | The determinism comparison — alignment, the coverage floor, the twelve refusals, both comparisons, the report. Links nothing |
 | `src/param/` | The one parameterisation axis: its model and its campaign-file parser. Links nothing, not even the run path — an axis is a declaration |
+| `src/assert/` | The conditions, the geodesy, and the evaluator that turns a stored capture into verdicts. Links nothing, and **could not reach a host or a bus if it wanted to** |
 | `src/common/` | Logging, a JSON writer with no run-to-run variation in it, and an order-preserving JSON parser |
 | `tests/` | Tests that link nothing and need no install. `tests\build.cmd` builds and runs them |
 | `tools/n8ro-campaign/` | The execution CLI, and its golden `--help` |
 | `tools/n8ro-capture/` | The reader CLI, and its golden `--help`. Its build script is the boundary's proof |
 | `tools/n8ro-compare/` | The comparison CLI, and its golden `--help`. Its build script proves the boundary **and** that none of CR-DET-2's four hazards is on the path |
-| `examples/` | A committed campaign configuration — the sweep `docs/m5-sweep.md` reports |
+| `tools/n8ro-judge/` | The re-judge CLI, and its golden `--help`. Its build script proves the boundary, the hazards, **and** that the assertion path names no process, bus or control path |
+| `examples/` | The committed campaign configurations and the committed condition file — the twenty-run campaign `docs/m6-assertions.md` reports, and M5's seven-value sweep |
 | `tools/spike-axis/` | M2's R9/OQ-4 feasibility spike. Evidence, not product |
 | `tools/spike-oq4/` | M5's OQ-4 **fidelity** spike — the criterion M2's deliberately did not measure. Evidence, not product |
 | `tools/m5-checks/` | The throwaway reader for that spike's captures |

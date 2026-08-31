@@ -334,6 +334,47 @@ std::string lineAt(const std::string& path, std::size_t wanted) {
     return {};
 }
 
+// One field's value as text, VERBATIM. A number renders as the characters the capture carried
+// (§8.3), never through a conversion; an array renders as its elements in brackets, each of them
+// verbatim in turn.
+//
+// **Arrays are the reason this function exists.** Until M6 this was
+// `v.isNumber() ? v.raw() : v.text()`, and `Value::text()` is empty for an array — so every
+// difference in `positionGeodetic`, `velocityNed` or `orientationYprRad` reported the field name
+// correctly and then printed two empty values. Those are three of the four fields a divergence
+// is most likely to be in, and CR-DET-3 and CR-REP-4 both require a failure to name the deciding
+// VALUES and not only the field.
+//
+// It was never caught because it takes a real content-gate failure on a real pair to see it, and
+// until M6 the content gate had never failed on one: M4's failing-gate evidence came from
+// forcing `--gate-basis bytes`, which reports a byte offset and never reaches this code.
+// Recorded as F-31.
+std::string valueText(const json::Value& v) {
+    if (v.isNumber()) { return v.raw(); }
+    if (v.isString()) { return v.text(); }
+    if (v.isBool()) { return v.boolean() ? "true" : "false"; }
+    if (v.isNull()) { return "null"; }
+    if (v.isArray()) {
+        std::string out = "[";
+        for (std::size_t i = 0; i < v.elements().size(); ++i) {
+            if (i != 0) { out += ", "; }
+            out += valueText(v.elements()[i]);
+        }
+        return out + "]";
+    }
+    if (v.isObject()) {
+        std::string out = "{";
+        bool first = true;
+        for (const json::Member& m : v.members()) {
+            if (!first) { out += ", "; }
+            first = false;
+            out += m.first + ": " + valueText(m.second);
+        }
+        return out + "}";
+    }
+    return "(unrenderable)";
+}
+
 // Name the first field whose value differs, so a failure attributes to a value rather than to a
 // line. Falls back to naming the record itself when the difference is structural.
 void nameFirstDifferingField(const std::string& lineA, const std::string& lineB, Difference& d) {
@@ -360,9 +401,8 @@ void nameFirstDifferingField(const std::string& lineA, const std::string& lineB,
         if (other != nullptr) { encodeValue(*other, db); }
         if (other == nullptr || !(da == db)) {
             d.field = m.first;
-            d.valueA = m.second.isNumber() ? m.second.raw() : m.second.text();
-            d.valueB = (other == nullptr) ? std::string("(absent)")
-                                          : (other->isNumber() ? other->raw() : other->text());
+            d.valueA = valueText(m.second);
+            d.valueB = (other == nullptr) ? std::string("(absent)") : valueText(*other);
             return;
         }
     }
@@ -370,7 +410,7 @@ void nameFirstDifferingField(const std::string& lineA, const std::string& lineB,
         if (fa->find(m.first.c_str()) == nullptr) {
             d.field = m.first;
             d.valueA = "(absent)";
-            d.valueB = m.second.isNumber() ? m.second.raw() : m.second.text();
+            d.valueB = valueText(m.second);
             return;
         }
     }
@@ -444,6 +484,14 @@ const char* name(Refusal r) {
     return "unknown";
 }
 
+const char* name(Purpose p) {
+    switch (p) {
+        case Purpose::SelfTest: return "self-test";
+        case Purpose::ChangedInput: return "changed-input diff";
+    }
+    return "unknown";
+}
+
 const char* name(GateBasis b) {
     switch (b) {
         case GateBasis::Content: return "content";
@@ -480,6 +528,7 @@ ComparisonResult compareCaptures(const std::string& pathA,
     out.labelA = labelA.empty() ? pathA : labelA;
     out.labelB = labelB.empty() ? pathB : labelB;
     out.gateBasis = options.gateBasis;
+    out.purpose = options.purpose;
     out.content.coverageFloor = options.coverageFloor;
 
     const auto refuse = [&out](Refusal r, const std::string& detail) {
@@ -893,15 +942,35 @@ std::string renderReport(const ComparisonResult& r) {
     };
     const auto cont = [&s](const std::string& text) { s += "                        " + text + "\n"; };
 
-    s += "determinism self-test\n";
-    row("runs", r.labelA + "  against  " + r.labelB);
-    row("gate basis", std::string(name(r.gateBasis))
-                          + "   (ADR-1: the content basis is THIS PROJECT'S decision, not the "
-                            "client's)");
-    row("OQ-2", "UNANSWERED. Whether the gate is keyed on content or on bytes is out with the");
-    cont("owner of the brief and has not been ruled on. Both comparisons are run and");
-    cont("reported below; the basis above chooses which one decides, and nothing else.");
-    s += "\n";
+    // The machinery below is identical for both purposes. Only the framing differs, and it has
+    // to: for a changed-input diff a divergence is the ANSWER, not a failure, and calling it a
+    // gate would be wrong in both directions. [B] asks for both halves — *"run the same
+    // configuration twice and show that the results are identical; change one input and show
+    // exactly where the two runs diverged"* — and they are different questions.
+    if (r.purpose == Purpose::ChangedInput) {
+        s += "run-to-run diff - two runs at DIFFERENT inputs\n";
+        row("runs", r.labelA + "  against  " + r.labelB);
+        row("what this is", "the brief's second diffing half: \"change one input and show exactly");
+        cont("where the two runs diverged\". A divergence here is the ANSWER, not a");
+        cont("failure - and it is not a determinism finding, because these are two");
+        cont("configurations rather than one configuration run twice.");
+        row("what it is NOT", "a gate. n8ro-campaign can only ever produce a self-test pair - two");
+        cont("copies of one RunConfig - so nothing in a campaign can reach this");
+        cont("framing by accident. It is asked for on purpose.");
+        row("agreement here", "would mean the changed input did not take effect, and is worth");
+        cont("more attention than a divergence.");
+        s += "\n";
+    } else {
+        s += "determinism self-test\n";
+        row("runs", r.labelA + "  against  " + r.labelB);
+        row("gate basis", std::string(name(r.gateBasis))
+                              + "   (ADR-1: the content basis is THIS PROJECT'S decision, not the "
+                                "client's)");
+        row("OQ-2", "UNANSWERED. Whether the gate is keyed on content or on bytes is out with the");
+        cont("owner of the brief and has not been ruled on. Both comparisons are run and");
+        cont("reported below; the basis above chooses which one decides, and nothing else.");
+        s += "\n";
+    }
 
     if (r.refusal != Refusal::None) {
         row("REFUSED", std::string(name(r.refusal)));
@@ -911,10 +980,18 @@ std::string renderReport(const ComparisonResult& r) {
     }
 
     // --- content ---
-    const std::string cv = name(r.content.verdict);
-    std::string cvUpper = cv;
-    for (char& c : cvUpper) { c = static_cast<char>(std::toupper(static_cast<unsigned char>(c))); }
-    row("content comparison", cvUpper);
+    // Under ChangedInput the verdict is computed the same way and is not printed as a *verdict*,
+    // because "fail" is the wrong word for two runs that were supposed to differ.
+    if (r.purpose == Purpose::ChangedInput) {
+        row("content comparison", r.content.differ > 0 ? "DIVERGED" : "AGREED EVERYWHERE");
+    } else {
+        const std::string cv = name(r.content.verdict);
+        std::string cvUpper = cv;
+        for (char& c : cvUpper) {
+            c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        }
+        row("content comparison", cvUpper);
+    }
     for (const SegmentComparison& sc : r.content.segments) {
         const std::string key = "(part " + std::to_string(sc.key.part) + ", segment "
                                 + std::to_string(sc.key.segment) + ")";
@@ -948,11 +1025,17 @@ std::string renderReport(const ComparisonResult& r) {
                           + "), floor " + percent(r.content.coverageFloor));
     row("  verdict", r.content.verdictReason);
 
+    // CR-DET-3 and CR-REP-4 ask for **the first** point of divergence, not merely that two runs
+    // differ. A handful more are printed as context and are labelled as context — eight blocks
+    // all headed FIRST DIFFERENCE reads as eight findings, when everything after the first is
+    // downstream of it.
+    bool firstDifference = true;
     for (const Difference& d : r.content.differences) {
         s += "\n";
-        row("  FIRST DIFFERENCE", "segment (part " + std::to_string(d.segment.part) + ", segment "
-                                      + std::to_string(d.segment.segment) + ")  entity "
-                                      + d.key.str());
+        row(firstDifference ? "  FIRST DIFFERENCE" : "  then (context only)",
+            "segment (part " + std::to_string(d.segment.part) + ", segment "
+                + std::to_string(d.segment.segment) + ")  entity " + d.key.str());
+        firstDifference = false;
         cont("  sim_time_s " + d.simTimeText);
         cont("  field \"" + d.field + "\": " + d.valueA + "   against   " + d.valueB);
         cont("  " + r.labelA + " line " + std::to_string(d.lineA) + ", " + r.labelB + " line "
@@ -960,7 +1043,26 @@ std::string renderReport(const ComparisonResult& r) {
     }
     s += "\n";
 
+    // Under ChangedInput the byte comparison and the result-equality check are both omitted, and
+    // the omission is stated rather than left as a gap. Neither answers a question worth asking
+    // here: two runs at different inputs are of course not byte-identical, and their outcomes are
+    // of course allowed to differ — that is what a sweep is. Printing them under this framing
+    // would put two "DIFFER" lines beside a divergence that is the intended answer, and invite
+    // exactly the reading this mode exists to prevent.
+    const bool changedInput = (r.purpose == Purpose::ChangedInput);
+    if (changedInput) {
+        row("byte comparison", "not run - see below");
+        row("result equality", "not checked - see below");
+        cont("Neither answers a question worth asking about two DIFFERENT inputs. Two such");
+        cont("runs are of course not byte-identical, and their outcomes are of course allowed");
+        cont("to differ - that is what a sweep is. Both belong to the self-test, where");
+        cont("agreement is the expectation; here they would read as two more failures sitting");
+        cont("beside an answer.");
+        s += "\n";
+    }
+
     // --- bytes ---
+    if (!changedInput) {
     row("byte comparison", r.bytes.identical ? "IDENTICAL" : "DIFFER");
     row("  sizes", std::to_string(r.bytes.bytesA) + " and " + std::to_string(r.bytes.bytesB)
                        + " byte(s)");
@@ -1001,10 +1103,38 @@ std::string renderReport(const ComparisonResult& r) {
                           + std::to_string(r.results.verdictsB) + " â€” "
                           + (r.results.verdictsAgree ? "agree" : "DISAGREE")
                           + (r.results.verdictsVacuous
-                                 ? ". Vacuous at M4: no conditions are declared, so no run "
-                                   "produces a verdict. The line becomes substantive at M6."
+                                 ? ". Vacuous: neither capture carries a producer verdict, so "
+                                   "there is nothing here to agree about. A campaign's own "
+                                   "verdicts live in each run's verdicts.jsonl, not in the "
+                                   "capture."
                                  : ""));
     s += "\n";
+    }   // if (!changedInput) — the byte and result-equality sections
+
+    if (changedInput) {
+        // No gate line, and no pass/fail word anywhere. The answer to "where did they diverge"
+        // is the FIRST DIFFERENCE block above; this states what was and was not established.
+        if (r.content.differ > 0) {
+            row("DIVERGED", "at the point named above - segment, (entity, occupancy), sim_time_s");
+            cont("and field. That is the brief's \"exactly where\", and it is the answer");
+            cont("this diff exists to give.");
+            cont(std::to_string(r.content.differ) + " of " + std::to_string(r.content.comparedSamples)
+                 + " compared sample(s) differ. The count is context; the FIRST one is");
+            cont("the finding, because everything after it is downstream of it.");
+        } else {
+            row("DID NOT DIVERGE", "the two runs agree on every sample compared, which for two");
+            cont("DIFFERENT inputs is the surprising outcome. Either the changed input");
+            cont("did not take effect, or it does not influence anything recorded. Check");
+            cont("the run records' parameter values before concluding anything else -");
+            cont("a sweep that silently varied nothing is the failure this project keeps");
+            cont("finding.");
+        }
+        cont("");
+        cont("Samples present in one run only are NOT divergences here either: this");
+        cont("platform publishes a different subset of frames every run, and that is");
+        cont("true whether or not an input changed.");
+        return s;
+    }
 
     std::string gv = name(r.gate);
     for (char& c : gv) { c = static_cast<char>(std::toupper(static_cast<unsigned char>(c))); }

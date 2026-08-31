@@ -1,0 +1,344 @@
+{
+  "schema": "ext17-campaign-summary/2",
+  "milestone": "M4 - execution and the determinism gate; no conditions are evaluated, so no run is a pass or a fail yet",
+  "self_test": {
+    "schema": "ext17-self-test/1",
+    "requirement": "CR-DET-1",
+    "outcome": "passed",
+    "detail": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 124 sample(s) were present only in 000 and 43 only in 001, which is the publication schedule and not the simulation (§14).",
+    "parameter": {
+      "axis": "red_raid_speed_ms",
+      "value": "55",
+      "both_runs_at_this_value": true,
+      "establishes": "determinism AT THIS VALUE. Both self-test runs are copies of one configuration, so they are a valid pair (CR-PAR-1). A sweep's other values are not gated: this is one determinism claim at a named point, not one per run."
+    },
+    "gate": {
+      "basis": "content",
+      "basis_is_a_named_deviation": true,
+      "verdict": "pass",
+      "oq2_ruling": "unanswered",
+      "oq2_note": "Whether the gate is keyed on content or on bytes is out with the owner of the brief and has not been ruled on. A pass here does NOT discharge the brief's acceptance criterion 2 as written; it discharges it under the content reading (ADR-1)."
+    },
+    "runs": [
+      {
+        "run_id": "000",
+        "outcome": "completed",
+        "capture": "capture-atacama-air-defense-000.n8rocap.jsonl",
+        "capture_covers_whole_run": true,
+        "capture_conformant": true,
+        "samples": 50507
+      },
+      {
+        "run_id": "001",
+        "outcome": "completed",
+        "capture": "capture-atacama-air-defense-001.n8rocap.jsonl",
+        "capture_covers_whole_run": true,
+        "capture_conformant": true,
+        "samples": 50426
+      }
+    ],
+    "refused": null,
+    "content": {
+      "verdict": "pass",
+      "reason": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 124 sample(s) were present only in 000 and 43 only in 001, which is the publication schedule and not the simulation (§14).",
+      "compared_samples": 50361,
+      "agree": 50361,
+      "differ": 0,
+      "only_in_000": 124,
+      "only_in_001": 43,
+      "only_in_one_is_not_a_difference": true,
+      "coverage": 0.999147,
+      "coverage_floor": 0.990000,
+      "segments": [
+        {
+          "part": 0,
+          "segment": 0,
+          "clock_000": "running",
+          "clock_001": "running",
+          "compared": true,
+          "samples_000": 50485,
+          "samples_001": 50404,
+          "compared_samples": 50361,
+          "agree": 50361,
+          "differ": 0,
+          "only_in_000": 124,
+          "only_in_001": 43,
+          "duplicated_instants_000": 0,
+          "duplicated_instants_001": 0,
+          "duplicated_identical_000": 0,
+          "duplicated_identical_001": 0
+        },
+        {
+          "part": 0,
+          "segment": 1,
+          "clock_000": "indeterminate",
+          "clock_001": "indeterminate",
+          "compared": false,
+          "excluded_because": "clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs",
+          "samples_000": 22,
+          "samples_001": 22,
+          "compared_samples": 0,
+          "agree": 0,
+          "differ": 0,
+          "only_in_000": 0,
+          "only_in_001": 0,
+          "duplicated_instants_000": 0,
+          "duplicated_instants_001": 0,
+          "duplicated_identical_000": 0,
+          "duplicated_identical_001": 0
+        }
+      ],
+      "differences": []
+    },
+    "bytes": {
+      "identical": false,
+      "expected_to_fail": true,
+      "note": "Run and reported alongside the content comparison, never engineered to pass. The one exclusion is platform.model_path, which the format names as the single host-dependent field.",
+      "bytes_000": 24389976,
+      "bytes_001": 24351714,
+      "headers_identical": true,
+      "model_path_excluded": true,
+      "model_path_differed": false,
+      "first_differing_offset": 5034,
+      "first_differing_line": 45
+    },
+    "result_equality": {
+      "outcome_000": "completed",
+      "outcome_001": "completed",
+      "outcomes_agree": true,
+      "verdicts_000": 0,
+      "verdicts_001": 0,
+      "verdicts_agree": true,
+      "verdicts_vacuous": true,
+      "verdicts_note": "At M4 no conditions are declared, so both runs produce zero verdicts and this line is vacuous. It becomes substantive at M6 with CR-AS-3."
+    }
+  },
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200."
+  },
+  "outcomes": {
+    "attempted": 7,
+    "completed": 7,
+    "timeout": 0,
+    "infrastructure_error": 0,
+    "sums_to_attempted": true
+  },
+  "axis": {
+    "name": "red_raid_speed_ms",
+    "kind": "velocity_ned_scaled",
+    "applies_to": "velocityNed magnitude, set before start",
+    "units": "m/s",
+    "declared_in": "the campaign configuration file, not in code (CR-PAR-1)",
+    "values": [
+      "11",
+      "27.5",
+      "55",
+      "82.5",
+      "110",
+      "165",
+      "220"
+    ],
+    "values_are_declared_text": true,
+    "self_test_value": "55",
+    "self_test_establishes_for_this_value_only": true,
+    "entities": [
+      "RedUAV_N_01",
+      "RedUAV_N_02",
+      "RedUAV_N_03",
+      "RedUAV_N_04",
+      "RedUAV_N_05",
+      "RedUAV_N_06",
+      "RedUAV_N_07",
+      "RedUAV_N_08",
+      "RedUAV_N_09",
+      "RedUAV_N_10",
+      "RedUAV_N_11",
+      "RedUAV_N_12",
+      "RedUAV_E_01",
+      "RedUAV_E_02",
+      "RedUAV_E_03",
+      "RedUAV_E_04",
+      "RedUAV_E_05",
+      "RedUAV_E_06",
+      "RedUAV_E_07",
+      "RedUAV_E_08",
+      "RedUAV_E_09",
+      "RedUAV_E_10",
+      "RedUAV_E_11",
+      "RedUAV_E_12",
+      "RedUAV_E_13",
+      "RedUAV_E_14",
+      "RedUAV_E_15",
+      "RedUAV_E_16",
+      "RedUAV_E_17",
+      "RedUAV_E_18"
+    ]
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "parameter_value": "11",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50588,
+      "capture_entity_keys": 48,
+      "capture_entity_adds": 48,
+      "capture_bytes": 24431833,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "001",
+      "parameter_value": "27.5",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50626,
+      "capture_entity_keys": 48,
+      "capture_entity_adds": 48,
+      "capture_bytes": 24533007,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "002",
+      "parameter_value": "55",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50471,
+      "capture_entity_keys": 47,
+      "capture_entity_adds": 47,
+      "capture_bytes": 24373272,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "003",
+      "parameter_value": "82.5",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50032,
+      "capture_entity_keys": 54,
+      "capture_entity_adds": 54,
+      "capture_bytes": 24250346,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "004",
+      "parameter_value": "110",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 49210,
+      "capture_entity_keys": 61,
+      "capture_entity_adds": 61,
+      "capture_bytes": 23902558,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "005",
+      "parameter_value": "165",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48635,
+      "capture_entity_keys": 65,
+      "capture_entity_adds": 65,
+      "capture_bytes": 23780640,
+      "every_named_entity_present": true
+    },
+    {
+      "run_id": "006",
+      "parameter_value": "220",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48884,
+      "capture_entity_keys": 62,
+      "capture_entity_adds": 62,
+      "capture_bytes": 23845233,
+      "every_named_entity_present": true
+    }
+  ],
+  "sweep": [
+    {
+      "value": "11",
+      "run_id": "000",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 48,
+      "entity_keys": 48,
+      "samples": 50588
+    },
+    {
+      "value": "27.5",
+      "run_id": "001",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 48,
+      "entity_keys": 48,
+      "samples": 50626
+    },
+    {
+      "value": "55",
+      "run_id": "002",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 47,
+      "entity_keys": 47,
+      "samples": 50471
+    },
+    {
+      "value": "82.5",
+      "run_id": "003",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 54,
+      "entity_keys": 54,
+      "samples": 50032
+    },
+    {
+      "value": "110",
+      "run_id": "004",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 61,
+      "entity_keys": 61,
+      "samples": 49210
+    },
+    {
+      "value": "165",
+      "run_id": "005",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 65,
+      "entity_keys": 65,
+      "samples": 48635
+    },
+    {
+      "value": "220",
+      "run_id": "006",
+      "outcome": "completed",
+      "running_segment_found": true,
+      "entity_adds": 62,
+      "entity_keys": 62,
+      "samples": 48884
+    }
+  ],
+  "sweep_note": "Ordered by parameter value. The result columns are counts read off each run's own capture by this project's reader - they are NOT verdicts, because no condition is declared until M6. `samples` additionally carries the platform's publication-schedule spread, measured at 0.38% over twenty identical runs (M2); `entity_adds` does not, and is the column to read a trend from. A run with no RUNNING segment reports null rather than 0 for both: nothing was measured in it, and 0 would be a measurement."
+}

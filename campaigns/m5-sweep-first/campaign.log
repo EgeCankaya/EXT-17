@@ -1,0 +1,251 @@
+[campaign] campaign     disk: projecting 274320000 bytes for 9 run(s) of 1200 frames at 25400 bytes/frame (including the self-test's 2 runs) for a sweep of 7 declared value(s)
+[campaign] campaign     disk: 338441506816 bytes free, ceiling 8589934592
+[campaign] campaign     per-capture bound: 73200000 bytes, derived from 1200 frames. It is three times the measured per-frame capture cost, so a run that reaches it has overrun its projection rather than merely run.
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] campaign     run timeout: 600000 ms (backstop; never the definition of the end)
+[campaign] campaign     the determinism gate runs at red_raid_speed_ms = 55 m/s, which is one of the values this campaign sweeps. It establishes determinism FOR THAT VALUE - the sweep's other values are run, not gated, and the report says so.
+[campaign] campaign     gate basis: content. OQ-2 is UNANSWERED - whether the gate is keyed on content or on bytes is out with the owner of the brief. Both comparisons are run and both are reported; the basis chooses which one decides.
+[campaign] self-test    CR-DET-1: the same configuration, run twice, compared. [B] step 4 makes this a hard stop, so no campaign run is attempted until it passes.
+[campaign] self-test    its two runs are NOT campaign runs. They land in C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs and are never counted among the campaign's outcomes.
+[campaign] self-test    run 000 of 2
+[campaign] run          === run 000 : "Atacama Air Defense"  [red_raid_speed_ms = 55 m/s] ===
+[campaign] start        recorder pid 36392 -> C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 36844 cwd C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 55 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 36844 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 36392 exit 0 (on its own)
+[campaign] capture      read back: 50441 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] self-test    run 001 of 2
+[campaign] run          === run 001 : "Atacama Air Defense"  [red_raid_speed_ms = 55 m/s] ===
+[campaign] start        recorder pid 40308 -> C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\001
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 40004 cwd C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\001\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 55 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 40004 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 40308 exit 0 (on its own)
+[campaign] capture      read back: 50456 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\selftest\runs\001\run.json (completed)
+[campaign] run          run 001 -> completed
+[campaign] self-test    determinism self-test
+[campaign] self-test      runs                  000  against  001
+[campaign] self-test      gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
+[campaign] self-test      OQ-2                  UNANSWERED. Whether the gate is keyed on content or on bytes is out with the
+[campaign] self-test                            owner of the brief and has not been ruled on. Both comparisons are run and
+[campaign] self-test                            reported below; the basis above chooses which one decides, and nothing else.
+[campaign] self-test    
+[campaign] self-test      content comparison    PASS
+[campaign] self-test        compared            (part 0, segment 0)  running in both, 47 entity key(s)
+[campaign] self-test        excluded            (part 0, segment 1)  clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs
+[campaign] self-test                              0 and 39 sample(s) in it were not compared
+[campaign] self-test        compared            50374 sample(s)
+[campaign] self-test        agree               50374
+[campaign] self-test        differ              0
+[campaign] self-test        present in one only 000: 67   001: 43   (not differences - see verdict)
+[campaign] self-test        coverage            99.9147% of the smaller run's comparable samples (50374 of 50417), floor 99.0000%
+[campaign] self-test        verdict             every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 67 sample(s) were present only in 000 and 43 only in 001, which is the publication schedule and not the simulation (§14).
+[campaign] self-test    
+[campaign] self-test      byte comparison       DIFFER
+[campaign] self-test        sizes               24357617 and 24364820 byte(s)
+[campaign] self-test        first difference    byte 10527, line 58
+[campaign] self-test        headers             byte-identical
+[campaign] self-test        model_path          EXCLUDED per format §14; it was identical here, so the exclusion changed nothing
+[campaign] self-test        status              EXPECTED TO FAIL on this platform, and not a defect. The host publishes a
+[campaign] self-test                            different subset of frames every run (§14). Nothing here is normalised,
+[campaign] self-test                            filtered or masked beyond the one field §14 names — a comparison made to
+[campaign] self-test                            pass by construction would measure nothing (ADR-1).
+[campaign] self-test    
+[campaign] self-test      result equality       outcomes completed and completed — AGREE
+[campaign] self-test        verdicts            0 and 0 — agree. Vacuous at M4: no conditions are declared, so no run produces a verdict. The line becomes substantive at M6.
+[campaign] self-test    
+[campaign] self-test      GATE                  PASS   on the content basis
+[campaign] self-test                            every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 67 sample(s) were present only in 000 and 43 only in 001, which is the publication schedule and not the simulation (§14).
+[campaign] self-test                            This does NOT discharge [B]'s acceptance criterion 2 as written. It
+[campaign] self-test                            discharges it under the content reading, which is this project's named
+[campaign] self-test                            deviation (ADR-1) and is unruled (OQ-2).
+[campaign] campaign     self-test -> C:\Projects\EXT-17\campaigns\m5-sweep\selftest\self-test.json
+[campaign] campaign     self-test: passed
+[campaign] run          === run 000 : "Atacama Air Defense"  [red_raid_speed_ms = 11 m/s] ===
+[campaign] start        recorder pid 27476 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 33908 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 11 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 33908 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 27476 exit 0 (on its own)
+[campaign] capture      read back: 50607 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] run          === run 001 : "Atacama Air Defense"  [red_raid_speed_ms = 27.5 m/s] ===
+[campaign] start        recorder pid 39268 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\001
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 9220 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\001\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 27.5 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 9220 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 39268 exit 0 (on its own)
+[campaign] capture      read back: 50550 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\001\run.json (completed)
+[campaign] run          run 001 -> completed
+[campaign] run          === run 002 : "Atacama Air Defense"  [red_raid_speed_ms = 55 m/s] ===
+[campaign] start        recorder pid 40456 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\002
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 24112 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\002\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 55 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 24112 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 40456 exit 0 (on its own)
+[campaign] capture      read back: 50390 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\002\run.json (completed)
+[campaign] run          run 002 -> completed
+[campaign] run          === run 003 : "Atacama Air Defense"  [red_raid_speed_ms = 82.5 m/s] ===
+[campaign] start        recorder pid 32836 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\003
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37344 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\003\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 82.5 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37344 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 32836 exit 0 (on its own)
+[campaign] capture      read back: 49856 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\003\run.json (completed)
+[campaign] run          run 003 -> completed
+[campaign] run          === run 004 : "Atacama Air Defense"  [red_raid_speed_ms = 110 m/s] ===
+[campaign] start        recorder pid 31296 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\004
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 23124 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\004\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 110 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 23124 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 31296 exit 0 (on its own)
+[campaign] capture      read back: 49089 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\004\run.json (completed)
+[campaign] run          run 004 -> completed
+[campaign] run          === run 005 : "Atacama Air Defense"  [red_raid_speed_ms = 165 m/s] ===
+[campaign] start        recorder pid 38476 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\005
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 7516 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\005\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 165 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 7516 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 38476 exit 0 (on its own)
+[campaign] capture      read back: 48780 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\005\run.json (completed)
+[campaign] run          run 005 -> completed
+[campaign] run          === run 006 : "Atacama Air Defense"  [red_raid_speed_ms = 220 m/s] ===
+[campaign] start        recorder pid 32568 -> C:\Projects\EXT-17\campaigns\m5-sweep\runs\006
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 40100 cwd C:\Projects\EXT-17\campaigns\m5-sweep\runs\006\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 220 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 40100 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 32568 exit 0 (on its own)
+[campaign] capture      read back: 48646 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m5-sweep\runs\006\run.json (completed)
+[campaign] run          run 006 -> completed
+[campaign] campaign     summary -> C:\Projects\EXT-17\campaigns\m5-sweep\campaign.json
+[campaign] sweep        
+[campaign] sweep        SWEEP  red_raid_speed_ms  (m/s)  velocityNed magnitude, set before start  -  7 run(s), ordered by value
+[campaign] sweep        
+[campaign] sweep          value  run   outcome                   adds     keys   samples
+[campaign] sweep          11     000   completed                    0        0     50607  .
+[campaign] sweep          27.5   001   completed                    0        0     50550  .
+[campaign] sweep          55     002   completed                   47       47     50390  ############################
+[campaign] sweep          82.5   003   completed                   54       54     49856  #################################
+[campaign] sweep          110    004   completed                   61       61     49089  #####################################
+[campaign] sweep          165    005   completed                   65       65     48780  ########################################
+[campaign] sweep          220    006   completed                   62       62     48646  ######################################
+[campaign] sweep        
+[campaign] sweep          the bar is `adds` scaled between 0 and 65 - NOT from zero, so a small real change is visible and is not a small real change drawn large by accident
+[campaign] sweep          adds    entity_add records in the run's first RUNNING segment. Roster lifecycle agreed exactly across twenty identical runs (M2), so this column carries no publication-schedule spread
+[campaign] sweep          keys    distinct (entity, occupancy) keys in that segment
+[campaign] sweep          samples total samples in it. This one DOES carry the platform's publication-schedule spread, measured at 0.38% over twenty identical runs
+[campaign] sweep        
+[campaign] sweep          These are counts read off each capture, NOT verdicts. No condition is declared until M6, so no run here is a pass or a fail.
+[campaign] sweep          The determinism gate ran at red_raid_speed_ms = 55 and established determinism FOR THAT VALUE. It is one claim at a named point, not one per run.
+[campaign] sweep        
+[campaign] campaign     7 of 7 runs completed

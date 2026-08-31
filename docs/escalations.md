@@ -17,6 +17,7 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 | E-1 | **OQ-3** — is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **STILL DRAFTED, NOT SENT — and it is the only item here whose delivery is blocked on nobody but this project.** Extended at M2 with (e) and (f). There is no channel to a mentor from the repository, so sending it is the DRI's action. It has now been outstanding across four milestones, and M4 has keyed a determinism gate to runs produced by the invocation it asks about |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | Sent by EXT-08 as its E-1; **re-checked at M4 and still unanswered**. This is the downstream half. **M4 shipped both readings as selectable gates rather than waiting**, so a ruling either way changes a default and no code — see below |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **SENT** — [EXT-08 issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), 2026-08-31. Awaiting a reply. Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
+| E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **SENT** — [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), 2026-09-01. Awaiting a reply. Verified by correspondence against `eedc228` and `main`, since F-19 means it cannot be verified by identity. **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **SENT** — [EXT-08 issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), 2026-08-31. Awaiting a reply. Measured on 2 of 42 real captures. Not worked around: the test is implemented exactly as §5.1 states and both shapes are excluded; what M4 added is that the refusal names which shape it found |
 
 ---
@@ -340,3 +341,106 @@ format expects consumers to carry, or a symptom worth naming upstream, is not EX
 `PROVENANCE.md` finding 3 and §14's self-test advice both send a reader to §5.1, so a
 clarification upstream would carry into the next re-pin of `contract/` rather than living only
 here.
+
+**Strengthened at M6, twice.** M5 added a third shape through §5.1's one test (F-22, a
+parameterised run's roster burst republished with *differing* values). M6 found that the same
+mechanism has a **fourth observable form and a worse consequence**: instead of making one
+segment `frozen`, it can leave the two self-test runs carrying different `velocityNed` values at
+`sim_time_s` 0 — which fails the determinism gate and stops the **whole campaign** at exit 3,
+rather than costing one run. Measured on the first execution of the twenty-run campaign;
+`campaigns/m6-gate-refused/` is that execution, kept. See F-29.
+
+---
+
+## E-5 — `contract/condition-file-schema.md` is a faithful excerpt that stops one heading before the part a consumer needs
+
+**Status: SENT to EXT-08 on 2026-09-01 as [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3). Awaiting a reply.** It goes to **EXT-08** for the reason E-3
+and E-4 did: `contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in
+its own words — *"If one of them is wrong or insufficient, that is a defect in EXT-08's contract
+and it goes back there."* This is the third time that rule has been used.
+
+**It differs from E-3 and E-4 in one way that changed how it had to be handled, and the
+difference is worth stating first.** Those two are *imprecisions in frozen, verbatim-vendored
+text*: EXT-17 implements what the specification says and names the gap beside it, and nothing is
+worked around because there **is** text to implement. E-5 is a **hole**. There is no vendored
+sentence to implement and therefore nothing to defer to, so EXT-17 had to **decide** the
+computation and say so on the record. That is `src/assert/Geodesy.h`, which states the method and
+its constants so any verdict is reproducible with a calculator, and `docs/m6-oq5.md` §5, which
+records how the decision was reached.
+
+### What was found
+
+`contract/condition-file-schema.md` carries a header saying it is *"Vendored from EXT-08 at
+commit `eedc228`"* and pointing at *"README.md under 'Declaring conditions'"*.
+
+**Checked by correspondence, since F-19 established it cannot be checked by identity** — no file
+of that name exists in EXT-08 at any commit. Both of the digest's own references resolve:
+
+| | |
+|---|---|
+| `eedc228` resolves to a commit | **yes** — *"PRD rev 9: audit against [S1]…"* |
+| `README.md` §"Declaring conditions" exists there | **yes** |
+| the digest's content is verbatim | **yes** — §"Declaring conditions" and §"Verdict semantics", word for word, including the key table and the three-line verdict example |
+| that section is unchanged at `main` (`eb13485`) | **yes**, byte-identical between the two commits |
+
+So the digest is not fabricated, not paraphrased, and not stale. **It is an excerpt, and it stops
+one heading early.**
+
+### The question
+
+> Immediately after the two sections that were excerpted, EXT-08's `README.md` continues into two
+> more, and neither crossed into `contract/`:
+>
+> - **"How distance is computed"** — that positions are converted to **ECEF on WGS-84** and a
+>   distance is the straight-line Euclidean distance between them in metres, with Haversine
+>   rejected for ignoring altitude and Vincenty for not converging near-antipodally, and a
+>   pointer to `src/Geodesy.h` for the constants.
+> - **"Boundary semantics"** — that the comparison is `<=`, so a point exactly at `within_m` or
+>   exactly on a circle's edge is **inside**; that a point on a polygon's edge or vertex is
+>   inside; and that polygons are plane figures in latitude/longitude, unsupported across the
+>   antimeridian or a pole.
+>
+> **Would EXT-08 vendor those two sections into `contract/condition-file-schema.md`?**
+>
+> **Why it matters, and why it is not tidiness.** The digest documents `within_m` as a threshold
+> *"in metres"* and stops. From that alone a consumer implementing the same file format could
+> reasonably compute a great-circle distance, or a two-dimensional horizontal separation, and
+> would then produce verdicts that **disagree with the producer's on the same capture while
+> parsing the same file**. Nothing would surface the disagreement: both projects would report
+> `met` and `not met` in the same vocabulary against the same condition ids.
+>
+> That is silent divergence across the project boundary, which is the failure the whole
+> `contract/` discipline exists to prevent. EXT-17's own requirement makes it concrete —
+> CR-AS-2's third acceptance criterion is *"a verdict's numbers are reproducible: recomputing
+> them by hand from the samples it names gives the same values"* — and that is not satisfiable
+> from the digest as vendored.
+>
+> **It is not drift.** Both sections exist at `eedc228`, the commit the digest itself names,
+> directly below the last paragraph that crossed. Nothing was added upstream afterwards.
+>
+> **A second, smaller part of the same question.** `PROVENANCE.md`'s table lists this file beside
+> `capture-format-v1.md` and the sample capture, both of which *are* verbatim vendored artifacts
+> and both of which a pin check verifies byte for byte. Marking the digest as an excerpt in that
+> table — or replacing it with the README sections in full — would make the difference visible to
+> the next person who runs a pin check, which is what let this go unnoticed until something tried
+> to compute a distance. That is F-19 and this finding meeting in one row.
+>
+> **A note offered rather than asked.** EXT-17 has independently chosen ECEF-on-WGS-84
+> straight-line distance, `<=` at the threshold, and edge-inclusive polygons — the same answers.
+> That was not inherited: it was arrived at from what *is* vendored (§15 forbids converting
+> units, and `positionGeodetic` carries three components, so a metric discarding altitude
+> discards data the format preserves deliberately), and then found to agree while this
+> correspondence check was being run. The agreement is fortunate, and it is not a substitute for
+> the sections being in `contract/` — the next consumer will not have run this check.
+
+### Why the answer is worth having even though nothing is blocked
+
+EXT-17 is not blocked: the method is decided, stated with its constants, and tested. What is
+missing is the property that made the two-repository split workable in the first place — that
+everything crossing the boundary does so as a **documented, versioned artifact** rather than as
+knowledge somebody happened to acquire.
+
+The practical test is the one `PROVENANCE.md` itself proposes: a third party should be able to
+implement the consumer side from `contract/` alone. For the capture format that is demonstrably
+true and was demonstrated twice. For the condition file it is currently false, in exactly one
+place, and that place is the arithmetic every geometric verdict rests on.

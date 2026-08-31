@@ -83,6 +83,32 @@ if errorlevel 1 (
   exit /b 1
 )
 
+rem CR-AS-1 through CR-AS-4, and the half of CR-CAP-1 that is about the evaluator rather than
+rem about a directory of captures. src\assert links nothing but the capture reader and the JSON
+rem parser, so the WHOLE assertion surface is checkable here - what parses and what is refused by
+rem what name, the geodesy contract/ did not carry (E-5), what a verdict says, and the four-row
+rem absence classification exercised from BOTH sides over captures written by hand in the test
+rem that asserts on them. The only thing needing a simulator is whether a real run produces the
+rem shapes these captures imitate, and that is measured in docs\m6-assertions.md.
+echo.
+cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
+   "%ROOT%\src\common\Json.cpp" ^
+   "%ROOT%\src\common\JsonParse.cpp" ^
+   "%ROOT%\src\capture\Capture.cpp" ^
+   "%ROOT%\src\capture\CaptureReader.cpp" ^
+   "%ROOT%\src\assert\Geodesy.cpp" ^
+   "%ROOT%\src\assert\Conditions.cpp" ^
+   "%ROOT%\src\assert\Judge.cpp" ^
+   "%~dp0assertion_test.cpp" ^
+   /Fe:"%OUT%\assertion_test.exe" /Fo:"%OUT%\\"
+if errorlevel 1 exit /b 1
+
+"%OUT%\assertion_test.exe" "%ROOT%"
+if errorlevel 1 (
+  echo TESTS FAILED
+  exit /b 1
+)
+
 echo.
 echo tests: all passed.
 exit /b 0

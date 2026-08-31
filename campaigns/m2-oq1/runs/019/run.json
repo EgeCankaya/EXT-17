@@ -1,0 +1,133 @@
+{
+  "schema": "ext17-run-record/1",
+  "run_id": "019",
+  "outcome": "completed",
+  "error": null,
+  "scenario": {
+    "name": "Atacama Air Defense",
+    "model_name": "N8roSimSchema"
+  },
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.",
+    "frame_budget": 1200,
+    "wall_clock_participates": false
+  },
+  "stop_evaluation": {
+    "satisfied": true,
+    "observed_frame": 1200,
+    "observed_sim_time_s": 60.000000,
+    "observed_delta_s": 0.05000
+  },
+  "run_timeout": {
+    "timeout_ms": 300000,
+    "expired": false,
+    "role": "backstop; never the definition of the end"
+  },
+  "waits": [
+    {
+      "what": "host ready (engine state published)",
+      "observed": true,
+      "timeout_ms": 60000,
+      "frame_at_observation": 0
+    },
+    {
+      "what": "scenario loaded",
+      "observed": true,
+      "timeout_ms": 120000,
+      "frame_at_observation": 0
+    },
+    {
+      "what": "engine running",
+      "observed": true,
+      "timeout_ms": 30000,
+      "frame_at_observation": 0
+    },
+    {
+      "what": "stop predicate satisfied",
+      "observed": true,
+      "timeout_ms": 300000,
+      "frame_at_observation": 1200
+    },
+    {
+      "what": "engine idle after stop",
+      "observed": true,
+      "timeout_ms": 30000,
+      "frame_at_observation": 0
+    }
+  ],
+  "processes": [
+    {
+      "role": "host",
+      "exe": "C:\\N8RO\\bin\\n8ro-sim-app.exe",
+      "pid": 35884,
+      "exit_code": 3221225786,
+      "started_by_campaign": true,
+      "exited_on_its_own": true,
+      "graceful_stop_requested": true,
+      "terminated_by": "none"
+    },
+    {
+      "role": "recorder",
+      "exe": "C:\\Projects\\EXT-08\\build\\x64\\Release\\n8ro-bridge.exe",
+      "pid": 17648,
+      "exit_code": 0,
+      "started_by_campaign": true,
+      "exited_on_its_own": true,
+      "graceful_stop_requested": false,
+      "terminated_by": "none"
+    }
+  ],
+  "capture": {
+    "recorder_attached": true,
+    "path": "capture-atacama-air-defense-019.n8rocap.jsonl",
+    "bytes": 24320078,
+    "capture_max_bytes": 0,
+    "on_size_limit": "n/a"
+  },
+  "environment": {
+    "host_exe": "C:\\N8RO\\bin\\n8ro-sim-app.exe",
+    "recorder_exe": "C:\\Projects\\EXT-08\\build\\x64\\Release\\n8ro-bridge.exe",
+    "sim_config_host": "SimEngineHost_SharedMemory",
+    "sim_config_client": "SimEngineClient_SharedMemory",
+    "model_path": "C:\\N8RO\\data\\db",
+    "schema_file": "N8roSimSchema",
+    "n8ro_release": "C:\\N8RO",
+    "path_prepend": "C:\\N8RO\\bin",
+    "host_logger_copy": "host-logger.log",
+    "host_logger_offset": 2248509,
+    "host_logger_bytes": 2849933
+  },
+  "final_engine_state": {
+    "state": "idle",
+    "frame": 0,
+    "sim_time_s": 0.000000,
+    "delta_s": 0.00000,
+    "scenario_loaded": true
+  },
+  "diagnostics": {
+    "note": "Wall-clock measurements. Excluded from every comparison; no value here participates in any outcome or verdict.",
+    "wait_elapsed_ms": [
+      {
+        "what": "host ready (engine state published)",
+        "elapsed_ms": 144
+      },
+      {
+        "what": "scenario loaded",
+        "elapsed_ms": 625
+      },
+      {
+        "what": "engine running",
+        "elapsed_ms": 101
+      },
+      {
+        "what": "stop predicate satisfied",
+        "elapsed_ms": 59993
+      },
+      {
+        "what": "engine idle after stop",
+        "elapsed_ms": 543
+      }
+    ]
+  }
+}

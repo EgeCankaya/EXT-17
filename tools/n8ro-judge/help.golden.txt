@@ -1,0 +1,81 @@
+n8ro-judge - EXT-17 condition evaluator over STORED captures (CR-AS-1..4, CR-CAP-1)
+
+usage: n8ro-judge check    --conditions <file>
+       n8ro-judge capture  <capture-file> --conditions <file> [options]
+       n8ro-judge campaign <campaign-dir> --conditions <file> [options]
+       n8ro-judge --help
+
+commands:
+  check                    load and validate the condition file and stop. This is what
+                           n8ro-campaign runs BEFORE any host is started (CR-AS-1), so a
+                           typo costs ten seconds rather than twenty runs.
+  capture                  judge one stored capture.
+  campaign                 judge every run's capture under <campaign-dir>/runs/NNN. This is
+                           the re-judge mode: no host is started and no bus subscription is
+                           made, and this binary could not make one.
+
+options:
+  --conditions <file>      the condition file. Required by every command.
+  --write <name>           write each run's verdicts to <run-dir>/<name>, one JSON object
+                           per line. Default verdicts-rejudge.jsonl for campaign, and
+                           nothing for capture.
+  --verify <name>          after judging, byte-compare what was produced against the named
+                           file already in each run directory - the one the live campaign
+                           wrote. Default verdicts.jsonl. A difference is a non-zero exit
+                           and names the first line that differs.
+  --quiet                  one line per run; omit the per-verdict detail.
+  --help                   this text.
+
+the three kinds, and what a not-met verdict is entitled to say (CR-AS-4):
+  proximity                did two entities come within a distance. A not-met verdict is
+                           sound when the closest observed approach clears the threshold by
+                           more than the pair could have closed inside the largest
+                           unobserved window; otherwise indeterminate.
+  area                     was an entity inside (or outside) a circle or polygon. The same
+                           bound, measured to the region's boundary.
+  terminal_state           did an entity reach a terminal state. With removal_reason a
+                           not-met verdict is sound when every occupancy is closed by a
+                           record or carries a sample at the segment's last instant -
+                           capture format v1 s8.1 makes that positive evidence. With
+                           field+equals a not-met verdict is NEVER sound: nothing bounds a
+                           field's rate of change, so it reports indeterminate.
+
+  A met verdict is always sound - it is computed from records that are present. An
+  indeterminate verdict is a VERDICT state and never a fifth RUN outcome; the brief fixes
+  the run vocabulary at four, and keeping the two apart is deliberate.
+
+  Verdicts are evaluated over RUNNING segments only. A capture with none cannot be judged
+  at all - sim_time_s does not order a frozen segment's samples - and every verdict is
+  indeterminate. That is R14's shape and it is not rare.
+
+expect - the one key this project adds to the vendored condition shape (OQ-5):
+  "expect": "met"       the default, and how a file written for EXT-08's referee reads.
+  "expect": "not_met"   the condition asserts NON-OCCURRENCE.
+
+  The vendored schema is a referee: it reports whether a condition was satisfied and says
+  nothing about whether that is welcome. A campaign runner must map those facts onto the
+  brief's four run outcomes, and two of its three questions survive that reading while the
+  third does not - "did anything reach a terminal state it SHOULD NOT have" is an
+  assertion of non-occurrence, and the vendored shape expresses one only for the area
+  kind, through test: inside|outside. Without expect, a condition asking whether the
+  command centre was destroyed asserts that it should have been.
+
+  The verdict still records the FACT in the vendored schema's own terms - met or not met -
+  so EXT-08's verdicts and a re-judgement here stay directly comparable. Whether the fact
+  was the asserted one is a separate field: satisfied, violated, or undetermined. Only a
+  VIOLATION makes a run fail. An indeterminate verdict is undetermined and is never folded
+  into either, whatever was expected.
+
+the four run outcomes, and the two that are not test results (CR-EX-5):
+  pass                     every asserted condition was satisfied.
+  fail                     the capture read, and a declared condition was VIOLATED.
+  infrastructure_error     the capture would not read, or was not conformant, or carries
+                           no running segment, or decided nothing at all. None of these is
+                           a failing scenario, and reporting one as fail is what the
+                           brief's rule 3 forbids.
+
+exit codes:
+  0  every capture was judged and every asserted condition was satisfied
+  1  a condition was violated, or a verdict was indeterminate, or a --verify comparison
+     differed
+  2  usage error, a condition file that would not load, or a capture that would not read

@@ -25,6 +25,19 @@ options:
                          present in both, or the verdict is indeterminate rather than
                          pass. Default 99. Measured: the worst of all 190 pairs of
                          M2's twenty runs was 0.4192% unmatched.
+  --changed-input        the two captures are runs at DIFFERENT inputs, not two runs of
+                         one configuration. This is the brief's second diffing half -
+                         "change one input and show exactly where the two runs
+                         diverged" - and it is a different question from the gate.
+                         A divergence is the ANSWER, not a failure; agreement means the
+                         changed input did not take effect, and is the outcome worth
+                         more attention. No gate line is printed and no pass/fail word
+                         appears. Exit 0 when they diverged and the point is named,
+                         1 when they did not.
+
+                         n8ro-campaign can only ever produce a self-test pair - two
+                         copies of one RunConfig - so nothing in a campaign reaches
+                         this framing by accident.
   --outcome-a <s>        the four-state run outcome of each run, where the caller
   --outcome-b <s>        knows it. Omitted means not supplied, which is reported as
                          not supplied rather than as agreement.
@@ -32,7 +45,10 @@ options:
   --help                 this text.
 
 exit codes:
-  0  the gate passed
-  1  the gate failed, or the comparison was indeterminate
+  0  the gate passed - or, under --changed-input, the two runs diverged and the first
+     point of divergence is named
+  1  the gate failed, or the comparison was indeterminate - or, under --changed-input,
+     the two runs did NOT diverge, which for two different inputs means the input did
+     not take effect
   2  usage error, or the comparison was refused - a precondition was not met and the
      refusal names which

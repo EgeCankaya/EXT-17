@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "A DELIBERATELY BROKEN condition file, for the recording (docs/recording-script.md, 0:30).",
+    "",
+    "One character wrong: \"within_meters\" for \"within_m\". Under the capture format's own",
+    "unknown-key rule (s13, ignore it) this would parse as a proximity condition with no",
+    "threshold - and a threshold that silently did not apply is twenty confident passes.",
+    "",
+    "A condition file inverts that rule deliberately, because a person writes it. M5 measured",
+    "the cost of getting this wrong on a campaign file (F-23) and M6 applied the lesson here",
+    "before it could be paid twice."
+  ],
+  "conditions": [
+    {
+      "id": "raid-leader-reaches-airfield",
+      "kind": "proximity",
+      "entities": ["RedUAV_N_01", "BlueBase_Airfield"],
+      "within_meters": 3000
+    }
+  ]
+}

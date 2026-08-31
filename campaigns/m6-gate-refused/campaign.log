@@ -1,0 +1,130 @@
+[campaign] campaign     disk: projecting 670560000 bytes for 22 run(s) of 1200 frames at 25400 bytes/frame (including the self-test's 2 runs) for a sweep of 20 declared value(s)
+[campaign] campaign     disk: 340478287872 bytes free, ceiling 8589934592
+[campaign] campaign     per-capture bound: 73200000 bytes, derived from 1200 frames. It is three times the measured per-frame capture cost, so a run that reaches it has overrun its projection rather than merely run.
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] campaign     run timeout: 600000 ms (backstop; never the definition of the end)
+[campaign] campaign     the determinism gate runs at red_raid_speed_ms = 55 m/s, which is one of the values this campaign sweeps. It establishes determinism FOR THAT VALUE - the sweep's other values are run, not gated, and the report says so.
+[campaign] campaign     gate basis: content. OQ-2 is UNANSWERED - whether the gate is keyed on content or on bytes is out with the owner of the brief. Both comparisons are run and both are reported; the basis chooses which one decides.
+[campaign] self-test    CR-DET-1: the same configuration, run twice, compared. [B] step 4 makes this a hard stop, so no campaign run is attempted until it passes.
+[campaign] self-test    its two runs are NOT campaign runs. They land in C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs and are never counted among the campaign's outcomes.
+[campaign] self-test    run 000 of 2
+[campaign] run          === run 000 : "Atacama Air Defense"  [red_raid_speed_ms = 55 m/s] ===
+[campaign] start        recorder pid 30748 -> C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 8364 cwd C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 55 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 8364 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 30748 exit 0 (on its own)
+[campaign] capture      read back: 50403 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] self-test    run 001 of 2
+[campaign] run          === run 001 : "Atacama Air Defense"  [red_raid_speed_ms = 55 m/s] ===
+[campaign] start        recorder pid 39040 -> C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\001
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 33180 cwd C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\001\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-load, before-start hook
+[campaign] axis         red_raid_speed_ms = 55 m/s: published 30 of 30 entity update(s) before start
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 33180 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 39040 exit 0 (on its own)
+[campaign] capture      read back: 50480 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m6-campaign\selftest\runs\001\run.json (completed)
+[campaign] run          run 001 -> completed
+[campaign] self-test    determinism self-test
+[campaign] self-test      runs                  000  against  001
+[campaign] self-test      gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
+[campaign] self-test      OQ-2                  UNANSWERED. Whether the gate is keyed on content or on bytes is out with the
+[campaign] self-test                            owner of the brief and has not been ruled on. Both comparisons are run and
+[campaign] self-test                            reported below; the basis above chooses which one decides, and nothing else.
+[campaign] self-test    
+[campaign] self-test      content comparison    FAIL
+[campaign] self-test        compared            (part 0, segment 0)  running in both, 47 entity key(s)
+[campaign] self-test        excluded            (part 0, segment 1)  clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs
+[campaign] self-test                              0 and 0 sample(s) in it were not compared
+[campaign] self-test        compared            50396 sample(s)
+[campaign] self-test        agree               50373
+[campaign] self-test        differ              23
+[campaign] self-test        present in one only 000: 7   001: 84   (not differences - see verdict)
+[campaign] self-test        coverage            99.9861% of the smaller run's comparable samples (50396 of 50403), floor 99.0000%
+[campaign] self-test        verdict             23 sample(s) present in both runs at the same simulation instant carry DIFFERENT values. This is not the publication schedule; it is the simulation.
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_01@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 57, 001 line 57
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_02@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 58, 001 line 58
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_03@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 59, 001 line 59
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_04@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 60, 001 line 60
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_05@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 61, 001 line 61
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_06@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 62, 001 line 62
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_07@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 63, 001 line 63
+[campaign] self-test    
+[campaign] self-test        FIRST DIFFERENCE    segment (part 0, segment 0)  entity RedUAV_E_08@1
+[campaign] self-test                              sim_time_s 0
+[campaign] self-test                              field "velocityNed":    against   
+[campaign] self-test                              000 line 64, 001 line 64
+[campaign] self-test    
+[campaign] self-test      byte comparison       DIFFER
+[campaign] self-test        sizes               24339773 and 24376905 byte(s)
+[campaign] self-test        first difference    byte 10485, line 57
+[campaign] self-test        headers             byte-identical
+[campaign] self-test        model_path          EXCLUDED per format §14; it was identical here, so the exclusion changed nothing
+[campaign] self-test        status              EXPECTED TO FAIL on this platform, and not a defect. The host publishes a
+[campaign] self-test                            different subset of frames every run (§14). Nothing here is normalised,
+[campaign] self-test                            filtered or masked beyond the one field §14 names — a comparison made to
+[campaign] self-test                            pass by construction would measure nothing (ADR-1).
+[campaign] self-test    
+[campaign] self-test      result equality       outcomes completed and completed — AGREE
+[campaign] self-test        verdicts            0 and 0 — agree. Vacuous at M4: no conditions are declared, so no run produces a verdict. The line becomes substantive at M6.
+[campaign] self-test    
+[campaign] self-test      GATE                  FAIL   on the content basis
+[campaign] self-test                            23 sample(s) present in both runs at the same simulation instant carry DIFFERENT values. This is not the publication schedule; it is the simulation.
+[campaign] self-test                            This does NOT discharge [B]'s acceptance criterion 2 as written. It
+[campaign] self-test                            discharges it under the content reading, which is this project's named
+[campaign] self-test                            deviation (ADR-1) and is unruled (OQ-2).
+[campaign] campaign     self-test -> C:\Projects\EXT-17\campaigns\m6-campaign\selftest\self-test.json
+[campaign] campaign     self-test: failed
+[campaign] campaign     the determinism self-test did not pass, so NO campaign run has been attempted. [B] step 4: "Do not build further until it passes." The reason is in C:\Projects\EXT-17\campaigns\m6-campaign\selftest\self-test.json under "outcome" and "detail".
