@@ -9,14 +9,33 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `063b5ba`**, format version `n8ro-capture/1`, producer `0.8.0`.
+**Pinned at EXT-08 commit `0fe7cd5`**, format version `n8ro-capture/1`, producer `0.9.0`.
 
-Re-pinned once already, and that is worth stating as a live hazard rather than a footnote: the
-first pin was taken at `eedc228` and was stale within the hour, because producer 0.8.0 added
-`header.sample_form`. **Adding a key is non-breaking under the format's own rule (§13), so
-`n8ro-capture/1` is unchanged and the freeze holds** — but a vendored copy still drifts.
-Re-check this pin before relying on it, and treat a drifted `contract/` as a defect to fix
-rather than a difference to tolerate.
+This is the **third** pin, and the drift is worth stating as a live hazard rather than a
+footnote:
+
+| Pin | EXT-08 commit | Producer | Went stale because |
+|---|---|---|---|
+| 1st | `eedc228` | 0.7.0 | Stale within the hour — producer 0.8.0 added `header.sample_form` |
+| 2nd | `063b5ba` | 0.8.0 | Producer 0.9.0 added `header.limits`, `header.part`, `header.continues_from` and `trailer.continued_in` (BTB-CAP-6) |
+| 3rd | `0fe7cd5` | 0.9.0 | Current |
+
+**In both cases the addition was non-breaking and the freeze held — which is the pattern, not a
+coincidence.** EXT-08's format was designed so its producer can grow without moving the version:
+§13 makes an added key non-breaking, and CAP-6 needed no new record type and no new value in any
+closed vocabulary, because `size_limit` was already in the closed sets for `trailer.end_reason`
+and `segment_close.reason`. `n8ro-capture/1` has never changed.
+
+**What that means for EXT-17's rules: none of them move.** CR-CAP-3's version rejection,
+CR-CAP-2's ignore-unknown-keys criterion, CR-CAP-4's segment and occupancy handling and
+CR-DET-1's content comparison all hold exactly as written. A vendored copy still drifts, though,
+and a reader working from a stale one cannot interpret a key it meets. Re-check this pin before
+relying on it, and treat a drifted `contract/` as a defect to fix rather than a difference to
+tolerate.
+
+**What the current pin adds**, and what EXT-17 can now use: see finding 8 below and PRD rev 2.
+In one line — the recorder can bound and rotate its own captures, so CR-CAP-5 can hand each run
+a per-capture byte bound instead of only projecting one.
 
 ## What is here
 
@@ -113,6 +132,43 @@ measurable at all.
 
 Established by observation inside EXT-08, not by the client — worth confirming with the mentor,
 since what is demonstrated is that it *works*, not that it is the intended production shape.
+**EXT-08 has closed its own version of this question** (its OQ-2, at PRD rev 12) on the grounds
+that nothing it ships changes with the answer, and passed the confirmation here: it is
+**EXT-17's OQ-3**, and this is the project that runs the host in production. `[B]` asks its own
+reader to confirm it, so the ask lands here by the brief's own instruction, not by delegation.
+
+### 8. The recorder can bound its own captures, and rotate them — as of producer 0.9.0
+
+Not a finding about the platform but about the upstream tool, and it changes what EXT-17 has to
+build. EXT-08's `n8ro-bridge` accepts:
+
+```
+--capture-max-bytes <n>        maximum size of ONE capture file; 0 (default) means unbounded
+--on-size-limit stop|rotate    what happens on reaching it; stop is the default
+```
+
+`stop` closes the capture with a well-formed `trailer` carrying `end_reason: "size_limit"` and
+ends the run. `rotate` closes it the same way and continues into
+`capture-<scenario>-<label>.partNNN.n8rocap.jsonl`. **No line is ever cut**: the bound is checked
+against a record's exact length before the record is written, and space is reserved in advance
+for the close. The bound in force is recorded in `header.limits`, so it is recoverable from the
+file rather than only from the command that produced it.
+
+**Two things follow for EXT-17.**
+
+First, **the disk risk is smaller than rev 1 assumed but has not moved to someone else.** The
+bound is per *capture file*. A campaign is many of them, so a campaign-level ceiling is still
+EXT-17's own concern (CR-CAP-5) — but each run can now be given a bound whose overrun produces a
+closed, valid, explicitly-truncated capture instead of an ENOSPC-corrupted one.
+
+Second, **if you configure `rotate`, a run's capture is a set of files, not a file.** Every part
+is a complete, independently valid capture with its own header, its own schemas and its own
+trailer, so a reader that knows nothing about rotation reads any part correctly. But the parts
+are linked only by `header.part` / `header.continues_from` / `trailer.continued_in`, and
+**segment ordinals restart at 0 in every part** — so a per-segment statistic across a set must
+key on `(part, segment)`, and a segment cut by a rotation shows as a `segment_close` with
+`reason: "size_limit"` in one part and a `segment_open` in the next. Choosing `stop` avoids all
+of it and keeps one file per run. See upstream §6.6 and §6.7, and EXT-17's OQ-6.
 
 ### 7. Start the recorder before the host
 

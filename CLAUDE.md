@@ -42,6 +42,12 @@ silently-wrong analysis happens.
 
 Currently `n8ro-capture/1`.
 
+A key you do not recognise inside a record type you *do* recognise is **not** a version change
+and must be ignored, not rejected (format §13). That is the whole reason the version has held
+across three producer releases, and it has already mattered twice: producer 0.8.0 added
+`header.sample_form`, and 0.9.0 added `header.limits`, `header.part`, `header.continues_from`
+and `trailer.continued_in`. Reject on the **version**; ignore unknown **keys**.
+
 ## Three things that will bite before anything else
 
 Full detail and numbers in `contract/PROVENANCE.md`. In short:
@@ -54,6 +60,12 @@ Full detail and numbers in `contract/PROVENANCE.md`. In short:
    reloads. Any statistic computed over a whole capture without segmenting it is wrong.
 3. **An entity's identity is `(name, occupancy)`, never name.** The engine re-creates entities
    under the same name, mid-run and at teardown.
+
+And one that is a choice rather than a trap: the recorder can bound and **rotate** its captures
+(`--capture-max-bytes`, `--on-size-limit`, producer 0.9.0). Choose `rotate` and a run's capture
+becomes a set of `.partNNN` files whose segment ordinals restart in each part; choose `stop` and
+it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-6 and
+`contract/PROVENANCE.md` finding 8.
 
 ## Verified environment — do not re-derive
 
