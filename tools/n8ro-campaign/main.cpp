@@ -16,14 +16,19 @@
 //
 // Never throws (constraint C3).
 
+#include "../../src/common/Json.h"
+#include "../../src/common/JsonParse.h"
 #include "../../src/common/Log.h"
+#include "../../src/param/Axis.h"
 #include "../../src/proc/Process.h"
 #include "../../src/run/RunOnce.h"
 #include "../../src/run/RunRecord.h"
 #include "../../src/run/SelfTest.h"
 #include "../../src/run/StopPredicate.h"
-#include "../../src/common/Json.h"
 
+#include <algorithm>
+#include <array>
+#include <optional>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -36,20 +41,24 @@ using ext17::log::line;
 
 void printHelp() {
     std::puts(
-"n8ro-campaign - EXT-17 headless campaign runner (milestone 4: execution and the\n"
-"                determinism gate; nothing is judged until milestone 6)\n"
+"n8ro-campaign - EXT-17 headless campaign runner (milestone 5: execution, the\n"
+"                determinism gate and one parameterisation axis; nothing is\n"
+"                judged until milestone 6)\n"
 "\n"
 "usage: n8ro-campaign run-once  --out-dir <dir> [options]\n"
 "       n8ro-campaign repeat    --out-dir <dir> --count <n> [options]\n"
+"       n8ro-campaign repeat    --out-dir <dir> --campaign <file> [options]\n"
 "       n8ro-campaign self-test --out-dir <dir> [options]\n"
 "       n8ro-campaign --help\n"
 "\n"
 "commands:\n"
 "  run-once                 execute one run into <out-dir>/runs/<run-id>. One run is not a\n"
 "                           campaign, so it does not self-test.\n"
-"  repeat                   run the determinism self-test, then execute --count runs of one\n"
-"                           configuration, continuing past a run that fails, and write a\n"
-"                           campaign summary carrying the self-test's result.\n"
+"  repeat                   run the determinism self-test, then execute the campaign,\n"
+"                           continuing past a run that fails, and write a campaign\n"
+"                           summary carrying the self-test's result. Without\n"
+"                           --campaign that is --count runs of one configuration;\n"
+"                           with it, one run per declared parameter value.\n"
 "  self-test                run the determinism self-test alone and stop. The campaign does\n"
 "                           NOT get its gate from this command - repeat runs it itself, so\n"
 "                           that it is never something anyone has to remember (CR-DET-1).\n"
@@ -85,8 +94,55 @@ void printHelp() {
 "  --model-name <name>      model the scenario lives in. Default N8roSimSchema.\n"
 "  --model-path <dir>       schema and instance database. Default C:\\N8RO\\data\\db.\n"
 "  --schema-file <name>     schema name inside that database. Default N8roSimSchema.\n"
-"  --count <n>              repeat only: how many runs. Default 20.\n"
+"  --count <n>              repeat only: how many runs of ONE configuration. Default 20.\n"
+"                           Cannot be combined with --campaign, where the number of\n"
+"                           runs is the number of values the axis declares.\n"
 "  --first-run <n>          repeat only: ordinal of the first run. Default 0.\n"
+"\n"
+"the parameterisation axis (CR-PAR-1, and step 5 of the brief):\n"
+"  --campaign <file>        a JSON file declaring the ONE axis this campaign varies,\n"
+"                           and the values it takes. Changing what a sweep varies is\n"
+"                           an edit to this file and no rebuild. repeat only.\n"
+"\n"
+"  [B]: \"One axis done properly beats four done loosely.\" Which axis is OQ-4, and it\n"
+"  is DECIDED - initial positions and velocities, as one declared scalar applied to\n"
+"  named entities before start. The measurement that decided it, including the axis\n"
+"  range's own fidelity ceiling, is in docs/m5-oq4.md.\n"
+"\n"
+"  {\n"
+"    \"axis\": {\n"
+"      \"name\": \"red_raid_speed_ms\",      label in every run record and in the report\n"
+"      \"kind\": \"velocity_ned_scaled\",    velocityNed = direction * value\n"
+"      \"applies_to\": \"velocityNed magnitude\",       free text, for the report\n"
+"      \"units\": \"m/s\",                             free text, for the report\n"
+"      \"entity_groups\": [\n"
+"        { \"direction_ned\": [-1, 0, 0], \"names\": [\"RedUAV_N_01\", \"RedUAV_N_02\"] },\n"
+"        { \"direction_ned\": [0, -1, 0], \"names\": [\"RedUAV_E_01\"] }\n"
+"      ],\n"
+"      \"values\": [\"11\", \"27.5\", \"55\", \"110\", \"220\"],\n"
+"      \"self_test_value\": \"55\"           optional; defaults to the first value\n"
+"    }\n"
+"  }\n"
+"\n"
+"  Entities are NAMED, never matched. There is no glob: resolving one would mean\n"
+"  subscribing the control path to sim/entity/state, which would perturb the very\n"
+"  publication schedule the determinism gate measures - and a pattern that silently\n"
+"  matches nothing is the failure this project keeps finding. A named entity that\n"
+"  carries no sample in a run's own capture is reported in that run's record.\n"
+"\n"
+"  A value is carried as the TEXT you wrote it as, into the run record and into the\n"
+"  report. The double derived from it exists to publish it and to order the sweep,\n"
+"  and is never printed - a re-formatted double would put CR-DET-2's locale hazard\n"
+"  back on a path the build searches for it.\n"
+"\n"
+"  self_test_value is the value the determinism gate runs at. CR-DET-1 says \"the\n"
+"  same configuration twice\" and a sweep has many, so the gate runs at ONE of them,\n"
+"  and it establishes determinism FOR THAT VALUE. It is one claim at a named point,\n"
+"  not one per run, and the report says so. Both gate runs are copies of one\n"
+"  configuration, which is what makes them a valid pair (CR-PAR-1).\n"
+"\n"
+"  Two runs at DIFFERENT values are never compared. They are two configurations, and\n"
+"  a gate over them would report a difference meaning only that the sweep worked.\n"
 "\n"
 "the end of a run:\n"
 "  --frames <n>             stop predicate: a run is finished when the engine's frame\n"
@@ -203,6 +259,14 @@ struct Args {
     bool queueSizeGiven = false;
     long long queueSize = 0;
 
+    // CR-PAR-1: the axis, declared in campaign configuration rather than in code. Changing what
+    // the sweep varies is an edit to this file and no rebuild, which is the criterion in its
+    // own words. Absent means an unparameterised campaign, which behaves exactly as at M4.
+    std::string campaignFile;
+    ext17::param::Axis axis;
+    bool hasAxis = false;
+    bool countGiven = false;
+
     bool help = false;
 };
 
@@ -239,7 +303,8 @@ bool parseArgs(int argc, char** argv, Args& a, std::string& error) {
         else if (opt == "--model-path")     { const char* v = next("--model-path"); if (!v) return false; a.run.modelPath = v; }
         else if (opt == "--schema-file")    { const char* v = next("--schema-file"); if (!v) return false; a.run.schemaFile = v; }
         else if (opt == "--frames")         { const char* v = next("--frames"); if (!v) return false; a.frames = std::strtoull(v, nullptr, 10); }
-        else if (opt == "--count")          { if (!asInt("--count", a.count)) return false; }
+        else if (opt == "--count")          { if (!asInt("--count", a.count)) return false; a.countGiven = true; }
+        else if (opt == "--campaign")       { const char* v = next("--campaign"); if (!v) return false; a.campaignFile = v; }
         else if (opt == "--first-run")      { if (!asInt("--first-run", a.firstRun)) return false; }
         else if (opt == "--run-timeout-ms") { if (!asInt("--run-timeout-ms", a.run.runTimeoutMs)) return false; }
         else if (opt == "--ready-timeout-ms") { if (!asInt("--ready-timeout-ms", a.run.readyTimeoutMs)) return false; }
@@ -291,6 +356,47 @@ bool parseArgs(int argc, char** argv, Args& a, std::string& error) {
     return true;
 }
 
+// Turn one declared value of the axis into a run configuration: the value the run record will
+// state, and the hook that actually applies it.
+//
+// **This is the only place a declaration becomes bus traffic**, and it acts through
+// `RunConfig::afterLoadBeforeStart` - the seam M2 built for the OQ-4 spike. There is no second
+// mechanism, deliberately: a parameter applied anywhere else would be a parameter the run
+// record does not know about.
+//
+// The hook fires after the scenario reports loaded and before `start` is published, which is
+// where an initial condition has to be set - measured at M2 (`p1`), and measured again at M5
+// across a swept range (`docs/m5-oq4.md` §3). What it publishes is not what it concludes from:
+// `sendEntityUpdate` returning true means the message reached the bus, and whether an entity of
+// that name was there is answered by the capture, in RunOnce's read-back.
+void applyAxisValue(const ext17::param::Axis& axis, const ext17::param::Value& value,
+                    ext17::run::RunConfig& cfg) {
+    cfg.parameterName = axis.name;
+    cfg.parameterValueText = value.text;
+    cfg.parameterAppliesTo = axis.appliesTo;
+    cfg.parameterUnits = axis.units;
+    cfg.parameterEntities.clear();
+    for (const auto& t : axis.targets) { cfg.parameterEntities.push_back(t.entity); }
+
+    // Captured by value: the campaign's Args outlive every run, but a hook that referred to
+    // them would be a lifetime argument rather than a guarantee, and this one is copied into
+    // two self-test runs and N campaign runs.
+    const ext17::param::Axis axisCopy = axis;
+    const ext17::param::Value valueCopy = value;
+    cfg.afterLoadBeforeStart = [axisCopy, valueCopy](ext17::control::EngineControl& c) {
+        int published = 0;
+        for (const auto& t : axisCopy.targets) {
+            const std::array<double, 3> v = axisCopy.velocityFor(t, valueCopy);
+            if (c.publishEntityUpdate(t.entity, std::nullopt, v, std::nullopt)) { ++published; }
+        }
+        line("axis", axisCopy.name + " = " + valueCopy.text
+                         + (axisCopy.units.empty() ? "" : " " + axisCopy.units) + ": published "
+                         + std::to_string(published) + " of "
+                         + std::to_string(axisCopy.targets.size())
+                         + " entity update(s) before start");
+    };
+}
+
 std::string ordinal(int n) {
     char buf[16];
     std::snprintf(buf, sizeof buf, "%03d", n);
@@ -303,12 +409,159 @@ std::string joinPath(const std::string& dir, const std::string& leaf) {
     return (last == '\\' || last == '/') ? dir + leaf : dir + "\\" + leaf;
 }
 
+// The campaign's runs in SWEEP ORDER - ascending by parameter value, ties in the order the
+// campaign file declared them. CR-PAR-2's first criterion is that the sweep output "orders runs
+// by parameter value", and this is the one place that ordering is decided, so the JSON array
+// and the printed table cannot disagree about it.
+//
+// The comparison is on the parsed double and the tie-break is the record's own position, so the
+// order is total and is the same on every machine. Sorting on the declared TEXT would put "110"
+// before "27.5", which is a sweep ordered by spelling.
+std::vector<const ext17::run::RunRecord*> sweptRecords(
+    const std::vector<ext17::run::RunRecord>& records) {
+    std::vector<const ext17::run::RunRecord*> out;
+    out.reserve(records.size());
+    for (const auto& r : records) { out.push_back(&r); }
+    std::stable_sort(out.begin(), out.end(),
+                     [](const ext17::run::RunRecord* a, const ext17::run::RunRecord* b) {
+                         return ext17::json::toDoubleCLocale(a->parameterValueText)
+                                < ext17::json::toDoubleCLocale(b->parameterValueText);
+                     });
+    return out;
+}
+
+// CR-PAR-2, the half a person reads: *"the presentation is legible in the report's own format -
+// a reviewer can see the trend without opening another tool."*
+//
+// So it is a fixed-width table in the campaign log, ordered by parameter value, with a bar
+// scaled to the result column. The bar is what makes it a trend rather than a list of numbers:
+// twenty rows of integers require the reader to do the comparing, and a shape does not.
+//
+// Two honesty rules are built into it rather than left to the reader.
+//
+//   - The bar is scaled between the MINIMUM and maximum of the column, not from zero, and the
+//     header says so. A column running 89 to 104 drawn from zero is five identical bars.
+//   - A run that did not complete gets no bar at all. Its result column is whatever its capture
+//     happened to contain, which is not a point on the trend, and drawing it as one would put a
+//     failure on the same line as a measurement.
+void printSweep(const std::vector<ext17::run::RunRecord>& records,
+                const ext17::param::Axis& axis) {
+    const auto ordered = sweptRecords(records);
+    if (ordered.empty()) { return; }
+
+    // A run whose capture has NO RUNNING SEGMENT has no result. Its counts are zero because
+    // nothing was measured, and zero is not a measurement of zero - plotting it would put a
+    // missing point on the trend AND drag the bar scale's floor down to it, which makes every
+    // other bar wrong as well. Such a run is scaled out, drawn out, and named.
+    //
+    // This is not hypothetical: R14 measured segment 0 classifying `frozen` on a parameterised
+    // run, and the committed sweep hit it twice in seven.
+    const auto measured = [](const ext17::run::RunRecord* r) {
+        return r->outcome == ext17::run::RunOutcome::Completed && r->captureRunSegmentFound;
+    };
+
+    long long lo = 0, hi = 0;
+    bool any = false;
+    int unmeasured = 0;
+    for (const auto* r : ordered) {
+        if (!measured(r)) {
+            if (r->outcome == ext17::run::RunOutcome::Completed) { ++unmeasured; }
+            continue;
+        }
+        if (!any) { lo = hi = r->captureEntityAdds; any = true; }
+        lo = r->captureEntityAdds < lo ? r->captureEntityAdds : lo;
+        hi = r->captureEntityAdds > hi ? r->captureEntityAdds : hi;
+    }
+
+    std::size_t valueWidth = 5;
+    for (const auto* r : ordered) {
+        valueWidth = r->parameterValueText.size() > valueWidth ? r->parameterValueText.size()
+                                                               : valueWidth;
+    }
+
+    line("sweep", "");
+    line("sweep", "SWEEP  " + axis.name
+                      + (axis.units.empty() ? "" : "  (" + axis.units + ")")
+                      + (axis.appliesTo.empty() ? "" : "  " + axis.appliesTo)
+                      + "  -  " + std::to_string(ordered.size()) + " run(s), ordered by value");
+    line("sweep", "");
+
+    char header[240];
+    std::snprintf(header, sizeof header, "  %-*s  %-4s  %-20s  %8s  %7s  %8s",
+                  static_cast<int>(valueWidth), "value", "run", "outcome", "adds", "keys",
+                  "samples");
+    line("sweep", header);
+
+    for (const auto* r : ordered) {
+        std::string bar;
+        if (measured(r) && any && hi > lo) {
+            const int cells = static_cast<int>(
+                (r->captureEntityAdds - lo) * 40 / (hi - lo));
+            bar.assign(static_cast<std::size_t>(cells < 0 ? 0 : cells), '#');
+            if (bar.empty()) { bar = "."; }   // the minimum is a point on the trend, not a gap
+        } else if (r->outcome != ext17::run::RunOutcome::Completed) {
+            bar = "(no bar - this run did not complete)";
+        } else if (!r->captureRunSegmentFound) {
+            bar = "(no bar - no RUNNING segment, so nothing here was measured)";
+        }
+
+        char counts[64];
+        if (measured(r)) {
+            std::snprintf(counts, sizeof counts, "%8lld  %7lld", r->captureEntityAdds,
+                          r->captureEntityKeys);
+        } else {
+            // "-" and not "0". The distinction is the whole point of the branch.
+            std::snprintf(counts, sizeof counts, "%8s  %7s", "-", "-");
+        }
+
+        char row[400];
+        std::snprintf(row, sizeof row, "  %-*s  %-4s  %-20s  %s  %8lld  %s",
+                      static_cast<int>(valueWidth), r->parameterValueText.c_str(),
+                      r->runId.c_str(), ext17::run::toString(r->outcome), counts,
+                      r->captureSamples, bar.c_str());
+        line("sweep", row);
+    }
+
+    line("sweep", "");
+    if (unmeasured > 0) {
+        line("sweep", "  " + std::to_string(unmeasured) + " completed run(s) show `-` rather "
+                      "than a number: their capture has no RUNNING segment, so nothing was "
+                      "measured in them. That is NOT a result of zero, they are excluded from "
+                      "the bar's scale as well as from the bar, and the sweep is that many "
+                      "points short. See R12 and R14, and each run's own run.json.");
+        line("sweep", "");
+    }
+    if (any && hi > lo) {
+        line("sweep", "  the bar is `adds` scaled between " + std::to_string(lo) + " and "
+                          + std::to_string(hi) + " - NOT from zero, so a small real change is "
+                            "visible and is not a small real change drawn large by accident");
+    } else if (any) {
+        line("sweep", "  every completed run produced the same `adds` count, so there is no bar "
+                      "to draw. CR-PAR-2 asks for a result that VARIES with the parameter; this "
+                      "sweep does not show one, and saying so is the point of the line.");
+    }
+    line("sweep", "  adds    entity_add records in the run's first RUNNING segment. Roster "
+                  "lifecycle agreed exactly across twenty identical runs (M2), so this column "
+                  "carries no publication-schedule spread");
+    line("sweep", "  keys    distinct (entity, occupancy) keys in that segment");
+    line("sweep", "  samples total samples in it. This one DOES carry the platform's "
+                  "publication-schedule spread, measured at 0.38% over twenty identical runs");
+    line("sweep", "");
+    line("sweep", "  These are counts read off each capture, NOT verdicts. No condition is "
+                  "declared until M6, so no run here is a pass or a fail.");
+    line("sweep", "  The determinism gate ran at " + axis.name + " = " + axis.selfTestValueText
+                      + " and established determinism FOR THAT VALUE. It is one claim at a named "
+                        "point, not one per run.");
+    line("sweep", "");
+}
+
 // The campaign summary. At M2 it counts three outcomes, and the invariant it asserts is the
 // one CR-EX-4 names: every attempted run lands in exactly one category, and the categories sum.
 void writeCampaignSummary(const std::string& path,
                           const std::vector<ext17::run::RunRecord>& records,
                           const ext17::run::StopPredicate& predicate,
-                          const ext17::run::SelfTestResult* selfTest) {
+                          const ext17::run::SelfTestResult* selfTest,
+                          const ext17::param::Axis* axis) {
     int completed = 0, timedOut = 0, infra = 0;
     for (const auto& r : records) {
         switch (r.outcome) {
@@ -320,9 +573,14 @@ void writeCampaignSummary(const std::string& path,
 
     ext17::json::Writer w;
     w.beginObject();
-    w.member("schema", std::string("ext17-campaign-summary/2"));
-    w.member("milestone", std::string("M4 - execution and the determinism gate; no conditions are "
-                                      "evaluated, so no run is a pass or a fail yet"));
+    // Bumped at M5: the document gained an `axis` object, a `sweep` array, and per-run capture
+    // counts. Every addition is additive, and the version still moves - a consumer written
+    // against /2 has not seen the sweep, and a shape that grew without saying so is how a
+    // reader comes to believe it read everything there was.
+    w.member("schema", std::string("ext17-campaign-summary/3"));
+    w.member("milestone", std::string("M5 - execution, the determinism gate and one "
+                                      "parameterisation axis; no conditions are evaluated, so "
+                                      "no run is a pass or a fail yet"));
 
     // CR-DET-1: "the self-test runs at the start of every campaign and its result appears in the
     // report". At M4 this file is the report. M6 replaces it and reads this object rather than
@@ -348,20 +606,88 @@ void writeCampaignSummary(const std::string& path,
              completed + timedOut + infra == static_cast<int>(records.size()));
     w.endObject();
 
+    // CR-PAR-1: what varied, and the values it took. Null - not an empty object - when the
+    // campaign declared no axis, so that an unparameterised campaign's summary says so rather
+    // than looking like a sweep of nothing.
+    if (axis != nullptr) {
+        w.beginObject("axis");
+        w.member("name", axis->name);
+        w.member("kind", std::string(ext17::param::toString(axis->kind)));
+        if (!axis->appliesTo.empty()) { w.member("applies_to", axis->appliesTo); }
+        if (!axis->units.empty())     { w.member("units", axis->units); }
+        w.member("declared_in", std::string("the campaign configuration file, not in code "
+                                            "(CR-PAR-1)"));
+        w.beginArray("values");
+        for (const auto& v : axis->values) { w.value(v.text); }
+        w.endArray();
+        w.member("values_are_declared_text", true);
+        w.member("self_test_value", axis->selfTestValueText);
+        w.member("self_test_establishes_for_this_value_only", true);
+        w.beginArray("entities");
+        for (const auto& t : axis->targets) { w.value(t.entity); }
+        w.endArray();
+        w.endObject();
+    } else {
+        w.memberNull("axis");
+    }
+
     w.beginArray("runs");
     for (const auto& r : records) {
         w.beginObject();
         w.member("run_id", r.runId);
+        if (!r.parameterName.empty()) { w.member("parameter_value", r.parameterValueText); }
         w.member("outcome", std::string(ext17::run::toString(r.outcome)));
         w.member("predicate_satisfied", r.predicateSatisfied);
         w.member("observed_frame", r.evaluation.observedFrame);
         w.member("observed_sim_time_s", r.evaluation.observedSimTimeS, 6);
         w.member("observed_delta_s", r.evaluation.observedDeltaS, 5);
+        w.member("capture_samples", static_cast<std::int64_t>(r.captureSamples));
+        w.member("capture_entity_keys", static_cast<std::int64_t>(r.captureEntityKeys));
+        w.member("capture_entity_adds", static_cast<std::int64_t>(r.captureEntityAdds));
         if (r.captureBytes) { w.member("capture_bytes", *r.captureBytes); }
         else                { w.memberNull("capture_bytes"); }
+        if (!r.parameterName.empty()) {
+            w.member("every_named_entity_present", r.parameterEntitiesMissing.empty());
+        }
         w.endObject();
     }
     w.endArray();
+
+    // CR-PAR-2: the sweep, ORDERED BY PARAMETER VALUE, with each run's result against it. This
+    // is the machine-readable half; `printSweep` is the half a person reads without opening
+    // another tool. Both are generated from the same records in the same order, so they cannot
+    // disagree about what happened.
+    if (axis != nullptr) {
+        w.beginArray("sweep");
+        for (const auto& r : sweptRecords(records)) {
+            w.beginObject();
+            w.member("value", r->parameterValueText);
+            w.member("run_id", r->runId);
+            w.member("outcome", std::string(ext17::run::toString(r->outcome)));
+            // null, never 0, when there was no running segment to measure in. A consumer that
+            // read 0 here would be reading a measurement that was never taken (tenet 3).
+            w.member("running_segment_found", r->captureRunSegmentFound);
+            if (r->captureRunSegmentFound) {
+                w.member("entity_adds", static_cast<std::int64_t>(r->captureEntityAdds));
+                w.member("entity_keys", static_cast<std::int64_t>(r->captureEntityKeys));
+            } else {
+                w.memberNull("entity_adds");
+                w.memberNull("entity_keys");
+            }
+            w.member("samples", static_cast<std::int64_t>(r->captureSamples));
+            w.endObject();
+        }
+        w.endArray();
+        w.member("sweep_note",
+                 std::string("Ordered by parameter value. The result columns are counts read off "
+                             "each run's own capture by this project's reader - they are NOT "
+                             "verdicts, because no condition is declared until M6. `samples` "
+                             "additionally carries the platform's publication-schedule spread, "
+                             "measured at 0.38% over twenty identical runs (M2); `entity_adds` "
+                             "does not, and is the column to read a trend from. A run with no "
+                             "RUNNING segment reports null rather than 0 for both: nothing was "
+                             "measured in it, and 0 would be a measurement."));
+    }
     w.endObject();
 
     const std::string text = w.str() + "\n";
@@ -420,6 +746,34 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "n8ro-campaign: --count must be at least 1\n");
         return 2;
     }
+
+    // ---- CR-PAR-1: the axis, read from campaign configuration ------------------------------
+    if (!a.campaignFile.empty()) {
+        std::string axisError;
+        if (!ext17::param::readCampaignFile(a.campaignFile, a.axis, axisError)) {
+            std::fprintf(stderr, "n8ro-campaign: %s\n", axisError.c_str());
+            return 2;
+        }
+        a.hasAxis = true;
+        if (a.command != "repeat") {
+            std::fprintf(stderr, "n8ro-campaign: --campaign declares a sweep, and a sweep is "
+                                 "what repeat runs. run-once executes one run and has no axis "
+                                 "to sweep along.\n");
+            return 2;
+        }
+        // The sweep's length IS the number of declared values. --count would be a second and
+        // silently disagreeing statement of how many runs there are, and whichever lost would
+        // be the one somebody wrote down on purpose.
+        if (a.countGiven) {
+            std::fprintf(stderr, "n8ro-campaign: --count cannot be used with --campaign. The "
+                                 "number of runs is the number of values the axis declares "
+                                 "(%d here). Add or remove values in %s.\n",
+                         static_cast<int>(a.axis.values.size()), a.campaignFile.c_str());
+            return 2;
+        }
+        a.count = static_cast<int>(a.axis.values.size());
+    }
+
     // CR-EX-4: "there is no configuration in which a run may run unbounded". A non-positive
     // timeout is already bounded - the deadline is in the past, so the run times out at once -
     // but rejecting it makes the requirement checkable at the CLI rather than by reasoning
@@ -463,7 +817,10 @@ int main(int argc, char** argv) {
     line("campaign", "disk: projecting " + std::to_string(projected) + " bytes for "
                          + std::to_string(plannedRuns) + " run(s) of " + std::to_string(a.frames)
                          + " frames at " + std::to_string(a.bytesPerFrame) + " bytes/frame"
-                         + (selfTests ? " (including the self-test's 2 runs)" : ""));
+                         + (selfTests ? " (including the self-test's 2 runs)" : "")
+                         + (a.hasAxis ? " for a sweep of " + std::to_string(a.axis.values.size())
+                                            + " declared value(s)"
+                                      : ""));
     if (a.diskCeilingBytes > 0 && projected > a.diskCeilingBytes) {
         std::fprintf(stderr, "n8ro-campaign: the projected footprint of %llu bytes exceeds the "
                              "campaign ceiling of %llu bytes. Raise --disk-ceiling-bytes "
@@ -522,6 +879,27 @@ int main(int argc, char** argv) {
         stc.run = a.run;
         stc.selfTestDir = joinPath(a.outDir, "selftest");
         stc.compare = a.compare;
+        // CR-DET-1 says "the same configuration twice" and a sweep has many, so the gate runs at
+        // ONE declared value - `axis.self_test_value`, defaulting to the first one written. Both
+        // self-test runs are copies of this single RunConfig, which is how "two runs at the same
+        // parameter value" is guaranteed rather than arranged (CR-PAR-1's third criterion).
+        //
+        // What it establishes is determinism AT THAT VALUE. It is not nineteen further claims,
+        // and every place this result is reported says so.
+        if (a.hasAxis) {
+            const ext17::param::Value* gateValue = a.axis.selfTestValue();
+            if (gateValue == nullptr) {
+                std::fprintf(stderr, "n8ro-campaign: the axis names no self-test value\n");
+                return 2;
+            }
+            applyAxisValue(a.axis, *gateValue, stc.run);
+            line("campaign", "the determinism gate runs at " + a.axis.name + " = "
+                                 + gateValue->text
+                                 + (a.axis.units.empty() ? "" : " " + a.axis.units)
+                                 + ", which is one of the values this campaign sweeps. It "
+                                   "establishes determinism FOR THAT VALUE - the sweep's other "
+                                   "values are run, not gated, and the report says so.");
+        }
         line("campaign", "gate basis: " + std::string(ext17::compare::name(a.compare.gateBasis))
                              + ". OQ-2 is UNANSWERED - whether the gate is keyed on content or on "
                                "bytes is out with the owner of the brief. Both comparisons are "
@@ -559,10 +937,20 @@ int main(int argc, char** argv) {
     records.reserve(static_cast<std::size_t>(count));
     bool ceilingReached = false;
 
+    // Runs execute in SWEEP ORDER, so a run's ordinal ascends with its parameter value and the
+    // directory listing reads the same way the report does. The ordinals stay ordinals - never
+    // the value, and never a timestamp - because two runs at one value must still be
+    // addressable as separate runs.
+    std::vector<std::size_t> valueOrder;
+    if (a.hasAxis) { valueOrder = a.axis.sweepOrder(); }
+
     for (int n = 0; n < count; ++n) {
         ext17::run::RunConfig cfg = a.run;
         cfg.runId = ordinal(a.firstRun + n);
         cfg.runDir = joinPath(runsDir, cfg.runId);
+        if (a.hasAxis) {
+            applyAxisValue(a.axis, a.axis.values[valueOrder[static_cast<std::size_t>(n)]], cfg);
+        }
         // G1: the failure of any one run does not end the campaign.
         records.push_back(ext17::run::executeRun(cfg));
 
@@ -586,7 +974,8 @@ int main(int argc, char** argv) {
 
     if (a.command == "repeat") {
         writeCampaignSummary(joinPath(a.outDir, "campaign.json"), records, a.run.predicate,
-                             selfTestRan ? &selfTest : nullptr);
+                             selfTestRan ? &selfTest : nullptr, a.hasAxis ? &a.axis : nullptr);
+        if (a.hasAxis) { printSweep(records, a.axis); }
     }
 
     int completed = 0;

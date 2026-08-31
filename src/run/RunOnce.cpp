@@ -7,6 +7,9 @@
 
 #include <memory>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace ext17::run {
 namespace {
@@ -25,6 +28,46 @@ std::string joinPath(const std::string& dir, const std::string& leaf) {
     const char last = dir.back();
     return (last == '\\' || last == '/') ? dir + leaf : dir + "\\" + leaf;
 }
+
+// Watches a capture go past and records which of a named set of entities carried a sample.
+//
+// It exists because of the gap between publishing and receiving. `sendEntityUpdate` returns
+// true when the message reached the bus; whether an entity of that name was there to be updated
+// is a different question, and the only file that answers it is the run's own capture. A
+// mistyped entity name would otherwise produce a sweep in which every run is the baseline and
+// nothing says so.
+//
+// It reads `entity` from the record and nothing else, so it costs one string compare per sample
+// against a small set and retains nothing.
+class ParameterEntitySink final : public capture::RecordSink {
+public:
+    explicit ParameterEntitySink(const std::vector<std::string>& wanted) {
+        for (const std::string& e : wanted) { seen_.emplace_back(e, false); }
+    }
+
+    void onRecord(const capture::RecordView& view) override {
+        if (view.type != "sample" || !view.record) { return; }
+        const json::Value* entity = view.record->find("entity");
+        if (!entity || !entity->isString()) { return; }
+        for (auto& kv : seen_) {
+            if (!kv.second && kv.first == entity->text()) { kv.second = true; return; }
+        }
+    }
+
+    [[nodiscard]] std::vector<std::string> missing() const {
+        std::vector<std::string> out;
+        for (const auto& kv : seen_) {
+            if (!kv.second) { out.push_back(kv.first); }
+        }
+        return out;
+    }
+
+private:
+    // A vector of pairs rather than a map, and the reason is CR-DET-2: an unordered container
+    // iterated is one of [B]'s three named hazards, and `tools/n8ro-compare/build.cmd` fails a
+    // build that names one. Declaration order out is the order the campaign file declared.
+    std::vector<std::pair<std::string, bool>> seen_;
+};
 
 RunOutcome fail(RunRecord& rec, const char* stage, const std::string& detail) {
     rec.errorStage = stage;
@@ -323,8 +366,23 @@ RunRecord executeRun(const RunConfig& cfg) {
     rec.schemaFile = cfg.schemaFile;
     rec.n8roRelease = cfg.n8roRelease;
     rec.pathPrepend = cfg.pathPrepend;
+    // CR-PAR-1. Set before runBody so that a run which never starts still records what it was
+    // asked to vary - a sweep's missing point is then attributable rather than merely absent.
+    // Every named entity is assumed missing until the capture shows otherwise.
+    rec.parameterName = cfg.parameterName;
+    rec.parameterValueText = cfg.parameterValueText;
+    rec.parameterAppliesTo = cfg.parameterAppliesTo;
+    rec.parameterUnits = cfg.parameterUnits;
+    rec.parameterEntities = cfg.parameterEntities;
+    rec.parameterEntitiesMissing = cfg.parameterEntities;
 
-    log::line("run", "=== run " + cfg.runId + " : \"" + cfg.scenario + "\" ===");
+    log::line("run", "=== run " + cfg.runId + " : \"" + cfg.scenario + "\""
+                         + (cfg.parameterName.empty()
+                                ? std::string()
+                                : "  [" + cfg.parameterName + " = " + cfg.parameterValueText
+                                      + (cfg.parameterUnits.empty() ? "" : " " + cfg.parameterUnits)
+                                      + "]")
+                         + " ===");
 
     RunState st;
     rec.outcome = runBody(cfg, rec, st);
@@ -385,8 +443,14 @@ RunRecord executeRun(const RunConfig& cfg) {
             // the run that produced it. It links nothing and needs no install, so the campaign
             // pays a quarter of a second per run for two answers it cannot get any other way:
             // whether the file it just wrote is well formed, and whether it covers the run.
-            const capture::SetResult set =
-                capture::readSet(joinPath(cfg.runDir, captures.front()));
+            // ...and, when the run was parameterised, collect which of the axis's named
+            // entities actually carried a sample. A publish returning true says the message
+            // reached the bus and nothing more; this is the only thing that says the entity was
+            // there to receive it (CR-PAR-1, and tenet 3 applied to our own input).
+            ParameterEntitySink paramSink(cfg.parameterEntities);
+            const capture::SetResult set = capture::readSet(
+                joinPath(cfg.runDir, captures.front()), {},
+                cfg.parameterEntities.empty() ? nullptr : &paramSink);
             if (!set.parts.empty()) {
                 rec.captureRead = true;
                 const capture::ReadResult& last = set.parts.back();
@@ -417,6 +481,31 @@ RunRecord executeRun(const RunConfig& cfg) {
                     }
                 }
                 rec.captureDiagnostics = diags;
+
+                // The first RUNNING segment - the run proper. `running` is the reader's
+                // three-valued clock class, and taking the first one rather than segment 0 by
+                // ordinal means a capture whose segment 0 froze (R12) contributes nothing here
+                // rather than contributing a number computed over a segment the determinism
+                // gate would refuse.
+                for (const capture::SegmentStats& seg : set.segments) {
+                    if (seg.clock != capture::ClockClass::Running) { continue; }
+                    rec.captureRunSegmentFound = true;
+                    rec.captureEntityKeys = seg.distinctEntityKeys;
+                    rec.captureEntityAdds = seg.entityAdds;
+                    break;
+                }
+                rec.parameterEntitiesMissing = paramSink.missing();
+                if (!rec.parameterEntitiesMissing.empty()) {
+                    std::string names;
+                    for (const std::string& e : rec.parameterEntitiesMissing) {
+                        names += (names.empty() ? "" : ", ") + e;
+                    }
+                    log::line("axis", "the axis named " + std::to_string(names.empty() ? 0
+                                          : rec.parameterEntitiesMissing.size())
+                                          + " entity(ies) that carry no sample in this run's "
+                                            "capture: " + names
+                                          + ". The update was published and nothing received it.");
+                }
                 log::line("capture", "read back: " + std::to_string(set.counts.samples)
                                          + " samples over " + std::to_string(set.segments.size())
                                          + " segment key(s) for "

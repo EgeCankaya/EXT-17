@@ -40,7 +40,18 @@ enum class SelfTestOutcome {
 const char* toString(SelfTestOutcome outcome);
 
 struct SelfTestConfig {
-    RunConfig run;                        // the configuration to execute twice
+    // The configuration to execute twice — including, since M5, the parameterisation axis's
+    // value and the hook that applies it. **Both runs are copies of this one object**, which is
+    // how "two runs at the same parameter value" is guaranteed rather than arranged: there is
+    // no path through this file by which the two runs can differ in their parameter.
+    //
+    // Which value a sweep gates at is `axis.self_test_value` in the campaign file, defaulting
+    // to the first declared value. It is one of the values the campaign actually sweeps, so
+    // what the gate establishes is about a run the campaign performs — and it establishes it
+    // FOR THAT VALUE, which is what the report says. A sweep of twenty values is not twenty
+    // determinism claims; it is one, at a named point, plus nineteen runs of a harness whose
+    // determinism was demonstrated at that point.
+    RunConfig run;
     std::string selfTestDir;              // <out-dir>\selftest
     compare::CompareOptions compare;
 };

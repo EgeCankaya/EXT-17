@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 namespace ext17::run {
 
@@ -85,6 +86,24 @@ struct RunConfig {
     // default to empty, and an empty hook is not called - an ordinary run has no seam in it.
     std::function<void(control::EngineControl&)> afterLoadBeforeStart;
     std::function<void(control::EngineControl&)> afterStart;
+
+    // The parameterisation axis's value for THIS run (CR-PAR-1), carried here only so that the
+    // run record can state it. Nothing in RunOnce acts on it: the acting is the hook above, and
+    // building that hook from the declared axis is `n8ro-campaign`'s job.
+    //
+    // `parameterValueText` is the value's DECLARED TEXT and it is authoritative. It is never
+    // re-derived from a double - M4 closed CR-DET-2's locale hazard by never converting a
+    // number for a decision, and a run record carrying a re-formatted double would put it back.
+    //
+    // `parameterEntities` are the entities the axis names. They are recorded so that the
+    // capture read-back can check each one actually appeared: `sendEntityUpdate` returning true
+    // means the message reached the bus and says nothing about whether the entity exists, and a
+    // sweep silently varying nothing is the failure this whole milestone is built to avoid.
+    std::string parameterName;
+    std::string parameterValueText;
+    std::string parameterAppliesTo;
+    std::string parameterUnits;
+    std::vector<std::string> parameterEntities;
 };
 
 // Execute one run. Returns the record; the record's outcome is the answer.

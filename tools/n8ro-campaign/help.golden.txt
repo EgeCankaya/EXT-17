@@ -1,17 +1,21 @@
-n8ro-campaign - EXT-17 headless campaign runner (milestone 4: execution and the
-                determinism gate; nothing is judged until milestone 6)
+n8ro-campaign - EXT-17 headless campaign runner (milestone 5: execution, the
+                determinism gate and one parameterisation axis; nothing is
+                judged until milestone 6)
 
 usage: n8ro-campaign run-once  --out-dir <dir> [options]
        n8ro-campaign repeat    --out-dir <dir> --count <n> [options]
+       n8ro-campaign repeat    --out-dir <dir> --campaign <file> [options]
        n8ro-campaign self-test --out-dir <dir> [options]
        n8ro-campaign --help
 
 commands:
   run-once                 execute one run into <out-dir>/runs/<run-id>. One run is not a
                            campaign, so it does not self-test.
-  repeat                   run the determinism self-test, then execute --count runs of one
-                           configuration, continuing past a run that fails, and write a
-                           campaign summary carrying the self-test's result.
+  repeat                   run the determinism self-test, then execute the campaign,
+                           continuing past a run that fails, and write a campaign
+                           summary carrying the self-test's result. Without
+                           --campaign that is --count runs of one configuration;
+                           with it, one run per declared parameter value.
   self-test                run the determinism self-test alone and stop. The campaign does
                            NOT get its gate from this command - repeat runs it itself, so
                            that it is never something anyone has to remember (CR-DET-1).
@@ -47,8 +51,55 @@ the run:
   --model-name <name>      model the scenario lives in. Default N8roSimSchema.
   --model-path <dir>       schema and instance database. Default C:\N8RO\data\db.
   --schema-file <name>     schema name inside that database. Default N8roSimSchema.
-  --count <n>              repeat only: how many runs. Default 20.
+  --count <n>              repeat only: how many runs of ONE configuration. Default 20.
+                           Cannot be combined with --campaign, where the number of
+                           runs is the number of values the axis declares.
   --first-run <n>          repeat only: ordinal of the first run. Default 0.
+
+the parameterisation axis (CR-PAR-1, and step 5 of the brief):
+  --campaign <file>        a JSON file declaring the ONE axis this campaign varies,
+                           and the values it takes. Changing what a sweep varies is
+                           an edit to this file and no rebuild. repeat only.
+
+  [B]: "One axis done properly beats four done loosely." Which axis is OQ-4, and it
+  is DECIDED - initial positions and velocities, as one declared scalar applied to
+  named entities before start. The measurement that decided it, including the axis
+  range's own fidelity ceiling, is in docs/m5-oq4.md.
+
+  {
+    "axis": {
+      "name": "red_raid_speed_ms",      label in every run record and in the report
+      "kind": "velocity_ned_scaled",    velocityNed = direction * value
+      "applies_to": "velocityNed magnitude",       free text, for the report
+      "units": "m/s",                             free text, for the report
+      "entity_groups": [
+        { "direction_ned": [-1, 0, 0], "names": ["RedUAV_N_01", "RedUAV_N_02"] },
+        { "direction_ned": [0, -1, 0], "names": ["RedUAV_E_01"] }
+      ],
+      "values": ["11", "27.5", "55", "110", "220"],
+      "self_test_value": "55"           optional; defaults to the first value
+    }
+  }
+
+  Entities are NAMED, never matched. There is no glob: resolving one would mean
+  subscribing the control path to sim/entity/state, which would perturb the very
+  publication schedule the determinism gate measures - and a pattern that silently
+  matches nothing is the failure this project keeps finding. A named entity that
+  carries no sample in a run's own capture is reported in that run's record.
+
+  A value is carried as the TEXT you wrote it as, into the run record and into the
+  report. The double derived from it exists to publish it and to order the sweep,
+  and is never printed - a re-formatted double would put CR-DET-2's locale hazard
+  back on a path the build searches for it.
+
+  self_test_value is the value the determinism gate runs at. CR-DET-1 says "the
+  same configuration twice" and a sweep has many, so the gate runs at ONE of them,
+  and it establishes determinism FOR THAT VALUE. It is one claim at a named point,
+  not one per run, and the report says so. Both gate runs are copies of one
+  configuration, which is what makes them a valid pair (CR-PAR-1).
+
+  Two runs at DIFFERENT values are never compared. They are two configurations, and
+  a gate over them would report a difference meaning only that the sweep worked.
 
 the end of a run:
   --frames <n>             stop predicate: a run is finished when the engine's frame

@@ -33,10 +33,23 @@ exercised it. All fixed.
 | F-3 | M3 | **A capture covering a third of its run was indistinguishable from one covering all of it.** The `stop` probe recorded to `sim_time_s` 19.5 of 60.0, conformantly, and nothing outside the file said so | `closed` — `n8ro-campaign` reads back every capture it produces; `capture.covers_whole_run` in the run record | `m3-capture-reader.md` §5(c), `m3-oq6.md` |
 | F-4 | M3 | **`directorySizeBytes` returned 0** from a mangled path separator, so the mid-campaign disk ceiling silently never fired — four runs and 30.8 MB against a 10 MB ceiling | `closed` — found by testing the ceiling rather than by reading the code | `m3-capture-reader.md` §5 (closing note) |
 
+| F-23 | M5 | **A campaign file silently accepted a key written twice, and an unknown key, first-wins.** Found by a test written against the axis parser, not by reading it: `"kind"` twice resolved to the first and the second line did nothing. Inherited from the JSON parser's §13-correct behaviour, applied to a file where §13 does not apply | `closed` — a campaign file is ours and a person writes it, so a duplicate key and an unknown key are both **refused by name**; a key beginning with `_` is a comment. The capture reader's §13 behaviour is untouched | `m5-sweep.md` §4, README, `tests/parameter_test.cpp` |
+
+| F-24 | M5 | **A run with no RUNNING segment reported its result as `0`, and the sweep table plotted it.** Found by running the committed sweep, not by testing it: two of seven runs hit R14's frozen segment 0, so nothing was measured in them - and `0` was printed in the result column, drawn as a bar, **and used as the bar scale's minimum**, which made every other bar in the table wrong as well | `closed` - a run with no running segment now prints `-`, is excluded from the bar and from its scale, and the table says how many points the sweep is short. `run.json` and `campaign.json` write `null` rather than `0`. A missing measurement is not a measurement of zero (tenet 3, turned on our own report) | `m5-sweep.md` §5, README limits |
+
 **M4 found none of these in its own new code.** That is a weaker claim than it looks: M4's code is
 what M4's 75 tests were written against, and three of the four above were found by running probes
 rather than by testing. The equivalent probe work at M4 was the byte-gate and overload runs, and
 they found platform behaviour (F-13) rather than harness defects.
+
+**M5's OQ-4 decision spike found none either, and the same qualification applies twice over** —
+it ran before M5 had code of its own to defect in. What it found is two rows of platform
+behaviour, F-21 and F-22, both from exercising a *range* rather than a value. **F-23 and F-24 are M5's
+own.** F-23 was found by a test rather than by a probe — the first row in this section of which
+that is true, and what a testable configuration surface buys. **F-24 was not**: it took running
+the committed sweep on real runs to find that a missing result was being printed as a zero one,
+which is the same lesson M3's §5 closing note drew and the reason the sweep is run rather than
+only unit-tested.
 
 ---
 
@@ -54,6 +67,8 @@ they found platform behaviour (F-13) rather than harness defects.
 | F-12 | M4 | **The recorder's `--queue-size` is not `header.subscription.queue_size`.** The first bounds the handler-to-writer queue and is what makes `samples_not_recorded` non-zero; the second is the bus subscription's and read `1024` under both the default and `--queue-size 4`. So a like-for-like check on `header.subscription` cannot see a queue-size difference | `closed` — documented; the drop counter catches it instead, and is checked first | `CLAUDE.md`, `m4-determinism.md` §6 |
 | F-13 | M4 | **Segment 0 can classify `frozen` without the clock having reset.** Part of the start-up roster burst is published twice with byte-identical values — 13 instants in one run — inside a segment with 1 200 distinct `sim_time_s` spanning 0 to 60. Measured **2 of 42 captures**; ~3.7% of ordinary runs, so **~1 pair in 14**, which means a campaign stops at its own gate that often for a reason that is not a determinism failure | `open` — the exclusion is correct and stays; **deliberately no retry**. Raised as E-4 | `m4-determinism.md` §5, README limits, `CLAUDE.md`, E-4 |
 | F-14 | inherited, re-derived | **The install ships no geoid grid and no elevation service**, so every run floods with terrain errors | `open` **by decision** — deliberately not fixed. Every inherited measurement was taken in this configuration and provisioning terrain would invalidate the comparability of all of it | `CLAUDE.md`, README limits, E-1(d) |
+| F-21 | M5 | **An injected entity speed is honoured exactly up to 400 m/s and clamped above it**, the platform walking the entity down at exactly 20 m/s² — 1 m/s per 0.05 s frame. Measured: at 440 m/s a run spends 2.0 s off parameter, at 900 m/s **25.0 s, 42% of the run**. A sweep crossing the ceiling plots a result against a number that stopped being true | `open` **by decision** — the envelope is `(0, 400]` m/s on this profile, the committed sweep stays inside it, and the tool does **not** enforce it: the ceiling belongs to a scenario's entity profiles, not to the campaign runner. **R13** | `m5-oq4.md` §3, README limits, PRD R13 |
+| F-22 | M5 | **A parameterisation update applied before `start` can land between two publications of the roster burst**, making segment 0 `frozen` with **differing** repeated values — 31 duplicated instants, 12 identical (untouched Blue entities) and **19 differing** (updated raiders). A **third** phenomenon through §5.1's one test, and the only one this project causes. Measured **4 of 35** parameterised runs (11.4%) across two independent batches, against R12's 1 of 27 ordinary ones (3.7%) | `open` — elevated on a sample too small to attribute, and recorded as elevated rather than established; **the exclusion is not relaxed and no retry is added**. A mitigation exists and was deliberately not taken (apply after `start`; then the axis is not an *initial* condition). Strengthens E-4 rather than adding an escalation. **R14** | `m5-oq4.md` §6 and §7, README limits, PRD R12 and R14, E-4 |
 
 ---
 

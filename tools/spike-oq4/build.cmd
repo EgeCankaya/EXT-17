@@ -1,15 +1,14 @@
 @echo off
-rem EXT-17 M2 - build the R9/OQ-4 parameterisation-axis feasibility spike.
-rem A spike, not a product: it answers OQ-4's feasibility question and is then evidence.
+rem EXT-17 M5 - build the OQ-4 fidelity spike.
+rem A spike, not a product: it measures the one OQ-4 criterion M2 deliberately did not -
+rem whether a swept range still produces a scenario that makes sense - and is then evidence.
 rem Links the N8RO SDK only, through the same src/ components the campaign runner uses.
-rem The capture sources are here because M3 gave RunOnce a read-back of the capture it just
-rem produced; this script had not been re-run since and no longer linked. Fixed at M5.
 setlocal
 call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat" >nul
 if errorlevel 1 exit /b 1
 
 set ROOT=%~dp0..\..
-set OUT=%ROOT%\build\spike-axis
+set OUT=%ROOT%\build\spike-oq4
 if not exist "%OUT%" mkdir "%OUT%"
 
 cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
@@ -26,6 +25,6 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\run\RunRecord.cpp" ^
    "%ROOT%\src\run\RunOnce.cpp" ^
    "%~dp0main.cpp" ^
-   /Fe:"%OUT%\spike-axis.exe" /Fo:"%OUT%\\" ^
+   /Fe:"%OUT%\spike-oq4.exe" /Fo:"%OUT%\\" ^
    /link /LIBPATH:"C:\N8RO\lib" n8ro-sim.lib n8ro-core.lib
 exit /b %errorlevel%
