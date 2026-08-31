@@ -3,14 +3,22 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
-**Status: milestone 6 of 7.** Everything the brief asks for is built except its documentation
-milestone: one run, automated, with an explicit end and a bounded timeout; a conformant reader
-for the capture format that **links nothing at all**; a determinism self-test that runs at the
-start of every campaign and stops it if it does not pass; one parameterisation axis declared in
-a file and swept across a campaign; conditions declared outside the code and judged into
-three-valued verdicts; per-run records and a campaign summary, both machine-readable and both
-legible; a re-judge mode over stored captures; and the four ugly realities injected
-deliberately. M7 is the evidence and the recording.
+**Status: milestone 7 of 7 — built, and one deliverable short.** One run, automated, with an
+explicit end and a bounded timeout; a conformant reader for the capture format that **links
+nothing at all**; a determinism self-test that runs at the start of every campaign and stops it
+if it does not pass; one parameterisation axis declared in a file and swept across a campaign;
+conditions declared outside the code and judged into three-valued verdicts; per-run records and a
+campaign summary, both machine-readable and both legible; a re-judge mode over stored captures; a
+run-to-run diff for both of the questions the brief asks of one; and the four ugly realities
+injected deliberately and survived.
+
+> **Two things are outstanding and are reported as outstanding rather than claimed.** The
+> **5-minute recording** needs a person; it is scripted beat by beat in
+> `docs/recording-script.md` and is not delivered. And one success metric, *"sweep legibility"*,
+> names **mentor review** as its measurement method — no mentor has reviewed it, so it is
+> **unmet** regardless of what the artifact shows. See
+> [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status) and
+> `docs/m7-evidence.md` §4.
 
 > **The determinism gate passes on content, and that is this project's decision rather than the
 > client's.** The brief asks for two identical runs to *"produce identical captures"*; measured
@@ -21,6 +29,27 @@ deliberately. M7 is the evidence and the recording.
 
 The binding contract is `docs/prd.md`, which is itself written against the client brief. The
 capture format EXT-17 consumes is vendored, read-only, in `contract/`.
+
+### The four things the brief asks this README to cover
+
+| | |
+|---|---|
+| *"how to configure a campaign"* | **[Configuring a campaign](#configuring-a-campaign--and-running-one)**, and [Sweeping one parameter](#sweeping-one-parameter--the-axis-and-where-the-trend-is) for the axis |
+| *"how to write an assertion"* | **[Writing an assertion](#writing-an-assertion--the-condition-file-and-what-a-verdict-is-entitled-to-say)** |
+| *"the output format"* | **[The output format](#the-output-format--what-a-run-and-a-campaign-produce)** |
+| *"the limits"* | **[Limits](#limits--what-a-result-here-does-and-does-not-prove)** — the section to read first if you are reviewing a result |
+
+Three more that are not on that list and are worth the detour: [the stop
+predicate](#the-stop-predicate--what-the-run-is-finished-means), because *"is it finished"* is
+harder than it sounds and the answer here is a decision rather than a default; [proving
+determinism](#proving-determinism--the-self-test-and-the-gate), because the campaign refuses to
+run a single run until it passes; and [the four outcomes](#the-four-outcomes), because two of
+them are not test results.
+
+**And two documents beside this one.** `docs/determinism-notes.md` is the brief's fifth
+deliverable — what had to be done to make comparison meaningful, and **the things that could not
+be explained**. `docs/decisions-m6-m7.md` records every decision taken without asking, with what
+each would cost to reverse.
 
 ---
 
@@ -232,7 +261,7 @@ Neither is optional and neither covers the other.
 `n8ro-campaign` sets both for the processes it starts (`--n8ro-release`, `--path-prepend`). It
 needs `PATH` for itself, because it links the SDK too.
 
-## Running
+## Configuring a campaign — and running one
 
 ```
 set PATH=C:\N8RO\bin;%PATH%
@@ -390,7 +419,7 @@ It reads a 24 MB, 50 573-line capture in 0.24 s and a twenty-run campaign in 4.7
 `n8ro-campaign` also reads back each capture as it produces it, and writes what it found into
 `run.json` — see [What a run produces](#what-a-run-produces).
 
-## What a run produces
+## The output format — what a run and a campaign produce
 
 ```
 <out-dir>/
@@ -655,7 +684,7 @@ untouched; five mutations and one positive one generated into the build tree —
 M2's real producer-0.9.0 captures, read with the same reader, skipped **with a printed message**
 when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-reader.md).
 
-## Judging a run — conditions, and what a verdict is entitled to say
+## Writing an assertion — the condition file, and what a verdict is entitled to say
 
 Conditions are declared in **their own file**, never in EXT-17's source, and the file is loaded
 and validated **before any host is started**. A duplicate id, an unrecognised kind, an unknown
@@ -915,6 +944,49 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   ceiling belongs to a scenario's entity profiles, not to the campaign runner, and hard-coding it
   would be this project asserting something about scenarios it has never loaded. **R13.**
 
+## The evidence, and what it does not include
+
+Every campaign this project has run is committed — its configuration, its run records, its
+verdicts, its summary and its log. **Not its captures.** One 1200-frame run of Atacama Air
+Defense writes about 24 MB of JSON Lines, so the twenty-run campaign alone is 527 MB, and
+`.gitignore` has excluded captures since this repository's first commit for that reason.
+
+Each campaign carries a `MANIFEST.md` instead, giving every capture's byte size, SHA-256 and the
+counts this project's own reader made of it. **What that establishes is narrower than it looks,
+and the file says so**: it does not make a re-run byte-identical — nothing does, and that is this
+project's central measurement rather than a limitation of the decision — but it pins what these
+specific files contained, so a number in a milestone document traces to a file rather than to
+somebody's memory. The counts are the part a re-run can be compared against.
+
+| | |
+|---|---|
+| `campaigns/m6-campaign/` | **The committed twenty-run campaign.** 8 pass, 10 fail, 2 infrastructure error. `report.txt` is the readable report, `changed-input-diff.txt` the run-to-run diff, `rejudge-verify.txt` the byte-identity check |
+| `campaigns/m6-gate-refused/` | **Its first execution, kept.** The gate correctly refused and **zero runs were attempted** — the first time the content gate has failed on a real pair for a real reason |
+| `campaigns/m6-faults/` | The four ugly realities, each injected into run 001 of a three-run campaign, each survived |
+| `campaigns/m5-sweep/`, `m5-sweep-first/` | M5's sweep, both executions, both counted |
+| `campaigns/m4-gate/`, `m4-bytes/`, `m4-frozen/`, `m4-overload/` | The gate, the byte basis, a frozen segment, and a deliberately overloaded recorder |
+| `campaigns/m3-oq6/`, `m2-oq1/`, `m2-axis/` | Rotation probed rather than read about; the twenty runs the stop predicate was decided on; the axis feasibility spike |
+
+**A refused or defective execution is never deleted in favour of a clean one.** `m5-sweep-first`
+is where F-24 was found; `m6-gate-refused` is a real gate failure; `m6-campaign/campaign.log`
+still carries F-35's defect while `report.txt` carries the same records after the fix. Keeping
+both is the point — re-running until the numbers are welcome is choosing evidence.
+
+## The deliverables the brief asks for, and their status
+
+| | Status |
+|---|---|
+| A git repository with the runner | Done |
+| A README with the four topics | Done — indexed at the top of this file |
+| A real campaign, committed as an example | Done, **with one named deviation**: the captures are not committed and a manifest stands in for them |
+| A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted beat by beat in `docs/recording-script.md`, including what *not* to say |
+| A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
+
+**One success metric is also unmet, and is reported as unmet.** *"Sweep legibility"* names
+**mentor review of the sweep report** as its measurement method, and no mentor has reviewed it.
+The artifact exceeds the target — see the sweep section — and that is not what the metric
+measures. `docs/m7-evidence.md` §4 says why marking it met anyway would be the wrong call.
+
 ## Boundaries
 
 - **`contract/` is read-only.** It holds the `n8ro-capture/1` specification and fixtures vendored
@@ -949,7 +1021,10 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
 | `tools/n8ro-compare/` | The comparison CLI, and its golden `--help`. Its build script proves the boundary **and** that none of CR-DET-2's four hazards is on the path |
 | `tools/n8ro-judge/` | The re-judge CLI, and its golden `--help`. Its build script proves the boundary, the hazards, **and** that the assertion path names no process, bus or control path |
 | `examples/` | The committed campaign configurations and the committed condition file — the twenty-run campaign `docs/m6-assertions.md` reports, and M5's seven-value sweep |
-| `tools/spike-axis/` | M2's R9/OQ-4 feasibility spike. Evidence, not product |
+| `tools/spike-axis/`, `tools/spike-oq4/` | M2's and M5's feasibility spikes. Evidence, not product |
+| `tools/m2-checks/`, `m5-checks/`, `m6-checks/` | Analysis scripts behind the milestone documents' numbers. Evidence, not product |
+| `campaigns/` | Every campaign this project has run, minus its captures. See "The evidence" |
+| `docs/` | The PRD, one document per milestone, the findings index, the escalations, the determinism notes, the recording script, and the decisions taken without asking |
 | `tools/spike-oq4/` | M5's OQ-4 **fidelity** spike — the criterion M2's deliberately did not measure. Evidence, not product |
 | `tools/m5-checks/` | The throwaway reader for that spike's captures |
 | `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |

@@ -155,6 +155,25 @@ What it costs, stated rather than discovered later:
 campaign — which is a better package to put in front of a reviewer than any single milestone
 was, and is the one upside of having waited.
 
+**M7 has now closed, and the package is ready.** What was predicted here happened exactly:
+
+- **The cost landed where this section said it would.** M7's validation line asks for *"every
+  success metric"*, and **sweep legibility is reported UNMET** because its named method is mentor
+  review and no mentor has reviewed it. The artifact exceeds the target — a non-monotone count
+  peaking at 170–190 m/s, three conditions whose verdicts flip at three thresholds — and that is
+  not what the metric measures. **F-36**, PRD rev 7, `m7-evidence.md` §4.
+- **The 5-minute recording is also outstanding** for the same underlying reason, and is scripted
+  rather than substituted for.
+- **The package is now a whole project rather than a milestone**: a twenty-run judged campaign,
+  a determinism gate that has both passed and refused on real pairs, five unexplained
+  observations written up carefully, and three escalations sent upstream. That was the stated
+  upside of waiting, and it is the shape it was expected to take.
+
+**Two things ride on the answer that did not at M1, and now a third.** M4 keyed the determinism
+gate to runs produced this way; M5 added entity updates published into it before `start`; and M6
+judged twenty of those runs and reported eight of them as passing. The exposure is still
+re-measurement rather than rework, and `src/control/EngineControl` is still one file.
+
 ---
 
 ## F. Requirements this project found under-covered in its own work
@@ -165,6 +184,7 @@ found by re-reading the requirement against the thing rather than against the pl
 | # | Found | What | Status | Recorded in |
 |---|---|---|---|---|
 | F-33 | M6 | **CR-REP-4's changed-input half had no implementation and no test.** [B] asks for two diffing questions — *"run the same configuration twice and show that the results are identical; change one input and show exactly where the two runs diverged"* — and only the first was built. `n8ro-compare` would compare any two captures, but it framed every answer as a **gate**, which is wrong in both directions for the second question: a divergence between two configurations is not a failure, and agreement is not a pass | `closed` — `--changed-input`. Same machinery, different framing: no gate line, no pass/fail word, and **agreement is the outcome flagged loudly**, because it means the changed input did not take effect. Found by auditing the brief against the built thing at M6, not by a test failing | `m6-assertions.md` §1, `tests/determinism_test.cpp` |
+| F-36 | M7 | **Two of M7's own validation items cannot be produced by this project, and a project's last milestone is where that is most likely to be quietly rounded up.** Its validation line is *"CR-DOC-1, CR-DOC-2, and every success metric"*. The **5-minute recording** needs a person, and the **sweep-legibility** metric names *mentor review of the sweep report* as its measurement method | `open` **by decision, and reported as unmet rather than claimed.** The recording is scripted beat by beat so the remaining work is the recording alone, and is not substituted for — R10 exists because the upstream project did not deliver its equivalent, and the failure it names is substitution rather than lateness. The metric's artifact *exceeds* its target, and that is not what the metric measures. **Both were predicted in `findings.md` §E when E-1 was deferred**, in those words | `m7-evidence.md` §4, PRD rev 7, README |
 | F-34 | M6 | **A committed campaign's captures cannot be committed.** [B]'s third deliverable is *"a real campaign — its configuration, its captured runs and its report, committed as an example"*, and twenty runs of Atacama Air Defense are about **480 MB** of JSON Lines. `.gitignore` excluded captures from the repository's first commit, for that reason | `open` **by decision** — the configuration, the whole report and a **MANIFEST** of each capture's size, SHA-256 and read-back counts are committed; the raw captures are not. A re-run does not reproduce them byte-for-byte in any case, which is this project's central measurement rather than a limitation of the decision. Stated in the manifest rather than left for a reviewer to notice | `campaigns/m6-campaign/MANIFEST.md`, `decisions-m6-m7.md` B6, `.gitignore` |
 
 ---
