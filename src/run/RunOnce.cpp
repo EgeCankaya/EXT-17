@@ -80,6 +80,14 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
             spec.args.push_back("--on-size-limit");
             spec.args.push_back(cfg.onSizeLimit);
         }
+        // Passed through only when asked for, so the recorder's own default stands otherwise.
+        // A deliberately small queue is how CR-DET-1's `samples_not_recorded` exclusion is made
+        // reachable: at the recorder's default nothing this project has run has ever dropped a
+        // sample, and an exclusion rule that has never fired is a rule nobody has tested.
+        if (cfg.recorderQueueSize > 0) {
+            spec.args.push_back("--queue-size");
+            spec.args.push_back(std::to_string(cfg.recorderQueueSize));
+        }
         spec.workingDirectory = cfg.runDir;
         spec.environment = {{"N8RO_RELEASE", cfg.n8roRelease}};
         spec.pathPrepend = cfg.pathPrepend;

@@ -48,6 +48,36 @@ across three producer releases, and it has already mattered twice: producer 0.8.
 `header.sample_form`, and 0.9.0 added `header.limits`, `header.part`, `header.continues_from`
 and `trailer.continued_in`. Reject on the **version**; ignore unknown **keys**.
 
+## The determinism gate, since M4 — and the one question it does not close
+
+**Both comparisons always run and are always reported. Which one *decides* is `--gate-basis`,
+default `content`, and that default is this project's decision (ADR-1), not the client's.**
+
+`OQ-2 is still unanswered` — re-checked against EXT-08's own escalation record at M4. So M4 was
+built so that a ruling either way changes a default and no code: under `--gate-basis bytes` the
+gate correctly fails on this platform and the campaign correctly stops with exit 3 and zero runs
+attempted, which has been demonstrated (`campaigns/m4-bytes/`). **Never write, anywhere, that
+[B]'s acceptance criterion 2 has been discharged.** A content pass discharges it *under the
+content reading*, and every report this project produces says so.
+
+Four things about the comparison that are already right and are easy to break:
+
+1. **A sample present in one run and absent from the other is not a difference.** It is the
+   expected case — the host publishes a different subset of frames every run. It is counted,
+   reported inside the verdict, and never allowed to fail the gate.
+2. **…and the intersection still has a floor.** 99% of the smaller run's comparable samples, or
+   the verdict is `indeterminate` rather than `pass`. Measured: the worst of 190 pairs was
+   99.8513%. "They all agreed" over three samples is a wrong number (tenet 1).
+3. **The comparison never converts a number.** Runs align on the **verbatim text** of
+   `sim_time_s`; values are digested from their original text. That puts CR-DET-2's locale hazard
+   off the path rather than testing it back off. Do not introduce a formatted double.
+4. **`indeterminate` is excluded and so is `frozen`, and having nothing left is a refusal, not a
+   pass.** Measured: 2 of 42 captures have a **frozen segment 0** — part of the start-up roster
+   burst published twice with byte-identical values, in a segment whose clock did not reset. So a
+   campaign stops at its own gate roughly 1 pair in 14, for a reason that is not a determinism
+   failure. **Do not add a retry.** The refusal names which shape it found; the imprecision in
+   §5.1 went back to EXT-08 as E-4.
+
 ## Three things that will bite before anything else
 
 Full detail and numbers in `contract/PROVENANCE.md`. In short:
@@ -96,6 +126,13 @@ says a run's totals are the sum across its parts, which is false for `segments`.
   which reads like a crash and is a missing DLL. This is a **second, separate** precondition from
   `N8RO_RELEASE`; setting one does not cover the other. `n8ro-campaign` sets both for its
   children and needs `PATH` itself.
+- **The recorder's `--queue-size` is not `header.subscription.queue_size`.** The first bounds the
+  recorder's handler-to-writer queue and is what makes `trailer.drops.samples_not_recorded`
+  non-zero; the second is the bus subscription's and read `1024` in every run measured, at the
+  default and under `--queue-size 4` alike. Measured at M4 while making CR-DET-1's exclusion rule
+  fire for the first time (`campaigns/m4-overload/`, 2 755 samples not recorded). Consequence: a
+  like-for-like check on `header.subscription` cannot see a queue-size difference between two
+  captures. It does not need to — the drop counter does, and it is checked first.
 - **A relative path handed to a child process means something else there.** Every child is started
   in its own working directory, so a relative `--out-dir` passed to the recorder is resolved
   against the run directory it was just placed in. Measured at M3: the recorder refused, correctly
@@ -130,12 +167,28 @@ says a run's totals are the sum across its parts, which is false for `segments`.
   invalidate the comparability of all of it. Setting `N8RO_RELEASE` does not change it — there is
   no grid under `C:\N8RO\data\geoid` to find.
 
+## Where a finding goes
+
+**`docs/findings.md` is the index over every issue this project has found** — defects in our own
+code, platform behaviour we work around, imprecisions in `contract/`, and defects in the brief.
+It is an index, not a second home: each row points at the milestone document, escalation or
+README section that actually holds the finding, and if the two disagree the target wins.
+
+A milestone that finds something adds a row there **and** records it where it belongs. The
+reverse check is the useful one at a milestone close: every finding in that milestone's document
+should have a row, and every escalation still marked `drafted` should be re-examined for whether
+it can be delivered yet.
+
+**`drafted` is not `sent`.** A finding written up and not delivered is *recorded*, not *raised*.
+E-3 and E-4 went to EXT-08 as GitHub issues; **E-1 has been drafted and unsent since M1** and its
+delivery is blocked on nobody but this project.
+
 ## Conventions
 
 - Files in this repo are ours — **no Arkheon proprietary header**. That convention applies only
   to files created inside `C:\N8RO`, which this project does not do.
 
-## The reader, since M3
+## The reader and the comparison, since M3 and M4
 
 `src/capture/` and `tools/n8ro-capture/` implement `n8ro-capture/1` from
 `contract/capture-format-v1.md` alone. **They link nothing** — not EXT-08, not the SDK, not a
@@ -144,8 +197,15 @@ file, plus two searches over its own sources that fail the build on a hit: one f
 the producer's names, one for any global sort of a capture (the file's own record order is
 authoritative, format §5.2).
 
-`n8ro-campaign` links the reader, which is the allowed direction. The requirement is that the
-reader links no SDK, not that nothing linking the SDK may link the reader.
+`src/compare/` and `tools/n8ro-compare/` are the same rule again for the determinism comparison,
+with two searches more in `build.cmd`: one for a clock read or a formatted time, one for an
+unordered container or a locale-dependent number conversion. Those are CR-DET-2's hazards, they
+are properties of the comparison's own sources, and each is *also* tested behaviourally in
+`tests/determinism_test.cpp` — the search catches a reintroduction on a path no test exercises,
+the test catches one the search does not know the spelling of. Neither replaces the other.
+
+`n8ro-campaign` links both, which is the allowed direction. The requirement is that they link no
+SDK, not that nothing linking the SDK may link them.
 
 Three things about the model that are easy to get wrong and are already right here: the segment
 list is built from `segment_open` and not from records carrying samples; a segment's clock is

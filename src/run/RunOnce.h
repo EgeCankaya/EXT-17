@@ -66,6 +66,11 @@ struct RunConfig {
     bool attachRecorder = true;
     std::uint64_t captureMaxBytes = 0;      // 0 = unbounded (the recorder's own default)
     std::string onSizeLimit = "stop";       // OQ-6's leading candidate; decided at M3
+    // 0 leaves the recorder's own default (8192 records) in place. A small value deliberately
+    // overloads the handler-to-writer queue so that `trailer.drops.samples_not_recorded` becomes
+    // non-zero — the only way this project can exercise CR-DET-1's exclusion rule against a real
+    // capture rather than a hand-written one.
+    long long recorderQueueSize = 0;
 
     bool queryCatalogue = false;
     int catalogueTimeoutMs = 10000;

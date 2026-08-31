@@ -32,6 +32,13 @@ struct SetOptions {
 // Read a rotated set starting from its first part. Handed a capture that was never rotated —
 // no `continued_in` — this returns a one-part set, which is the correct answer and is why a
 // caller never has to know in advance which it has.
-SetResult readSet(const std::string& firstPartPath, const SetOptions& options = {});
+//
+// `sink` is handed to every part in turn, so a consumer that needs the records themselves sees
+// the whole run's stream in file order and still never has the reader retain any of it. Each
+// `RecordView` carries `(part, segment)` already, which is the key a per-segment statistic over
+// a set has to use (§6.7). Added at M4 for the determinism comparison: without it the comparison
+// would have to read every capture twice, once for its structure and once for its samples.
+SetResult readSet(const std::string& firstPartPath, const SetOptions& options = {},
+                  RecordSink* sink = nullptr);
 
 } // namespace ext17::capture

@@ -1,13 +1,45 @@
-n8ro-campaign - EXT-17 headless campaign runner (milestone 2: execution only)
+n8ro-campaign - EXT-17 headless campaign runner (milestone 4: execution and the
+                determinism gate; nothing is judged until milestone 6)
 
-usage: n8ro-campaign run-once --out-dir <dir> [options]
-       n8ro-campaign repeat --out-dir <dir> --count <n> [options]
+usage: n8ro-campaign run-once  --out-dir <dir> [options]
+       n8ro-campaign repeat    --out-dir <dir> --count <n> [options]
+       n8ro-campaign self-test --out-dir <dir> [options]
        n8ro-campaign --help
 
 commands:
-  run-once                 execute one run into <out-dir>/runs/<run-id>.
-  repeat                   execute --count runs of one configuration, continuing past a
-                           run that fails, and write a campaign summary.
+  run-once                 execute one run into <out-dir>/runs/<run-id>. One run is not a
+                           campaign, so it does not self-test.
+  repeat                   run the determinism self-test, then execute --count runs of one
+                           configuration, continuing past a run that fails, and write a
+                           campaign summary carrying the self-test's result.
+  self-test                run the determinism self-test alone and stop. The campaign does
+                           NOT get its gate from this command - repeat runs it itself, so
+                           that it is never something anyone has to remember (CR-DET-1).
+
+the determinism self-test (CR-DET-1, and step 4 of the brief - a HARD GATE):
+  Two runs of one configuration, executed into <out-dir>/selftest/runs/000 and 001 - which
+  are NOT campaign runs and are never counted among the campaign's outcomes - and compared
+  two ways. Both comparisons always run and both are always reported:
+
+    content   per (entity, occupancy) value sequences aligned on sim_time_s, over RUNNING
+              segments only. A sample present in one run and absent from the other is NOT
+              a difference: this platform publishes a slightly different subset of frames
+              every run. It is counted and reported.
+    bytes     byte for byte, with platform.model_path excluded - the one field the capture
+              format names as legitimately host-dependent. EXPECTED TO FAIL here, and never
+              engineered to pass.
+
+  Which of the two decides is OQ-2, out with the owner of the brief and UNANSWERED. A pass
+  on the content basis does NOT discharge the brief's acceptance criterion 2 as written; it
+  discharges it under the content reading, which is this project's own named deviation.
+  A campaign whose self-test does not pass executes no campaign run at all.
+
+  --gate-basis <b>         content (default) or bytes. Selects which comparison decides.
+  --coverage-floor <p>     whole percent of the smaller run's comparable samples that must
+                           be present in BOTH, or the verdict is indeterminate rather than
+                           pass - a comparison whose intersection collapsed would otherwise
+                           report that everything it compared agreed. Default 99. Measured
+                           over all 190 pairs of M2's twenty runs: worst 0.4192% unmatched.
 
 the run:
   --out-dir <dir>          campaign directory. Runs land in <dir>/runs/NNN. Required.
@@ -79,6 +111,13 @@ environment (both are measured preconditions, not preferences):
 other:
   --query-catalogue        query the scenario catalogue over the bus during bring-up and
                            log what it answers.
+  --queue-size <n>         recorder handler-to-writer queue bound, in records. Omitted
+                           leaves the recorder's own default in place. A small value
+                           deliberately overloads it so that a capture's
+                           trailer.drops.samples_not_recorded becomes non-zero - which is
+                           the only way to exercise CR-DET-1's rule that such a capture is
+                           EXCLUDED from the comparison rather than diffed. Nothing this
+                           project has run has ever dropped a sample at the default.
   --help                   this text.
 
 exit codes:
@@ -86,3 +125,8 @@ exit codes:
   1  at least one run did not complete (timeout or infrastructure error), or the
      campaign stopped at its disk ceiling
   2  usage or configuration error; no run was attempted
+  3  the determinism self-test did not pass, and NO campaign run was attempted. Step 4 of
+     the brief: "Do not build further until it passes." Whether the gate FAILED or could
+     not be established at all - a self-test run that did not complete has established
+     nothing about determinism and is not a determinism failure - is named in
+     <out-dir>/selftest/self-test.json under "outcome"

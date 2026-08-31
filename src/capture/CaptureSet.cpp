@@ -26,7 +26,8 @@ std::string baseNameOf(const std::string& path) {
 
 } // namespace
 
-SetResult readSet(const std::string& firstPartPath, const SetOptions& options) {
+SetResult readSet(const std::string& firstPartPath, const SetOptions& options,
+                  RecordSink* sink) {
     SetResult set;
     const std::string dir = directoryOf(firstPartPath);
 
@@ -53,7 +54,7 @@ SetResult readSet(const std::string& firstPartPath, const SetOptions& options) {
             break;
         }
 
-        ReadResult part = readFile(path, options.read);
+        ReadResult part = readFile(path, options.read, sink);
         const bool rejected = part.rejected;
         const Header header = part.header;
         const Trailer trailer = part.trailer;
