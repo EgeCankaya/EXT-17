@@ -1,10 +1,16 @@
 @echo off
-rem EXT-17 M2 - build n8ro-campaign. Release, x64, C++17.
+rem EXT-17 M4 - build n8ro-campaign. Release, x64, C++17.
 rem Links the N8RO SDK only: n8ro-sim + n8ro-core. No EXT-08 anything.
 rem
 rem Since M3 it also links src/capture, the conformant reader, so that a run can read back the
 rem capture it just produced. That direction is fine and the reverse is not: the requirement is
 rem that the READER links no SDK, which tools\n8ro-capture\build.cmd is the proof of.
+rem
+rem Since M4 it also links src/compare, the determinism comparison, for the same reason and in
+rem the same direction. tools\n8ro-compare\build.cmd is that one's proof, and it is where the
+rem searches for CR-DET-2's hazards live - a clock, a timestamp, an unordered container, a
+rem locale-dependent number conversion - because those are properties of the comparison's own
+rem sources rather than of whatever happens to link them.
 rem
 rem The build ends by comparing the binary's own --help against help.golden.txt. That comparison
 rem is the mechanism the PRD names as keeping the CLI authority table true: the document does not
@@ -25,11 +31,13 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\Capture.cpp" ^
    "%ROOT%\src\capture\CaptureReader.cpp" ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
+   "%ROOT%\src\compare\Compare.cpp" ^
    "%ROOT%\src\proc\Process.cpp" ^
    "%ROOT%\src\control\EngineControl.cpp" ^
    "%ROOT%\src\run\StopPredicate.cpp" ^
    "%ROOT%\src\run\RunRecord.cpp" ^
    "%ROOT%\src\run\RunOnce.cpp" ^
+   "%ROOT%\src\run\SelfTest.cpp" ^
    "%~dp0main.cpp" ^
    /Fe:"%OUT%\n8ro-campaign.exe" /Fo:"%OUT%\\" ^
    /link /LIBPATH:"C:\N8RO\lib" n8ro-sim.lib n8ro-core.lib

@@ -3,12 +3,19 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
-**Status: milestone 3 of 7.** What exists today is the execution half and the reading half: one
-run, automated, with an explicit end and a bounded timeout, repeatable unattended — and a
-conformant reader for the capture format that **links nothing at all**. There is no determinism
-self-test (M4), no parameterisation sweep (M5), and no assertions or campaign report (M6).
-`n8ro-campaign` therefore reports three outcomes rather than four; see
-[The four outcomes](#the-four-outcomes).
+**Status: milestone 4 of 7.** What exists today is the execution half, the reading half and the
+gate: one run, automated, with an explicit end and a bounded timeout, repeatable unattended; a
+conformant reader for the capture format that **links nothing at all**; and a determinism
+self-test that runs at the start of every campaign and stops it if it does not pass. There is no
+parameterisation sweep (M5) and no assertions or campaign report (M6). `n8ro-campaign` therefore
+reports three outcomes rather than four; see [The four outcomes](#the-four-outcomes).
+
+> **The determinism gate passes on content, and that is this project's decision rather than the
+> client's.** The brief asks for two identical runs to *"produce identical captures"*; measured
+> here across 190 pairs, they agree on every sample present in both at the same simulation
+> instant and are **never** byte-identical. Both comparisons are run and reported on every
+> self-test, and which one *decides* is an open question with the brief's author (OQ-2,
+> unanswered). See [Proving determinism](#proving-determinism--the-self-test-and-the-gate).
 
 The binding contract is `docs/prd.md`, which is itself written against the client brief. The
 capture format EXT-17 consumes is vendored, read-only, in `contract/`.
@@ -49,6 +56,126 @@ a property of this configuration and not something to depend on.
 
 ---
 
+## Proving determinism — the self-test and the gate
+
+> **A run is compared to another run of the same configuration by per-`(entity, occupancy)` value
+> sequences, aligned on `sim_time_s`, over running segments only. A sample present in one run and
+> absent from the other is not a difference.**
+
+This is CR-DET-1 and it is [B]'s step 4, which the brief makes a hard stop: *"Do not build
+further until it passes."* So `n8ro-campaign repeat` **runs it before its first campaign run**,
+and a campaign whose gate does not pass executes no campaign run at all. It is not a command
+anyone has to remember.
+
+### The two comparisons, and why both always run
+
+| | |
+|---|---|
+| **content** | per `(entity, occupancy)` value sequences aligned on `sim_time_s`, **running segments only**. Values are compared as the verbatim text the capture carried, never as reformatted numbers |
+| **bytes** | byte for byte, with `platform.model_path` excluded — the one field the format names as legitimately host-dependent (§14), and the only exclusion there will ever be. **Expected to fail here, and never engineered to pass** |
+
+**Which of the two decides the gate is OQ-2, out with the owner of the brief and unanswered.**
+`--gate-basis content|bytes` selects it; `content` is the default and is ADR-1's decision. Under
+`bytes` the gate correctly fails on this platform and the campaign correctly stops — that is the
+honest implementation of the brief's strictest reading rather than an argument about it, and it
+has been run. **A ruling either way therefore changes a default and no code.**
+
+Every report says so, on every run:
+
+```
+  gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
+  OQ-2                  UNANSWERED. ...
+  GATE                  PASS   on the content basis
+                        This does NOT discharge [B]'s acceptance criterion 2 as written.
+```
+
+### Measured here, not inherited
+
+Over **all 190 pairs** of M2's twenty runs of one configuration, through `n8ro-compare`:
+
+| | |
+|---|---:|
+| samples compared | **9 573 667** |
+| agreeing | **9 573 667** |
+| differing | **0** |
+| pairs passing the content gate | **190 of 190** |
+| pairs byte-identical | **0 of 190** |
+| worst coverage | 99.8513% |
+
+The inherited figure was 50 358 of 50 358 on one pair. This reproduces it and exceeds it by a
+factor of 190. **The simulation is reproducible; its publication schedule is not.**
+
+### A sample in one run and not the other is the expected case
+
+Two runs of one configuration never have the same number of samples — M2 measured seventeen
+distinct counts across twenty runs. Such a sample is counted as `only_in_A` / `only_in_B` and
+reported **inside the verdict**, never as a difference and never as a failure. The verdict says
+what was actually established:
+
+> every sample present in **both** runs at the same simulation instant agrees. This is not a claim
+> that the two captures are identical.
+
+**But the intersection is bounded**, because "they all agreed" over three samples is a wrong
+number. The comparison carries a **coverage floor** — the intersection must reach 99% of the
+smaller run's comparable samples, or the verdict is `indeterminate` rather than `pass`. The floor
+is measured: the worst of those 190 pairs was 99.8513%.
+
+### Four verdicts, and what each does
+
+| | means | the campaign |
+|---|---|---|
+| `pass` | every compared sample agreed, and enough were compared | runs |
+| `fail` | a compared sample disagreed, **or** an `(entity, occupancy)` is in one run and not the other | **stops, exit 3** |
+| `indeterminate` | the comparison ran and cannot support a verdict | **stops, exit 3** |
+| `refused` | a precondition was not met, and the refusal names which of twelve | **stops, exit 3** |
+
+Exit `3` is its own code deliberately: collapsing [B]'s hard gate into exit 1 alongside an
+ordinary failing run is exactly the collapse the four-outcome rule forbids. `failed` and
+`infrastructure_error` are kept apart inside it — a self-test run that did not complete has
+established *nothing* about determinism and is not a determinism failure. `self-test.json` says
+which.
+
+**There is no `--skip-self-test`.** A skip flag is how a self-test becomes something everybody
+skips. The `self-test` command exists for running the gate alone; `repeat` does not consult it.
+
+The self-test's two runs land in `<out-dir>/selftest/runs/000` and `001`. **They are not campaign
+runs** and are never counted among the campaign's outcomes — a `--count 2` campaign reports
+`attempted: 2`, not 4 — but they *are* counted in the disk pre-flight, because a projection that
+ignored them would be projecting a campaign nobody runs. They cost two runs, about two minutes
+and 60 MB, on every campaign.
+
+### Comparing two stored captures
+
+```
+n8ro-compare <capture-a> <capture-b> [--gate-basis content|bytes] [--coverage-floor <pct>]
+```
+
+Exit `0` if the gate passed, `1` if it failed or was indeterminate, `2` if the comparison was
+refused. This is how the 190-pair table above was produced, and it needs no simulator.
+
+### Nothing of ours varies between runs, checked twice over
+
+[B] names three hazards — *"a timestamp in the compared output, an unordered container iterated,
+a value read from a clock"* — and this project adds a fourth, the comma-decimal locale this
+machine actually has. Each is closed **by design**, **by a build-time search that fails the build
+on a hit**, and **by a behavioural test**:
+
+- the same comparison run twice produces **byte-identical report text**;
+- two captures whose entities appear in the **opposite order** produce byte-identical report text;
+- the whole report is regenerated under **`German_Germany.1252`** and must be byte-identical.
+
+Neither the search nor the test subsumes the other: the search catches a reintroduction on a path
+no test exercises, the test catches one the search does not know the spelling of.
+
+The comparison **never converts a number for comparison**. Runs are aligned on the *verbatim
+text* of `sim_time_s`, and values are digested from their original text. The format writes doubles
+in shortest round-trip form (§8.3), so equal text and equal double are the same relation — which
+puts the locale hazard off the path that decides the gate rather than testing it back off.
+
+Detail, and every number, in [`docs/m4-determinism.md`](docs/m4-determinism.md).
+
+---
+
 ## Building
 
 Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
@@ -56,22 +183,29 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
 tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
+tools\n8ro-compare\build.cmd       ->  build\n8ro-compare\n8ro-compare.exe
 tests\build.cmd                    ->  builds and runs the tests
 ```
 
 `tests\build.cmd` links nothing and needs no N8RO install — it covers the parts whose
-correctness is about our own output rather than about the platform, and, since M3, the capture
-reader, whose correctness is about somebody else's bytes.
+correctness is about our own output rather than about the platform; since M3 the capture reader,
+whose correctness is about somebody else's bytes; and since M4 the determinism comparison, whose
+correctness is what every other result rests on. **78 conformance checks and 75 determinism
+checks.**
 
-**`tools\n8ro-capture\build.cmd` needs no N8RO install either, and that is the point.** Look at
-its compile line: no `/I`, no `/LIBPATH`, no `.lib`. The reader links neither EXT-08 nor the SDK,
-and a build script anyone can read in ten seconds is a better proof of that than an argument
-about translation units. The build then searches its own sources for the SDK's and the producer's
-names, and for any global sort of a capture, and fails on a hit.
+**`tools\n8ro-capture\build.cmd` and `tools\n8ro-compare\build.cmd` need no N8RO install either,
+and that is the point.** Look at their compile lines: no `/I`, no `/LIBPATH`, no `.lib`. Neither
+the reader nor the comparison links EXT-08 or the SDK, and a build script anyone can read in ten
+seconds is a better proof of that than an argument about translation units. Each build then
+searches its own sources for the SDK's and the producer's names, and for any global sort of a
+capture, and fails on a hit. **`n8ro-compare`'s carries two searches more** — for a clock read or
+a formatted time, and for an unordered container or a locale-dependent number conversion —
+because those are CR-DET-2's hazards and they are properties of the comparison's own sources
+rather than of whatever links them.
 
 Each build ends by running its binary's own `--help` and comparing it against the golden file
-beside it — `tools\n8ro-campaign\help.golden.txt`, `tools\n8ro-capture\help.golden.txt`. A drift
-fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
+beside it — `tools\n8ro-campaign\help.golden.txt`, `tools\n8ro-capture\help.golden.txt`,
+`tools\n8ro-compare\help.golden.txt`. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
 a list nobody executes is exactly what drifted in the sibling project. **The golden file is the
 CLI's specification.**
 
@@ -125,7 +259,10 @@ It reads a 24 MB, 50 573-line capture in 0.24 s and a twenty-run campaign in 4.7
 ```
 <out-dir>/
   campaign.log                     the driver's own transcript
-  campaign.json                    repeat only: outcome counts and a row per run
+  campaign.json                    repeat only: the self-test's result, outcome counts, a row per run
+  selftest/                        the determinism gate. NOT campaign runs
+    self-test.json                 the ext17-self-test/1 record: both comparisons, and OQ-2's status
+    runs/000  runs/001             the two runs it compared
   runs/
     000/
       run.json                     the per-run record
@@ -226,7 +363,7 @@ readable here.
 
 ## The four outcomes
 
-The PRD requires four, never collapsed: **pass, fail, timeout, infrastructure error.** At M2
+The PRD requires four, never collapsed: **pass, fail, timeout, infrastructure error.** At M4
 there are three, because nothing judges a run yet:
 
 | Outcome | Means |
@@ -236,7 +373,13 @@ there are three, because nothing judges a run yet:
 | `infrastructure_error` | The harness, the host, or the scenario load failed. Never a failing scenario |
 
 Exit code: `0` if every run completed, `1` if any did not, `2` for a usage error before any run
-was attempted.
+was attempted, and `3` if the determinism self-test did not pass — in which case **no campaign run
+was attempted at all**.
+
+`3` is its own code rather than folded into `1`, for the same reason the four outcomes are never
+collapsed: "the gate everything rests on did not pass" and "one run of twenty failed" call for
+different actions, and an exit code that cannot tell them apart forces the operator to go and
+read a log to find out which happened.
 
 ## The capture format, and the one thing that is never negotiable
 
@@ -282,7 +425,32 @@ when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-re
 
 ## Limits — what a result here does and does not prove
 
-Partial at M3; CR-DOC-1 requires the full version at M7.
+Partial at M4; CR-DOC-1 requires the full version at M7.
+
+- **The determinism gate passes on content, and that is weaker than the strictest reading of the
+  brief.** Two runs of one configuration are **never byte-identical here** — 0 of 190 pairs — and
+  the gate does not require them to be. What it establishes is that every sample present in both
+  captures at the same simulation instant carries the same values: 9 573 667 of 9 573 667 over
+  those pairs, zero differing. It establishes **nothing** about the samples present in only one of
+  them, and it says so in the verdict rather than in a footnote. Whether that discharges the
+  brief's acceptance criterion 2 is **OQ-2, and it is unanswered**.
+- **This project measures one machine.** The brief claims the platform's guarantee holds *"on
+  every run and every machine"*. Nothing here tests cross-machine reproducibility and no claim
+  about it is made (ADR-1). The self-test run against captures from two machines is the cheapest
+  possible check if a second one ever becomes available.
+- **A campaign can stop at its own self-test for a reason that is not a determinism failure, and
+  on this machine that happens.** Measured over 42 captures: **2** have a segment 0 that the
+  format's exact frozen-clock test classifies as `frozen`, and in both every duplicated instant
+  carries **byte-identical values** — part of the start-up roster burst published twice, inside a
+  segment whose clock plainly did not reset. Such a segment is excluded, as the format requires,
+  and a pair with nothing left to compare is **refused** rather than passed. That is about **1 in
+  27 ordinary runs and so about 1 in 14 pairs**. There is deliberately **no retry**: a harness
+  that re-rolls its gate until it likes the answer has no gate. The refusal names the shape it
+  found — a duplicated publication or a reset clock — and the imprecision is with EXT-08 as E-4.
+- **The comparison establishes agreement, never completeness.** It compares digests of values
+  present in both files. Two runs that both failed to publish the same frame agree about it
+  perfectly, and no comparison of two captures can detect that. This is the first bullet below,
+  applied to the gate itself.
 
 - **The capture is a high-fidelity sample of the published stream, not a transcript, and no
   counter reports the difference.** Measured in this project's own runs: samples go missing with
@@ -329,11 +497,13 @@ Partial at M3; CR-DOC-1 requires the full version at M7.
   host and the recorder are driven as processes.
 - **`C:\N8RO` is read-only.** Nothing here writes into the install tree. The host writes its own
   log there; the campaign copies out of it and never into it.
-- **The SDK is linked in exactly one place**, `src/control/`, and **the capture reader links
-  nothing at all** — checked on every build of it, twice: once for the SDK's and the producer's
-  names, once for any global sort of a capture. `n8ro-campaign` links the reader, which is the
-  allowed direction; the requirement is that the reader links no SDK, not that nothing linking the
-  SDK may link the reader.
+- **The SDK is linked in exactly one place**, `src/control/`, and **the capture reader and the
+  determinism comparison link nothing at all** — checked on every build of each, twice for the
+  reader and four times for the comparison: the SDK's and the producer's names, any global sort of
+  a capture, and, for the comparison, a clock read or formatted time and an unordered container or
+  locale-dependent number conversion. `n8ro-campaign` links both, which is the allowed direction;
+  the requirement is that they link no SDK, not that nothing linking the SDK may link them. **The
+  code that decides the gate could not reach the platform if it wanted to.**
 
 ## Layout
 
@@ -341,14 +511,16 @@ Partial at M3; CR-DOC-1 requires the full version at M7.
 |---|---|
 | `src/proc/` | Child process supervision. Started, and ended, by handle |
 | `src/control/` | The control path. The one place the N8RO SDK is linked |
-| `src/run/` | The stop predicate, the run record, and the run itself |
+| `src/run/` | The stop predicate, the run record, the run itself, and the self-test |
 | `src/capture/` | The conformant reader for `n8ro-capture/1`. Links nothing |
+| `src/compare/` | The determinism comparison — alignment, the coverage floor, the twelve refusals, both comparisons, the report. Links nothing |
 | `src/common/` | Logging, a JSON writer with no run-to-run variation in it, and an order-preserving JSON parser |
 | `tests/` | Tests that link nothing and need no install. `tests\build.cmd` builds and runs them |
 | `tools/n8ro-campaign/` | The execution CLI, and its golden `--help` |
 | `tools/n8ro-capture/` | The reader CLI, and its golden `--help`. Its build script is the boundary's proof |
+| `tools/n8ro-compare/` | The comparison CLI, and its golden `--help`. Its build script proves the boundary **and** that none of CR-DET-2's four hazards is on the path |
 | `tools/spike-axis/` | M2's R9/OQ-4 feasibility spike. Evidence, not product |
 | `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind `docs/m1-lifecycle.md` |
 | `contract/` | Vendored from EXT-08. Read-only |
-| `docs/` | The PRD, the milestone records, and the escalations |
+| `docs/` | The PRD, the milestone records, the escalations, and `findings.md` — **one index over every issue this project has found**, and the place to start |
