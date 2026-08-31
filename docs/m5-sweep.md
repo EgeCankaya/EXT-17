@@ -80,6 +80,12 @@ reported only "higher is more" would be reporting a line that is not there.
 | `examples/atacama-raid-speed.json` | The committed example sweep | CR-PAR-2 |
 | `tools/spike-oq4`, `tools/m5-checks` | The OQ-4 decision's evidence. Spikes, not product | OQ-4 |
 
+*And one repair.* `tools/spike-axis/build.cmd` had not linked since M3 gave `RunOnce` a capture
+read-back; nothing depended on it, so nothing noticed for two milestones. Fixed, and recorded as
+**F-25** — the finding worth keeping is not the missing source lines but that **a build script
+outside the main path rots invisibly**, and this one was found only because M5 wrote a sibling
+and ran both.
+
 **`src/param/` links nothing, and that is the point.** An axis is a declaration; turning one
 into bus traffic is `n8ro-campaign`'s job. So the **whole** of CR-PAR-1's configuration surface —
 what parses, what is refused and by what name, that a value's declared text survives, that the

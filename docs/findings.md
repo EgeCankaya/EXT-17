@@ -37,6 +37,8 @@ exercised it. All fixed.
 
 | F-24 | M5 | **A run with no RUNNING segment reported its result as `0`, and the sweep table plotted it.** Found by running the committed sweep, not by testing it: two of seven runs hit R14's frozen segment 0, so nothing was measured in them - and `0` was printed in the result column, drawn as a bar, **and used as the bar scale's minimum**, which made every other bar in the table wrong as well | `closed` - a run with no running segment now prints `-`, is excluded from the bar and from its scale, and the table says how many points the sweep is short. `run.json` and `campaign.json` write `null` rather than `0`. A missing measurement is not a measurement of zero (tenet 3, turned on our own report) | `m5-sweep.md` §5, README limits |
 
+| F-25 | M5 | **`tools/spike-axis/build.cmd` had not linked since M3.** M3 gave `RunOnce` a read-back of the capture it had just produced, which added a dependency on the capture reader; the M2 spike's build script was never re-run and silently stopped building two milestones ago. Nothing depended on it, which is exactly why nothing noticed | `closed` - sources added, and it builds. The wider finding is the one worth keeping: **a build script outside the main path rots invisibly**, and M5 found this only because it wrote a sibling script and ran both | `m5-sweep.md` §2, `tools/spike-axis/build.cmd` |
+
 **M4 found none of these in its own new code.** That is a weaker claim than it looks: M4's code is
 what M4's 75 tests were written against, and three of the four above were found by running probes
 rather than by testing. The equivalent probe work at M4 was the byte-gate and overload runs, and
@@ -104,15 +106,18 @@ not delivered is *recorded*, not *raised*.
 
 | # | Question | To | Delivery | Blocked on |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`drafted`, not sent** | **The DRI.** There is no channel to a mentor from here. Does not block: the invocation is measured working, and the whole control path is one file if the answer changes it |
-| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`raised`** — sent 2026-08-31 via EXT-08's E-1; re-checked at M4, **no reply** | **The recipient.** Does not block: M4 shipped both readings as selectable gates, so a ruling changes a default and no code |
+| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`drafted`, not sent — re-examined at M5 and still not delivered** | **The DRI.** There is no channel to a mentor from here. Does not block: the invocation is measured working, and the whole control path is one file if the answer changes it. **Five milestones now**, and M5 has added runs that publish entity updates over that same invocation |
+| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`raised`** — sent 2026-08-31 via EXT-08's E-1; re-checked at M4 and again at M5, **no reply** | **The recipient.** Does not block: M4 shipped both readings as selectable gates, so a ruling changes a default and no code |
 | E-3 | §6.7's summing rule (F-15) | EXT-08 | **`raised`** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1) | Nothing. Does not block |
 | E-4 | §5.1's frozen-clock test (F-16) | EXT-08 | **`raised`** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2) | Nothing. Does not block, and it is the one with a measured operational cost (~1 pair in 14) |
 
-**E-1 is the one to act on.** It has been drafted since M1 and has grown twice since. It is the
-only finding in this file whose delivery is blocked on a person rather than on a reply, and M4 has
-now keyed a determinism gate to runs produced by the invocation it asks about — which was the
-stated reason for wanting the answer before M4, in E-1's own words.
+**E-1 is the one to act on, and it is now the oldest thing in this file.** It has been drafted
+since M1 and has grown twice since. It is the only finding here whose delivery is blocked on a
+person rather than on a reply. M4 keyed a determinism gate to runs produced by the invocation it
+asks about — the stated reason for wanting the answer before M4, in E-1's own words — and **M5
+has now added entity updates published into that same invocation before `start`**, which is a
+second thing riding on an unconfirmed answer. Nothing is blocked by it and that is precisely why
+it keeps not being sent.
 
 ---
 
