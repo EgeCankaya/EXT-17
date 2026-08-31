@@ -16,6 +16,8 @@
 //
 // Never throws (constraint C3).
 
+#include "../../src/assert/Conditions.h"
+#include "../../src/assert/Judge.h"
 #include "../../src/common/Json.h"
 #include "../../src/common/JsonParse.h"
 #include "../../src/common/Log.h"
@@ -41,9 +43,9 @@ using ext17::log::line;
 
 void printHelp() {
     std::puts(
-"n8ro-campaign - EXT-17 headless campaign runner (milestone 5: execution, the\n"
-"                determinism gate and one parameterisation axis; nothing is\n"
-"                judged until milestone 6)\n"
+"n8ro-campaign - EXT-17 headless campaign runner (milestone 6: execution, the\n"
+"                determinism gate, one parameterisation axis, declared\n"
+"                conditions, and the four ugly realities)\n"
 "\n"
 "usage: n8ro-campaign run-once  --out-dir <dir> [options]\n"
 "       n8ro-campaign repeat    --out-dir <dir> --count <n> [options]\n"
@@ -144,6 +146,78 @@ void printHelp() {
 "  Two runs at DIFFERENT values are never compared. They are two configurations, and\n"
 "  a gate over them would report a difference meaning only that the sweep worked.\n"
 "\n"
+"conditions (CR-AS-1..4, and steps 6 and 7 of the brief):\n"
+"  --conditions <file>      a JSON file declaring what each run is judged against. Loaded\n"
+"                           and validated BEFORE any host is started, so a duplicate id, an\n"
+"                           unrecognised kind, an unknown key or a key written twice each\n"
+"                           costs ten seconds rather than twenty runs. Without it no run is\n"
+"                           judged and every completed run is reported `completed` - which\n"
+"                           is the only honest name for a run nothing looked at.\n"
+"\n"
+"  The vocabulary is CLOSED at the three kinds the brief names - proximity between two\n"
+"  entities, presence in a region, reaching a terminal state. A fourth is a named parse\n"
+"  error, never a skipped condition. Units are the platform's own and are never converted:\n"
+"  metres, degrees, and the platform's [lat, lon, alt] order.\n"
+"\n"
+"  {\n"
+"    \"conditions\": [\n"
+"      {\"id\": \"raid-leader-reaches-airfield\", \"kind\": \"proximity\",\n"
+"       \"entities\": [\"RedUAV_N_01\", \"BlueBase_Airfield\"], \"within_m\": 3000},\n"
+"\n"
+"      {\"id\": \"leader-crosses-corridor\", \"kind\": \"area\", \"entity\": \"RedUAV_N_01\",\n"
+"       \"test\": \"inside\",           inside (the default) or outside\n"
+"       \"region\": {\"shape\": \"polygon\", \"vertices\": [[-23.47, -68.29], ...]}},\n"
+"\n"
+"      {\"id\": \"command-centre-destroyed\", \"kind\": \"terminal_state\",\n"
+"       \"expect\": \"not_met\",        the one key added to EXT-08's shape - see below\n"
+"       \"entity\": \"BlueBase_CommandCenter\", \"removal_reason\": \"destroyed\"}\n"
+"    ]\n"
+"  }\n"
+"\n"
+"  An unknown key and a key written twice are REFUSED by name, which is the OPPOSITE of the\n"
+"  capture format's rule (s13) and deliberately so: a producer adds keys and an old reader\n"
+"  must survive them, whereas a person writes this file and \"within_meters\" for\n"
+"  \"within_m\" would be a threshold that silently did not apply. A key beginning with '_'\n"
+"  is a comment.\n"
+"\n"
+"  \"scenario_unload\" is refused as a removal_reason: it is what the engine's stop path\n"
+"  writes for every surviving entity at teardown - measured, 267 of 385 removals across the\n"
+"  committed sweep, all at sim_time_s 0 - so a condition on it is met in every run for\n"
+"  every entity, at a time that points at the wrong end of the run.\n"
+"\n"
+"  \"expect\" is the one key this project adds. The vendored schema is a referee: it reports\n"
+"  whether a condition was satisfied and says nothing about whether that is welcome. Two of\n"
+"  the brief's three questions survive being read as \"this should hold\"; the third does\n"
+"  not - \"did anything reach a terminal state it SHOULD NOT have\" is an assertion of\n"
+"  non-occurrence. The verdict still records the FACT (met / not met); whether it was the\n"
+"  asserted one is separate (satisfied / violated / undetermined). Only a VIOLATION fails a\n"
+"  run. See docs/m6-oq5.md for how OQ-5 was decided, by trying rather than by reading.\n"
+"\n"
+"  A verdict is THREE-valued. An assertion never reads absence as evidence (CR-AS-4): a\n"
+"  not-met verdict is reported only where it can be BOUNDED, and otherwise reports\n"
+"  indeterminate with the reason. `indeterminate` is a VERDICT state and never a fifth RUN\n"
+"  outcome - the brief fixes the run vocabulary at four. Judge a stored campaign again, or\n"
+"  against new conditions, with n8ro-judge.\n"
+"\n"
+"the four ugly realities, injected on purpose (CR-EX-6, and step 8 of the brief):\n"
+"  --inject-fault <name>    inject one of the four faults the brief says a hundred-run\n"
+"                           campaign will meet. The campaign must survive it, record what\n"
+"                           happened, and continue to the next run.\n"
+"  --inject-at-run <n>      inject it into that run only. Default: every run.\n"
+"\n"
+"    host_start_failure     the host executable is a path that does not exist\n"
+"    scenario_load_refusal  a scenario name the catalogue does not contain. The host does\n"
+"                           not fail - it sits idle, which is the dangerous shape - and the\n"
+"                           wait for `loaded` is what times out\n"
+"    run_never_ends         a stop predicate the run cannot reach, against a short timeout.\n"
+"                           Produces `timeout`, its OWN outcome, never `fail`\n"
+"    host_dies_mid_run      the host is terminated THROUGH THE HANDLE THIS RUN CREATED,\n"
+"                           never by image name. Produces `infrastructure_error`, told\n"
+"                           apart from a timeout by asking the process itself\n"
+"\n"
+"  The injected fault is written into that run's run.json and into the campaign summary, so\n"
+"  a campaign run under injection can never be mistaken for a clean one.\n"
+"\n"
 "the end of a run:\n"
 "  --frames <n>             stop predicate: a run is finished when the engine's frame\n"
 "                           number, as published on sim/engine/state, reaches n.\n"
@@ -215,9 +289,11 @@ void printHelp() {
 "  --help                   this text.\n"
 "\n"
 "exit codes:\n"
-"  0  every run completed - the stop predicate was satisfied and teardown was clean\n"
-"  1  at least one run did not complete (timeout or infrastructure error), or the\n"
-"     campaign stopped at its disk ceiling\n"
+"  0  every run passed - or, with no --conditions declared, every run completed\n"
+"  1  at least one run failed, timed out or hit an infrastructure error, or the campaign\n"
+"     stopped at its disk ceiling. A campaign that meets an injected fault and carries on\n"
+"     exits 1: it did exactly what CR-EX-6 asks, and it still holds a run that is not a\n"
+"     pass. The four counts in the summary are what to read, not this number alone\n"
 "  2  usage or configuration error; no run was attempted\n"
 "  3  the determinism self-test did not pass, and NO campaign run was attempted. Step 4 of\n"
 "     the brief: \"Do not build further until it passes.\" Whether the gate FAILED or could\n"
@@ -267,6 +343,17 @@ struct Args {
     bool hasAxis = false;
     bool countGiven = false;
 
+    // CR-AS-1: the conditions, declared outside the code, loaded and validated BEFORE any host
+    // is started. Absent means an unjudged campaign, which behaves exactly as at M5 and reports
+    // every completed run as `completed` rather than inventing a pass for it.
+    std::string conditionsFile;
+    ext17::assertion::ConditionFile conditions;
+    bool hasConditions = false;
+
+    // CR-EX-6: which of the four ugly realities to inject, and into which run.
+    std::string injectFault;
+    int injectRun = -1;
+
     bool help = false;
 };
 
@@ -305,6 +392,9 @@ bool parseArgs(int argc, char** argv, Args& a, std::string& error) {
         else if (opt == "--frames")         { const char* v = next("--frames"); if (!v) return false; a.frames = std::strtoull(v, nullptr, 10); }
         else if (opt == "--count")          { if (!asInt("--count", a.count)) return false; a.countGiven = true; }
         else if (opt == "--campaign")       { const char* v = next("--campaign"); if (!v) return false; a.campaignFile = v; }
+        else if (opt == "--conditions")     { const char* v = next("--conditions"); if (!v) return false; a.conditionsFile = v; }
+        else if (opt == "--inject-fault")   { const char* v = next("--inject-fault"); if (!v) return false; a.injectFault = v; }
+        else if (opt == "--inject-at-run")  { const char* v = next("--inject-at-run"); if (!v) return false; a.injectRun = std::atoi(v); }
         else if (opt == "--first-run")      { if (!asInt("--first-run", a.firstRun)) return false; }
         else if (opt == "--run-timeout-ms") { if (!asInt("--run-timeout-ms", a.run.runTimeoutMs)) return false; }
         else if (opt == "--ready-timeout-ms") { if (!asInt("--ready-timeout-ms", a.run.readyTimeoutMs)) return false; }
@@ -444,6 +534,109 @@ std::vector<const ext17::run::RunRecord*> sweptRecords(
 //   - A run that did not complete gets no bar at all. Its result column is whatever its capture
 //     happened to contain, which is not a point on the trend, and drawing it as one would put a
 //     failure on the same line as a measurement.
+// CR-PAR-2's third criterion, and the half M5 recorded as unmet: *"at least one condition in
+// the committed example campaign actually changes outcome"*. A result changing across the sweep
+// was demonstrable at M5; a VERDICT changing was not, because no condition existed.
+//
+// The table shows one column per condition **whose outcome actually changes across the sweep**,
+// and lists the rest below as constant. That is a deliberate choice about what a trend is: with
+// seven conditions and twenty runs, a full matrix is 140 cells in which the two that move are
+// invisible. A column that never changes is not a trend and is reported as a fact instead.
+void printVerdictSweep(const std::vector<const ext17::run::RunRecord*>& ordered) {
+    if (ordered.empty() || !ordered.front()->judged) { return; }
+
+    // The condition list, in declaration order, taken from the first run that has verdicts. Every
+    // run has one verdict per declared condition (CR-AS-2), so any judged run gives the order.
+    const ext17::run::RunRecord* reference = nullptr;
+    for (const auto* r : ordered) {
+        if (!r->verdictConditionIds.empty()) { reference = r; break; }
+    }
+    if (reference == nullptr) { return; }
+    const std::size_t n = reference->verdictConditionIds.size();
+
+    // Which columns move. A run that was never judged - an infrastructure error, say - carries no
+    // verdicts at all, and contributes nothing to this question rather than counting as a change.
+    std::vector<bool> changes(n, false);
+    for (std::size_t i = 0; i < n; ++i) {
+        std::string first;
+        for (const auto* r : ordered) {
+            if (r->verdictOutcomes.size() != n) { continue; }
+            if (first.empty()) { first = r->verdictOutcomes[i]; continue; }
+            if (r->verdictOutcomes[i] != first) { changes[i] = true; break; }
+        }
+    }
+
+    std::size_t moving = 0;
+    for (std::size_t i = 0; i < n; ++i) { if (changes[i]) { ++moving; } }
+
+    line("sweep", "VERDICTS ACROSS THE SWEEP  -  one column per condition whose outcome CHANGES");
+    line("sweep", "");
+    if (moving == 0) {
+        line("sweep", "  No condition changes outcome across this sweep. CR-PAR-2's third "
+                      "criterion asks for one that does, and this campaign does not show one - "
+                      "which is a fact about the campaign, not a formatting choice.");
+        line("sweep", "");
+    } else {
+        std::string head = "  value  run   outcome              ";
+        std::vector<std::size_t> cols;
+        for (std::size_t i = 0; i < n; ++i) {
+            if (!changes[i]) { continue; }
+            cols.push_back(i);
+            head += " C" + std::to_string(cols.size());
+            while (head.size() % 1 != 0) { break; }
+            head += "   ";
+        }
+        line("sweep", head);
+
+        for (const auto* r : ordered) {
+            std::string row = "  ";
+            std::string v = r->parameterValueText;
+            while (v.size() < 5) { v += ' '; }
+            row += v + "  " + r->runId + "   ";
+            std::string o = ext17::run::toString(r->outcome);
+            while (o.size() < 20) { o += ' '; }
+            row += o;
+            for (std::size_t c : cols) {
+                std::string cell = "  ? ";
+                if (r->verdictOutcomes.size() == n) {
+                    const std::string& out = r->verdictOutcomes[c];
+                    cell = out == "satisfied" ? "  OK" : (out == "violated" ? "  XX" : "  ??");
+                }
+                row += cell + "  ";
+            }
+            line("sweep", row);
+        }
+        line("sweep", "");
+        for (std::size_t k = 0; k < cols.size(); ++k) {
+            line("sweep", "  C" + std::to_string(k + 1) + "  "
+                              + reference->verdictConditionIds[cols[k]]);
+        }
+        line("sweep", "");
+        line("sweep", "  OK  satisfied - the condition's answer was the asserted one");
+        line("sweep", "  XX  VIOLATED  - it was decided and was not. This is what makes a run "
+                      "fail");
+        line("sweep", "  ??  indeterminate - this capture cannot decide it. Never folded into "
+                      "either (CR-AS-4)");
+        line("sweep", "");
+    }
+
+    if (moving < n) {
+        line("sweep", "  Constant across the whole sweep, and therefore not a trend:");
+        for (std::size_t i = 0; i < n; ++i) {
+            if (changes[i]) { continue; }
+            std::string state = "(never judged)";
+            for (const auto* r : ordered) {
+                if (r->verdictOutcomes.size() == n) {
+                    state = r->verdictOutcomes[i] + " / " + r->verdictStates[i];
+                    break;
+                }
+            }
+            line("sweep", "    " + reference->verdictConditionIds[i] + "  -  " + state);
+        }
+        line("sweep", "");
+    }
+}
+
 void printSweep(const std::vector<ext17::run::RunRecord>& records,
                 const ext17::param::Axis& axis) {
     const auto ordered = sweptRecords(records);
@@ -547,12 +740,17 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
     line("sweep", "  samples total samples in it. This one DOES carry the platform's "
                   "publication-schedule spread, measured at 0.38% over twenty identical runs");
     line("sweep", "");
-    line("sweep", "  These are counts read off each capture, NOT verdicts. No condition is "
-                  "declared until M6, so no run here is a pass or a fail.");
+    if (!ordered.front()->judged) {
+        line("sweep", "  These are counts read off each capture, NOT verdicts - this campaign "
+                      "declared no conditions, so no run here is a pass or a fail. Pass "
+                      "--conditions <file> to judge them.");
+    }
     line("sweep", "  The determinism gate ran at " + axis.name + " = " + axis.selfTestValueText
                       + " and established determinism FOR THAT VALUE. It is one claim at a named "
                         "point, not one per run.");
     line("sweep", "");
+
+    printVerdictSweep(ordered);
 }
 
 // The campaign summary. At M2 it counts three outcomes, and the invariant it asserts is the
@@ -562,12 +760,24 @@ void writeCampaignSummary(const std::string& path,
                           const ext17::run::StopPredicate& predicate,
                           const ext17::run::SelfTestResult* selfTest,
                           const ext17::param::Axis* axis) {
-    int completed = 0, timedOut = 0, infra = 0;
+    int passed = 0, failed = 0, completed = 0, timedOut = 0, infra = 0;
+    long long indeterminateVerdicts = 0;
+    bool judged = false;
+    std::string conditionsPath;
+    long long conditionsDeclared = 0;
     for (const auto& r : records) {
         switch (r.outcome) {
+            case ext17::run::RunOutcome::Pass:                ++passed;    break;
+            case ext17::run::RunOutcome::Fail:                ++failed;    break;
             case ext17::run::RunOutcome::Completed:           ++completed; break;
             case ext17::run::RunOutcome::Timeout:             ++timedOut;  break;
             case ext17::run::RunOutcome::InfrastructureError: ++infra;     break;
+        }
+        indeterminateVerdicts += r.verdictsIndeterminate;
+        if (r.judged) {
+            judged = true;
+            conditionsPath = r.conditionsPath;
+            conditionsDeclared = r.conditionsDeclared;
         }
     }
 
@@ -577,10 +787,14 @@ void writeCampaignSummary(const std::string& path,
     // counts. Every addition is additive, and the version still moves - a consumer written
     // against /2 has not seen the sweep, and a shape that grew without saying so is how a
     // reader comes to believe it read everything there was.
-    w.member("schema", std::string("ext17-campaign-summary/3"));
-    w.member("milestone", std::string("M5 - execution, the determinism gate and one "
-                                      "parameterisation axis; no conditions are evaluated, so "
-                                      "no run is a pass or a fail yet"));
+    // Bumped again at M6: `outcomes` gained `pass` and `fail`, every run gained a `judgement`,
+    // and the `sweep` array gained a verdict per condition. A consumer written against /3 would
+    // read `completed` where a run is now judged.
+    w.member("schema", std::string("ext17-campaign-summary/4"));
+    w.member("milestone", std::string("M6 - execution, the determinism gate, one "
+                                      "parameterisation axis, and declared conditions. Runs "
+                                      "are judged; `completed` now appears only when no "
+                                      "condition file was declared"));
 
     // CR-DET-1: "the self-test runs at the start of every campaign and its result appears in the
     // report". At M4 this file is the report. M6 replaces it and reads this object rather than
@@ -597,14 +811,40 @@ void writeCampaignSummary(const std::string& path,
     w.member("statement", predicate.statement());
     w.endObject();
 
+    // CR-REP-3: the four outcomes, separately, summing to the number of runs attempted, with no
+    // aggregate anywhere that collapses two of them. `completed` is a fifth key and not a fifth
+    // outcome - it is what a run is called when NO condition file was declared, so nothing
+    // judged it. With conditions declared it is always 0.
     w.beginObject("outcomes");
     w.member("attempted", static_cast<std::int64_t>(records.size()));
-    w.member("completed", static_cast<std::int64_t>(completed));
+    w.member("pass", static_cast<std::int64_t>(passed));
+    w.member("fail", static_cast<std::int64_t>(failed));
     w.member("timeout", static_cast<std::int64_t>(timedOut));
     w.member("infrastructure_error", static_cast<std::int64_t>(infra));
+    w.member("completed_unjudged", static_cast<std::int64_t>(completed));
     w.member("sums_to_attempted",
-             completed + timedOut + infra == static_cast<int>(records.size()));
+             passed + failed + completed + timedOut + infra
+                 == static_cast<int>(records.size()));
+    w.member("no_aggregate_merges_two_of_the_four", true);
     w.endObject();
+
+    // CR-AS-4: reported alongside the four, and never merged into any of them. An indeterminate
+    // verdict is a VERDICT state - the brief fixes the RUN vocabulary at four, and keeping the
+    // two apart is what makes its acceptance criterion 5 stay exactly satisfied.
+    if (judged) {
+        w.beginObject("conditions");
+        w.member("file", conditionsPath);
+        w.member("declared", static_cast<std::int64_t>(conditionsDeclared));
+        w.member("indeterminate_verdicts", static_cast<std::int64_t>(indeterminateVerdicts));
+        w.member("indeterminate_is_a_verdict_state_not_a_run_outcome", true);
+        w.member("note", std::string("An indeterminate verdict means this capture cannot decide "
+                                     "that condition - it is not a pass, not a fail, and is "
+                                     "never folded into either. See the README's absence "
+                                     "classification (CR-AS-4)."));
+        w.endObject();
+    } else {
+        w.memberNull("conditions");
+    }
 
     // CR-PAR-1: what varied, and the values it took. Null - not an empty object - when the
     // campaign declared no axis, so that an unparameterised campaign's summary says so rather
@@ -649,6 +889,17 @@ void writeCampaignSummary(const std::string& path,
         if (!r.parameterName.empty()) {
             w.member("every_named_entity_present", r.parameterEntitiesMissing.empty());
         }
+        if (!r.injectedFault.empty()) { w.member("injected_fault", r.injectedFault); }
+        if (r.judged) {
+            w.beginObject("judgement");
+            w.member("satisfied", static_cast<std::int64_t>(r.verdictsSatisfied));
+            w.member("violated", static_cast<std::int64_t>(r.verdictsViolated));
+            w.member("indeterminate", static_cast<std::int64_t>(r.verdictsIndeterminate));
+            w.member("met", static_cast<std::int64_t>(r.verdictsMet));
+            w.member("not_met", static_cast<std::int64_t>(r.verdictsNotMet));
+            w.member("verdicts_file", std::string("runs/") + r.runId + "/verdicts.jsonl");
+            w.endObject();
+        }
         w.endObject();
     }
     w.endArray();
@@ -675,18 +926,36 @@ void writeCampaignSummary(const std::string& path,
                 w.memberNull("entity_keys");
             }
             w.member("samples", static_cast<std::int64_t>(r->captureSamples));
+            // CR-PAR-2's third criterion, finished at M6: the per-condition VERDICT at this
+            // value. This is the seam M5 left - it recorded the criterion as half-met because a
+            // result changed across the sweep and a verdict could not, there being no condition
+            // until now.
+            if (!r->verdictConditionIds.empty()) {
+                w.beginArray("verdicts");
+                for (std::size_t i = 0; i < r->verdictConditionIds.size(); ++i) {
+                    w.beginObject();
+                    w.member("condition_id", r->verdictConditionIds[i]);
+                    w.member("state", r->verdictStates[i]);
+                    w.member("outcome", r->verdictOutcomes[i]);
+                    w.endObject();
+                }
+                w.endArray();
+            } else {
+                w.memberNull("verdicts");
+            }
             w.endObject();
         }
         w.endArray();
         w.member("sweep_note",
-                 std::string("Ordered by parameter value. The result columns are counts read off "
-                             "each run's own capture by this project's reader - they are NOT "
-                             "verdicts, because no condition is declared until M6. `samples` "
+                 std::string("Ordered by parameter value. The count columns are read off "
+                             "each run's own capture by this project's reader; the `verdicts` "
+                             "array beside them IS the judgement. `samples` "
                              "additionally carries the platform's publication-schedule spread, "
                              "measured at 0.38% over twenty identical runs (M2); `entity_adds` "
-                             "does not, and is the column to read a trend from. A run with no "
+                             "does not, and is the count to read a trend from. A run with no "
                              "RUNNING segment reports null rather than 0 for both: nothing was "
-                             "measured in it, and 0 would be a measurement."));
+                             "measured in it, and 0 would be a measurement - and it can decide "
+                             "no condition either, so its verdicts are all indeterminate."));
     }
     w.endObject();
 
@@ -772,6 +1041,41 @@ int main(int argc, char** argv) {
             return 2;
         }
         a.count = static_cast<int>(a.axis.values.size());
+    }
+
+    // ---- CR-AS-1: the conditions, loaded and validated BEFORE any host is started ----------
+    //
+    // *"A malformed file, a duplicate condition id, and an unrecognised condition kind each
+    // produce a distinct named error and a non-zero exit before any host is started."* This is
+    // that, and it is deliberately here - above the pre-flight disk check, above the self-test,
+    // above everything that costs a second - so a typo costs ten seconds rather than twenty runs
+    // against a file that quietly loaded nothing.
+    if (!a.conditionsFile.empty()) {
+        ext17::assertion::ParseError perr;
+        if (!ext17::assertion::readConditionFile(a.conditionsFile, a.conditions, perr)) {
+            std::fprintf(stderr, "n8ro-campaign: condition file refused - %s\n",
+                         perr.message().c_str());
+            std::fprintf(stderr, "               No host was started and no run was attempted "
+                                 "(CR-AS-1).\n");
+            return 2;
+        }
+        a.hasConditions = true;
+    }
+
+    // CR-EX-6: the fault vocabulary is closed, and an unrecognised name is a refusal rather than
+    // a campaign that quietly injected nothing and reported four handled faults.
+    if (!a.injectFault.empty()) {
+        static const char* kFaults[] = {"host_start_failure", "scenario_load_refusal",
+                                        "run_never_ends", "host_dies_mid_run"};
+        bool known = false;
+        for (const char* f : kFaults) { if (a.injectFault == f) { known = true; break; } }
+        if (!known) {
+            std::fprintf(stderr, "n8ro-campaign: \"%s\" is not one of the four ugly realities. "
+                                 "They are host_start_failure, scenario_load_refusal, "
+                                 "run_never_ends and host_dies_mid_run.\n",
+                         a.injectFault.c_str());
+            return 2;
+        }
     }
 
     // CR-EX-4: "there is no configuration in which a run may run unbounded". A non-positive
@@ -951,6 +1255,19 @@ int main(int argc, char** argv) {
         if (a.hasAxis) {
             applyAxisValue(a.axis, a.axis.values[valueOrder[static_cast<std::size_t>(n)]], cfg);
         }
+        // CR-AS-1: the conditions reach every run. They were validated before the self-test, so
+        // by here the file is known good and every run judges against the same seven questions.
+        if (a.hasConditions) { cfg.conditions = &a.conditions; }
+
+        // CR-EX-6: inject one of the four ugly realities into the nominated run, and only into
+        // that one. The campaign must survive it and carry on, which is the requirement; the
+        // injection is named in the run record so the survivor cannot be mistaken for a clean
+        // run that happened to work.
+        if (!a.injectFault.empty() &&
+            (a.injectRun < 0 || a.injectRun == a.firstRun + n)) {
+            cfg.injectFault = a.injectFault;
+        }
+
         // G1: the failure of any one run does not end the campaign.
         records.push_back(ext17::run::executeRun(cfg));
 

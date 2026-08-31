@@ -9,6 +9,8 @@ namespace ext17::run {
 
 const char* toString(RunOutcome outcome) {
     switch (outcome) {
+        case RunOutcome::Pass:                return "pass";
+        case RunOutcome::Fail:                return "fail";
         case RunOutcome::Completed:           return "completed";
         case RunOutcome::Timeout:             return "timeout";
         case RunOutcome::InfrastructureError: return "infrastructure_error";
@@ -190,6 +192,55 @@ std::string RunRecord::toJson() const {
     w.member("delta_s", finalSnapshot.deltaS, 5);
     w.member("scenario_loaded", finalSnapshot.scenarioLoaded);
     w.endObject();
+
+    // CR-EX-6: named when this run was given one of the four ugly realities on purpose, so no
+    // reader can mistake an injected campaign for a clean one.
+    if (injectedFault.empty()) {
+        w.memberNull("injected_fault");
+    } else {
+        w.member("injected_fault", injectedFault);
+    }
+
+    // --- The judgement (CR-AS-2, CR-AS-4, CR-REP-1, CR-REP-2) ------------------------------
+    //
+    // Absent when no condition file was declared, which is why it is `null` rather than an
+    // empty object: a campaign that judged nothing and a campaign whose conditions all held
+    // are different things, and tenet 3 is that absence is not evidence.
+    if (!judged) {
+        w.memberNull("judgement");
+    } else {
+        w.beginObject("judgement");
+        w.member("conditions_file", conditionsPath);
+        w.member("conditions_declared", static_cast<std::int64_t>(conditionsDeclared));
+        w.member("judgeable", judgeable);
+        if (notJudgeableReason.empty()) {
+            w.memberNull("not_judgeable_reason");
+        } else {
+            w.member("not_judgeable_reason", notJudgeableReason);
+        }
+
+        // Two vocabularies, side by side, never merged. `verdicts` is what the run did, in the
+        // vendored schema's own terms; `assertions` is whether each fact was the asserted one.
+        w.beginObject("verdicts");
+        w.member("met", static_cast<std::int64_t>(verdictsMet));
+        w.member("not_met", static_cast<std::int64_t>(verdictsNotMet));
+        w.member("indeterminate", static_cast<std::int64_t>(verdictsIndeterminate));
+        w.member("indeterminate_is_a_verdict_state_not_a_run_outcome", true);
+        w.endObject();
+
+        w.beginObject("assertions");
+        w.member("satisfied", static_cast<std::int64_t>(verdictsSatisfied));
+        w.member("violated", static_cast<std::int64_t>(verdictsViolated));
+        w.member("undetermined", static_cast<std::int64_t>(verdictsUndetermined));
+        w.member("only_a_violation_makes_a_run_fail", true);
+        w.endObject();
+
+        w.member("verdicts_file", std::string("verdicts.jsonl"));
+        w.member("one_verdict_per_declared_condition", 
+                 static_cast<std::int64_t>(verdictJsonLines.size()) ==
+                     static_cast<std::int64_t>(conditionsDeclared));
+        w.endObject();
+    }
 
     // Everything below this line varies between identical runs and is excluded from every
     // comparison by construction. It is here because an operator needs it and CR-DET-2 needs

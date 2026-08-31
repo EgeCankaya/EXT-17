@@ -16,6 +16,7 @@
 
 #include "RunRecord.h"
 #include "StopPredicate.h"
+#include "../assert/Conditions.h"
 
 #include <cstdint>
 #include <functional>
@@ -104,6 +105,29 @@ struct RunConfig {
     std::string parameterAppliesTo;
     std::string parameterUnits;
     std::vector<std::string> parameterEntities;
+
+    // --- M6 -----------------------------------------------------------------------------
+    //
+    // The conditions this run is judged against (CR-AS-1..4). Null when no condition file was
+    // declared, in which case the run's outcome stays `completed` - because nothing judged it,
+    // which is the only honest thing to call it.
+    //
+    // The judgement runs over the STORED CAPTURE, after teardown, through the same evaluator
+    // `n8ro-judge` runs. That is CR-CAP-1's identity made structural rather than promised:
+    // there is no second code path for a live verdict, so there is nothing for a re-judgement
+    // to disagree with.
+    const assertion::ConditionFile* conditions = nullptr;
+
+    // CR-EX-6: inject one of the four ugly realities into this run on purpose. Empty for an
+    // ordinary run. The value is recorded in run.json so an injected campaign can never be
+    // mistaken for a clean one.
+    //
+    //   host_start_failure   the host executable is replaced with one that exits immediately
+    //   scenario_load_refusal a scenario name the catalogue does not contain
+    //   run_never_ends       the stop predicate is set beyond what the run timeout allows
+    //   host_dies_mid_run    the host process is terminated by the handle we created, mid-run
+    std::string injectFault;
+    int injectFaultAtMs = 8000;   // when `host_dies_mid_run` fires, after the engine is running
 };
 
 // Execute one run. Returns the record; the record's outcome is the answer.

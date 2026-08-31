@@ -1,10 +1,12 @@
 #include "RunOnce.h"
 
+#include "../assert/Judge.h"
 #include "../capture/CaptureSet.h"
 
 #include "../common/Log.h"
 #include "../proc/Process.h"
 
+#include <cstdio>
 #include <memory>
 #include <optional>
 #include <string>
@@ -174,6 +176,16 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
     {
         proc::StartSpec spec;
         spec.exePath = cfg.hostExe;
+        // CR-EX-6, fault 1 of 4: **a host that fails to start.** Injected by pointing the start
+        // at a path that is not an executable, which is what a bad --host-exe, a half-installed
+        // runtime and a corrupted binary all look like from here. The failure is a real one -
+        // CreateProcess genuinely refuses - rather than a flag this function checks and
+        // pretends about.
+        if (cfg.injectFault == "host_start_failure") {
+            spec.exePath = joinPath(cfg.runDir, "no-such-host.exe");
+            log::line("inject", "fault host_start_failure: the host executable is "
+                                + spec.exePath + ", which does not exist");
+        }
         spec.args = {"--sim-config", cfg.simConfigHost,
                      "--model-path", cfg.modelPath,
                      "--schema-file", cfg.schemaFile};
@@ -216,7 +228,19 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
         }
     }
 
-    if (!st.control->publishLoadScenario(cfg.scenario, cfg.modelName)) {
+    // CR-EX-6, fault 2 of 4: **a scenario that refuses to load.** Injected by asking for a
+    // scenario name the catalogue does not contain - M5 measured the catalogue answering with 10
+    // names in 119 ms, and this is not one of them. The refusal is the platform's own and takes
+    // its real shape: the host does not fail, it sits idle, and what times out is our wait for
+    // `loaded`. That idling-rather-than-failing shape is F-5's, and it is the reason this fault
+    // is worth injecting rather than reasoning about.
+    std::string scenarioToLoad = cfg.scenario;
+    if (cfg.injectFault == "scenario_load_refusal") {
+        scenarioToLoad = "No Such Scenario (EXT-17 fault injection)";
+        log::line("inject", "fault scenario_load_refusal: asking for \"" + scenarioToLoad
+                                + "\", which the catalogue does not contain");
+    }
+    if (!st.control->publishLoadScenario(scenarioToLoad, cfg.modelName)) {
         return fail(rec, "scenario_load", "load_scenario was not published");
     }
     {
@@ -224,7 +248,7 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
         rec.waits.push_back(w);
         if (!w.observed) {
             return fail(rec, "scenario_load",
-                        "the scenario \"" + cfg.scenario + "\" did not load within "
+                        "the scenario \"" + scenarioToLoad + "\" did not load within "
                             + std::to_string(cfg.loadTimeoutMs)
                             + " ms. A load refused for a missing component factory leaves the "
                               "host idle rather than failing - check N8RO_RELEASE and host.err.");
@@ -262,29 +286,69 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
     // The evaluation is captured *inside* the condition, on the first publication at which the
     // predicate holds. Reading it afterwards would report a later frame, and "twenty runs end
     // at the same point by the predicate's own measure" is precisely a claim about that number.
-    log::line("run", "watching for: " + cfg.predicate.statement());
+    // CR-EX-6, fault 3 of 4: **a run that never ends.** Injected by setting the predicate beyond
+    // anything the run timeout allows, which is what a mis-set frame budget, a scenario that
+    // stalls and a paused engine all present as. The important property is what it must produce:
+    // `timeout`, its OWN outcome, and never `fail` - a run that did not finish has not told you
+    // anything about the scenario. This is also the only fault that exercises CR-EX-4's backstop
+    // on a real run rather than by construction.
+    StopPredicate predicate = cfg.predicate;
+    int runTimeoutMs = cfg.runTimeoutMs;
+    if (cfg.injectFault == "run_never_ends") {
+        predicate = StopPredicate::frameBudget(1000000000);
+        runTimeoutMs = cfg.injectFaultAtMs;
+        log::line("inject", "fault run_never_ends: the stop predicate is now "
+                                + predicate.statement() + ", which this run will not reach, and "
+                                  "the run timeout is " + std::to_string(runTimeoutMs) + " ms");
+    }
+
+    // CR-EX-6, fault 4 of 4: **a host that dies mid-run.** Injected by terminating the host
+    // through THE HANDLE THIS RUN CREATED - never by image name, which is the security posture's
+    // rule and CR-EX-1's. The run then meets exactly what an unattended campaign meets when a
+    // host crashes at 3 a.m.: the engine-state heartbeat stops, the wait for the predicate runs
+    // out, and the recorder closes its capture on its own after 3.0 s of silence.
+    if (cfg.injectFault == "host_dies_mid_run") {
+        runTimeoutMs = cfg.injectFaultAtMs;
+        log::line("inject", "fault host_dies_mid_run: the host will be terminated by handle "
+                            "after the engine reports running");
+        if (st.host) { st.host->terminate(); }
+    }
+
+    log::line("run", "watching for: " + predicate.statement());
     {
         StopEvaluation firstSatisfaction;
         bool captured = false;
         const auto w = st.control->waitFor(
             "stop predicate satisfied",
             [&](const control::EngineSnapshot& s) {
-                if (!cfg.predicate.satisfiedBy(s)) { return false; }
+                if (!predicate.satisfiedBy(s)) { return false; }
                 if (!captured) {
-                    firstSatisfaction = cfg.predicate.evaluate(s);
+                    firstSatisfaction = predicate.evaluate(s);
                     captured = true;
                 }
                 return true;
             },
-            cfg.runTimeoutMs);
+            runTimeoutMs);
         rec.waits.push_back(w);
         rec.evaluation = firstSatisfaction;
         rec.predicateSatisfied = captured;
 
         if (!w.observed) {
             rec.runTimeoutExpired = true;
-            rec.evaluation = cfg.predicate.evaluate(w.at);
+            rec.evaluation = predicate.evaluate(w.at);
             rec.evaluation.satisfied = false;
+
+            // A host that died is an INFRASTRUCTURE failure, not a timeout. The two look
+            // identical from the wait - both are "the predicate was not satisfied in time" - and
+            // telling them apart is exactly what CR-EX-5 requires, because one says the harness
+            // broke and the other says the run was too slow. The host's own process answers it.
+            if (st.host && !st.host->isAlive()) {
+                return fail(rec, "host_died",
+                            "the host process exited during the run, before the stop predicate "
+                            "was satisfied. The engine-state heartbeat stopped and the wait ran "
+                            "out. This is an infrastructure failure and not a timeout: the run "
+                            "was not too slow, the thing running it went away.");
+            }
             log::line("TIMEOUT", "the run timeout expired before the stop predicate was "
                                  "satisfied; this run is a timeout, not a failure");
             return RunOutcome::Timeout;
@@ -542,6 +606,91 @@ RunRecord executeRun(const RunConfig& cfg) {
                                        + ". The run reached its stop predicate, but it recorded "
                                          "nothing and cannot be judged or compared later.");
             }
+        }
+    }
+
+    // --- The judgement (CR-AS-1..4, CR-CAP-1, CR-EX-5) ---------------------------------------
+    //
+    // Over the STORED CAPTURE, after teardown, through `src/assert/`'s evaluator - the same one
+    // `n8ro-judge` runs. There is deliberately no second, "live" code path: a verdict produced
+    // while a host was running would be a verdict a re-judgement could disagree with, and
+    // CR-CAP-1 asks that they be identical. One evaluator over one file makes that structural.
+    //
+    // A run that already failed for an infrastructure reason is NOT judged. Judging it would
+    // produce verdicts over a capture of something that did not happen, and CR-EX-5's whole
+    // point is that a harness failure is never a test result.
+    if (cfg.conditions && !cfg.conditions->conditions.empty()) {
+        rec.judged = true;
+        rec.conditionsPath = cfg.conditions->path;
+        rec.conditionsDeclared = static_cast<long long>(cfg.conditions->conditions.size());
+
+        if (rec.outcome != RunOutcome::Completed) {
+            log::line("judge", "not judged: this run's outcome is "
+                                   + std::string(toString(rec.outcome))
+                                   + ", and an infrastructure failure or a timeout is never a "
+                                     "test result (CR-EX-5). No verdict is invented for it.");
+        } else if (rec.capturePath.empty()) {
+            log::line("judge", "not judged: there is no capture to judge.");
+        } else {
+            assertion::JudgeResult jr;
+            assertion::judgeCapture(joinPath(cfg.runDir, rec.capturePath), *cfg.conditions, jr);
+
+            rec.verdictsMet = jr.met;
+            rec.verdictsNotMet = jr.notMet;
+            rec.verdictsIndeterminate = jr.indeterminate;
+            rec.verdictsSatisfied = jr.satisfied;
+            rec.verdictsViolated = jr.violated;
+            rec.verdictsUndetermined = jr.undetermined;
+            rec.judgeable = jr.judgeable;
+            rec.notJudgeableReason = jr.notJudgeableReason;
+            for (const auto& v : jr.verdicts) {
+                rec.verdictConditionIds.push_back(v.conditionId);
+                rec.verdictStates.push_back(assertion::toString(v.state));
+                rec.verdictOutcomes.push_back(assertion::toString(v.outcome));
+                rec.verdictTextLines.push_back(assertion::verdictLine(v));
+                rec.verdictJsonLines.push_back(assertion::verdictJson(v));
+            }
+
+            // CR-EX-5's mapping, and the two cases that are not test results.
+            if (jr.rejected || !jr.conformant) {
+                rec.outcome = fail(rec, "judge",
+                                   "the capture could not be judged: "
+                                       + (jr.rejected ? jr.rejectReason
+                                                      : std::string("it is not conformant")));
+            } else if (!jr.judgeable) {
+                // R14's shape. Not a determinism failure, and certainly not a failing scenario.
+                rec.outcome = fail(rec, "judge", jr.notJudgeableReason);
+            } else if (jr.violated > 0) {
+                rec.outcome = RunOutcome::Fail;
+            } else if (jr.satisfied == 0) {
+                rec.outcome = fail(rec, "judge",
+                                   "every verdict was indeterminate, so nothing was decided. "
+                                   "Reporting that as a pass is the \"all passed having checked "
+                                   "nothing\" failure CR-AS-1 exists to prevent, turned on the "
+                                   "verdicts instead of on the loader.");
+            } else {
+                rec.outcome = RunOutcome::Pass;
+            }
+
+            // One verdict file per run, one JSON object per line. This is what CR-CAP-1's
+            // identity check compares byte for byte against a later re-judgement.
+            const std::string verdictPath = joinPath(cfg.runDir, "verdicts.jsonl");
+            if (std::FILE* f = std::fopen(verdictPath.c_str(), "wb")) {
+                for (const std::string& l : rec.verdictJsonLines) {
+                    std::fwrite(l.data(), 1, l.size(), f);
+                    std::fwrite("\n", 1, 1, f);
+                }
+                std::fclose(f);
+            } else {
+                log::line("judge", "could not write " + verdictPath);
+            }
+
+            for (const std::string& l : rec.verdictTextLines) { log::line("verdict", l); }
+            log::line("judge", "satisfied " + std::to_string(jr.satisfied)
+                                   + ", violated " + std::to_string(jr.violated)
+                                   + ", indeterminate " + std::to_string(jr.indeterminate)
+                                   + "  (met " + std::to_string(jr.met) + ", not met "
+                                   + std::to_string(jr.notMet) + ")");
         }
     }
 

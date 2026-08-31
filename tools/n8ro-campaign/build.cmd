@@ -6,6 +6,14 @@ rem Since M3 it also links src/capture, the conformant reader, so that a run can
 rem capture it just produced. That direction is fine and the reverse is not: the requirement is
 rem that the READER links no SDK, which tools\n8ro-capture\build.cmd is the proof of.
 rem
+rem Since M6 it also links src/assert, the condition evaluator, in the same direction again -
+rem and that is what makes CR-CAP-1's identity structural rather than promised: the campaign's
+rem "live" verdicts are produced by the same code, over the same stored capture, that
+rem n8ro-judge re-judges later. There is no second evaluator for the two to disagree about.
+rem tools
+8ro-judgeuild.cmd is that one's proof, and it carries the searches that keep the
+rem assertion path unable to reach a host or a bus.
+rem
 rem Since M4 it also links src/compare, the determinism comparison, for the same reason and in
 rem the same direction. tools\n8ro-compare\build.cmd is that one's proof, and it is where the
 rem searches for CR-DET-2's hazards live - a clock, a timestamp, an unordered container, a
@@ -33,6 +41,9 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\compare\Compare.cpp" ^
    "%ROOT%\src\param\Axis.cpp" ^
+   "%ROOT%\src\assert\Geodesy.cpp" ^
+   "%ROOT%\src\assert\Conditions.cpp" ^
+   "%ROOT%\src\assert\Judge.cpp" ^
    "%ROOT%\src\proc\Process.cpp" ^
    "%ROOT%\src\control\EngineControl.cpp" ^
    "%ROOT%\src\run\StopPredicate.cpp" ^

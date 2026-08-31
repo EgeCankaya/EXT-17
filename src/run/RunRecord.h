@@ -29,8 +29,18 @@
 
 namespace ext17::run {
 
+// [B]'s four, and exactly four. `Completed` survives only for a campaign that declares no
+// conditions - with a condition file loaded, M6 resolves every completed run to `Pass` or
+// `Fail`, which is what the M2 comment below was waiting for.
+//
+// **`Indeterminate` is deliberately not here.** It is a VERDICT state (see src/assert/Judge.h),
+// and a run carrying one is reported with its four-state outcome plus the indeterminate verdict
+// named beside it. Keeping the two vocabularies apart is what makes [B]'s acceptance criterion 5
+// stay exactly satisfied rather than approximately.
 enum class RunOutcome {
-    Completed,            // the stop predicate was satisfied and teardown was clean
+    Pass,                 // every asserted condition was satisfied
+    Fail,                 // the capture read, and a declared condition was VIOLATED
+    Completed,            // the predicate was satisfied, and no condition file was declared
     Timeout,              // the run timeout expired before the predicate was satisfied
     InfrastructureError,  // the harness, the host or the scenario load failed
 };
@@ -53,7 +63,10 @@ struct RunRecord {
     // counts. Every addition is additive, and the version moves anyway - a consumer written
     // against /1 has not seen the parameter, and a shape that grew without saying so is how a
     // reader comes to believe it read everything there was.
-    std::string schema = "ext17-run-record/2";
+    // /3 at M6: the record gained `judgement` - the verdicts, their two vocabularies, and the
+    // absence accounting - and `outcome` gained `pass` and `fail`. A consumer written against /2
+    // would read `completed` where a run is now judged, so the version moves.
+    std::string schema = "ext17-run-record/3";
     std::string runId;
     RunOutcome outcome = RunOutcome::InfrastructureError;
 
@@ -145,6 +158,43 @@ struct RunRecord {
     std::string parameterUnits;
     std::vector<std::string> parameterEntities;
     std::vector<std::string> parameterEntitiesMissing;
+
+    // CR-EX-6: which of the four ugly realities was injected into this run, if any. Recorded so
+    // that a campaign run under fault injection can never be mistaken for a clean one - the flag
+    // is in --help, in the run record and in the campaign summary, all three.
+    std::string injectedFault;
+
+    // --- M6: the judgement (CR-AS-2, CR-AS-4, CR-REP-1, CR-REP-2) ---------------------------
+    //
+    // One verdict per declared condition, each carrying enough to find the causing records by
+    // hand: the segment, the (entity, occupancy) pairs, the deciding sim_time_s and the deciding
+    // values. A reader seeing fewer verdicts than conditions is entitled to treat the run as cut
+    // short rather than as passing.
+    bool judged = false;
+    std::string conditionsPath;
+    long long conditionsDeclared = 0;
+
+    // The facts, in the vendored schema's own terms.
+    long long verdictsMet = 0;
+    long long verdictsNotMet = 0;
+    long long verdictsIndeterminate = 0;
+    // Whether each fact was the asserted one. Only a violation makes a run fail.
+    long long verdictsSatisfied = 0;
+    long long verdictsViolated = 0;
+    long long verdictsUndetermined = 0;
+
+    bool judgeable = false;
+    std::string notJudgeableReason;
+
+    // Every verdict, already rendered as one JSON object per line by the evaluator, so that the
+    // run record and <runDir>erdicts.jsonl carry the same bytes and cannot drift apart.
+    std::vector<std::string> verdictJsonLines;
+    std::vector<std::string> verdictTextLines;
+    // Parallel, in declaration order, so the sweep table can build a column per condition
+    // without parsing its own output back.
+    std::vector<std::string> verdictConditionIds;
+    std::vector<std::string> verdictStates;      // met | not_met | indeterminate
+    std::vector<std::string> verdictOutcomes;    // satisfied | violated | undetermined
 
     // The final engine snapshot seen after teardown, for the record.
     control::EngineSnapshot finalSnapshot;

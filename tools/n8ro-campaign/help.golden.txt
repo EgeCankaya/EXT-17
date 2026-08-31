@@ -1,6 +1,6 @@
-n8ro-campaign - EXT-17 headless campaign runner (milestone 5: execution, the
-                determinism gate and one parameterisation axis; nothing is
-                judged until milestone 6)
+n8ro-campaign - EXT-17 headless campaign runner (milestone 6: execution, the
+                determinism gate, one parameterisation axis, declared
+                conditions, and the four ugly realities)
 
 usage: n8ro-campaign run-once  --out-dir <dir> [options]
        n8ro-campaign repeat    --out-dir <dir> --count <n> [options]
@@ -101,6 +101,78 @@ the parameterisation axis (CR-PAR-1, and step 5 of the brief):
   Two runs at DIFFERENT values are never compared. They are two configurations, and
   a gate over them would report a difference meaning only that the sweep worked.
 
+conditions (CR-AS-1..4, and steps 6 and 7 of the brief):
+  --conditions <file>      a JSON file declaring what each run is judged against. Loaded
+                           and validated BEFORE any host is started, so a duplicate id, an
+                           unrecognised kind, an unknown key or a key written twice each
+                           costs ten seconds rather than twenty runs. Without it no run is
+                           judged and every completed run is reported `completed` - which
+                           is the only honest name for a run nothing looked at.
+
+  The vocabulary is CLOSED at the three kinds the brief names - proximity between two
+  entities, presence in a region, reaching a terminal state. A fourth is a named parse
+  error, never a skipped condition. Units are the platform's own and are never converted:
+  metres, degrees, and the platform's [lat, lon, alt] order.
+
+  {
+    "conditions": [
+      {"id": "raid-leader-reaches-airfield", "kind": "proximity",
+       "entities": ["RedUAV_N_01", "BlueBase_Airfield"], "within_m": 3000},
+
+      {"id": "leader-crosses-corridor", "kind": "area", "entity": "RedUAV_N_01",
+       "test": "inside",           inside (the default) or outside
+       "region": {"shape": "polygon", "vertices": [[-23.47, -68.29], ...]}},
+
+      {"id": "command-centre-destroyed", "kind": "terminal_state",
+       "expect": "not_met",        the one key added to EXT-08's shape - see below
+       "entity": "BlueBase_CommandCenter", "removal_reason": "destroyed"}
+    ]
+  }
+
+  An unknown key and a key written twice are REFUSED by name, which is the OPPOSITE of the
+  capture format's rule (s13) and deliberately so: a producer adds keys and an old reader
+  must survive them, whereas a person writes this file and "within_meters" for
+  "within_m" would be a threshold that silently did not apply. A key beginning with '_'
+  is a comment.
+
+  "scenario_unload" is refused as a removal_reason: it is what the engine's stop path
+  writes for every surviving entity at teardown - measured, 267 of 385 removals across the
+  committed sweep, all at sim_time_s 0 - so a condition on it is met in every run for
+  every entity, at a time that points at the wrong end of the run.
+
+  "expect" is the one key this project adds. The vendored schema is a referee: it reports
+  whether a condition was satisfied and says nothing about whether that is welcome. Two of
+  the brief's three questions survive being read as "this should hold"; the third does
+  not - "did anything reach a terminal state it SHOULD NOT have" is an assertion of
+  non-occurrence. The verdict still records the FACT (met / not met); whether it was the
+  asserted one is separate (satisfied / violated / undetermined). Only a VIOLATION fails a
+  run. See docs/m6-oq5.md for how OQ-5 was decided, by trying rather than by reading.
+
+  A verdict is THREE-valued. An assertion never reads absence as evidence (CR-AS-4): a
+  not-met verdict is reported only where it can be BOUNDED, and otherwise reports
+  indeterminate with the reason. `indeterminate` is a VERDICT state and never a fifth RUN
+  outcome - the brief fixes the run vocabulary at four. Judge a stored campaign again, or
+  against new conditions, with n8ro-judge.
+
+the four ugly realities, injected on purpose (CR-EX-6, and step 8 of the brief):
+  --inject-fault <name>    inject one of the four faults the brief says a hundred-run
+                           campaign will meet. The campaign must survive it, record what
+                           happened, and continue to the next run.
+  --inject-at-run <n>      inject it into that run only. Default: every run.
+
+    host_start_failure     the host executable is a path that does not exist
+    scenario_load_refusal  a scenario name the catalogue does not contain. The host does
+                           not fail - it sits idle, which is the dangerous shape - and the
+                           wait for `loaded` is what times out
+    run_never_ends         a stop predicate the run cannot reach, against a short timeout.
+                           Produces `timeout`, its OWN outcome, never `fail`
+    host_dies_mid_run      the host is terminated THROUGH THE HANDLE THIS RUN CREATED,
+                           never by image name. Produces `infrastructure_error`, told
+                           apart from a timeout by asking the process itself
+
+  The injected fault is written into that run's run.json and into the campaign summary, so
+  a campaign run under injection can never be mistaken for a clean one.
+
 the end of a run:
   --frames <n>             stop predicate: a run is finished when the engine's frame
                            number, as published on sim/engine/state, reaches n.
@@ -172,9 +244,11 @@ other:
   --help                   this text.
 
 exit codes:
-  0  every run completed - the stop predicate was satisfied and teardown was clean
-  1  at least one run did not complete (timeout or infrastructure error), or the
-     campaign stopped at its disk ceiling
+  0  every run passed - or, with no --conditions declared, every run completed
+  1  at least one run failed, timed out or hit an infrastructure error, or the campaign
+     stopped at its disk ceiling. A campaign that meets an injected fault and carries on
+     exits 1: it did exactly what CR-EX-6 asks, and it still holds a run that is not a
+     pass. The four counts in the summary are what to read, not this number alone
   2  usage or configuration error; no run was attempted
   3  the determinism self-test did not pass, and NO campaign run was attempted. Step 4 of
      the brief: "Do not build further until it passes." Whether the gate FAILED or could

@@ -1,0 +1,154 @@
+{
+  "_comment": [
+    "EXT-17 committed example conditions for the Atacama Air Defense scenario (CR-AS-3,",
+    "CR-PAR-2, CR-DOC-2).",
+    "",
+    "The shape is EXT-08's, adopted verbatim at M6 - OQ-5, decided by writing these seven",
+    "conditions in the vendored shape and evaluating them against the seven committed",
+    "captures rather than by reading the schema. docs/m6-oq5.md carries the measurement.",
+    "",
+    "THREE RULES DIFFER FROM THE VENDORED DOCUMENT, each for a reason this project measured:",
+    "  1. An unknown key and a key written twice are REFUSED by name, not ignored. The",
+    "     capture format's ignore-unknown rule (s13) is right for a capture and wrong for a",
+    "     file a person writes - F-23 measured a campaign file silently accepting \"value\"",
+    "     for \"values\". A key beginning with '_' is a comment, which is what this is.",
+    "  2. A verdict is THREE-valued: met, not_met, indeterminate. The vendored met:false at",
+    "     end of run is a conclusion drawn from absence, which CR-AS-4 forbids.",
+    "  3. \"scenario_unload\" is refused as a removal_reason. It is the removal the engine's",
+    "     stop path writes for every surviving entity at teardown - 267 of 385 removals",
+    "     across the committed sweep, all at sim_time_s 0 - so a condition on it is met in",
+    "     every run for every entity.",
+    "",
+    "ONE KEY IS ADDED: \"expect\", taking \"met\" (the default) or \"not_met\". The vendored",
+    "schema is a referee - it reports whether a condition was satisfied and says nothing about",
+    "whether that is good news. EXT-17 must map those facts onto CR-EX-5's four run outcomes,",
+    "and two of the brief's three questions survive that reading while the third does not:",
+    "\"did anything reach a terminal state it SHOULD NOT have\" is an assertion of",
+    "non-occurrence, and the vendored shape can express one only for the area kind through",
+    "test: inside|outside. Without expect, command-centre-destroyed asserts that the command",
+    "centre SHOULD be destroyed - the inverse of the question. The verdict still records the",
+    "fact in the vendored schema's own terms; expect is a separate field and a separate",
+    "question, so EXT-08's verdicts and EXT-17's stay directly comparable.",
+    "",
+    "Units are the platform's own and are never converted: metres for distances, degrees for",
+    "angles, and geodetic positions in the platform's [lat, lon, alt] order (format v1 s15).",
+    "Distances are straight-line on WGS-84 ECEF - see src/assert/Geodesy.h, which states the",
+    "constants so any verdict here is reproducible with a calculator (CR-AS-2)."
+  ],
+
+  "conditions": [
+    {
+      "_comment": [
+        "THE SWEEP FLIP (CR-PAR-2's third criterion). Measured across the committed sweep:",
+        "closest approach falls 8693.17 m at 11 m/s to 2934.45 m at 165 and 220, so this",
+        "condition is NOT MET at 11/27.5/55/82.5/110 and MET at 165/220. Every not-met",
+        "verdict is sound rather than indeterminate - the tightest margin, 711.87 m at",
+        "110 m/s, clears its 11.00 m continuity bound by a factor of 65."
+      ],
+      "id": "raid-leader-reaches-airfield",
+      "kind": "proximity",
+      "entities": ["RedUAV_N_01", "BlueBase_Airfield"],
+      "within_m": 3000
+    },
+
+    {
+      "_comment": [
+        "A SECOND FLIP, at a different value, and of a different kind - the corridor is",
+        "entered from 110 m/s upward where the proximity threshold is only reached from 165.",
+        "Two conditions flipping at two thresholds is a trend rather than one binary."
+      ],
+      "id": "raid-leader-crosses-corridor",
+      "kind": "area",
+      "entity": "RedUAV_N_01",
+      "test": "inside",
+      "region": {
+        "shape": "polygon",
+        "vertices": [
+          [-23.47, -68.29],
+          [-23.47, -68.23],
+          [-23.52, -68.23],
+          [-23.52, -68.29]
+        ]
+      }
+    },
+
+    {
+      "_comment": [
+        "The circle form of the area kind, exercised distinctly. The vendored example centres",
+        "its circle on the airfield's own position with the same 3000 m radius, which makes it",
+        "arithmetically identical to the proximity condition above - the airfield never moves,",
+        "so the two agree in all seven runs to the centimetre. A wider ring around the ammo",
+        "depot tests the same kind and answers a different question."
+      ],
+      "id": "raid-leader-enters-depot-ring",
+      "kind": "area",
+      "entity": "RedUAV_N_01",
+      "test": "inside",
+      "region": {
+        "shape": "circle",
+        "centre": [-23.50351, -68.23922, 4],
+        "radius_m": 5000
+      }
+    },
+
+    {
+      "_comment": [
+        "The terminal_state kind in its removal_reason form, and a NEVER-MET case - asserted",
+        "that way with expect: not_met, because the raid leader surviving is the outcome this",
+        "condition is checking for. The verdict is a sound not_met rather than indeterminate,",
+        "because every occupancy of it is accounted for - format v1 s8.1 makes a sample at the",
+        "segment's last instant positive evidence of non-removal."
+      ],
+      "id": "raid-leader-destroyed",
+      "kind": "terminal_state",
+      "expect": "not_met",
+      "entity": "RedUAV_N_01",
+      "removal_reason": "destroyed"
+    },
+
+    {
+      "_comment": [
+        "The brief's own dangerous question - 'did anything reach a terminal state it SHOULD",
+        "NOT have' - asked of the asset it matters most for, and the condition that could not",
+        "be written at all without expect. Never met in any committed run, and soundly so."
+      ],
+      "id": "command-centre-destroyed",
+      "kind": "terminal_state",
+      "expect": "not_met",
+      "entity": "BlueBase_CommandCenter",
+      "removal_reason": "destroyed"
+    },
+
+    {
+      "_comment": [
+        "The field+equals form, MET in every run at sim_time_s 0.05. A met verdict is always",
+        "sound: it is computed from a record that is present."
+      ],
+      "id": "airfield-operational",
+      "kind": "terminal_state",
+      "entity": "BlueBase_Airfield",
+      "field": "phase",
+      "equals": "operational"
+    },
+
+    {
+      "_comment": [
+        "CR-AS-4's INDETERMINATE, demonstrated rather than described - and it is a genuine",
+        "case rather than a contrived one. RedUAV_N_01 carries health 'nominal' in all 1196",
+        "of its samples in every committed run. A naive referee would report this NOT MET,",
+        "confidently, from a file in which the frame it happened in may simply be missing.",
+        "Nothing in the capture format bounds how fast a string field may change, so the",
+        "value could have been taken and left inside one 0.1 s sampling gap. This form is",
+        "never decidable in the negative, and the honest answer is that the capture cannot say.",
+        "Note what expect does NOT do here: asserting not_met does not make an indeterminate",
+        "verdict satisfied. An undetermined outcome is neither, which is CR-AS-4's whole point."
+      ],
+      "id": "raid-leader-degraded",
+      "kind": "terminal_state",
+      "expect": "not_met",
+      "entity": "RedUAV_N_01",
+      "field": "health",
+      "equals": "degraded"
+    }
+  ]
+}
