@@ -1,0 +1,344 @@
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] campaign     run timeout: 300000 ms (backstop; never the definition of the end)
+[campaign] run          === run 000 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 34472 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 30452 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 30452 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 34472 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] run          === run 001 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 32904 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\001
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37748 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\001\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37748 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 32904 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\001\run.json (completed)
+[campaign] run          run 001 -> completed
+[campaign] run          === run 002 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 29900 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\002
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37064 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\002\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37064 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 29900 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\002\run.json (completed)
+[campaign] run          run 002 -> completed
+[campaign] run          === run 003 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 37020 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\003
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 31328 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\003\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 31328 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 37020 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\003\run.json (completed)
+[campaign] run          run 003 -> completed
+[campaign] run          === run 004 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 34956 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\004
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 27360 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\004\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 27360 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 34956 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\004\run.json (completed)
+[campaign] run          run 004 -> completed
+[campaign] run          === run 005 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 36412 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\005
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 22740 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\005\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 22740 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 36412 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\005\run.json (completed)
+[campaign] run          run 005 -> completed
+[campaign] run          === run 006 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 11472 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\006
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 32704 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\006\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 32704 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 11472 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\006\run.json (completed)
+[campaign] run          run 006 -> completed
+[campaign] run          === run 007 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 39044 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\007
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 38544 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\007\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 38544 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 39044 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\007\run.json (completed)
+[campaign] run          run 007 -> completed
+[campaign] run          === run 008 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 23756 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\008
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 36584 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\008\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 36584 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 23756 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\008\run.json (completed)
+[campaign] run          run 008 -> completed
+[campaign] run          === run 009 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 8784 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\009
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 15012 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\009\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 15012 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 8784 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\009\run.json (completed)
+[campaign] run          run 009 -> completed
+[campaign] run          === run 010 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 35104 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\010
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 30404 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\010\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 30404 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 35104 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\010\run.json (completed)
+[campaign] run          run 010 -> completed
+[campaign] run          === run 011 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 39112 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\011
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 7296 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\011\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 7296 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 39112 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\011\run.json (completed)
+[campaign] run          run 011 -> completed
+[campaign] run          === run 012 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 36768 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\012
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 11032 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\012\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 11032 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 36768 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\012\run.json (completed)
+[campaign] run          run 012 -> completed
+[campaign] run          === run 013 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 37976 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\013
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37784 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\013\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37784 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 37976 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\013\run.json (completed)
+[campaign] run          run 013 -> completed
+[campaign] run          === run 014 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 37024 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\014
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 28364 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\014\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 28364 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 37024 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\014\run.json (completed)
+[campaign] run          run 014 -> completed
+[campaign] run          === run 015 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 19304 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\015
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37000 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\015\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37000 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 19304 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\015\run.json (completed)
+[campaign] run          run 015 -> completed
+[campaign] run          === run 016 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 29328 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\016
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 39292 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\016\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 39292 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 29328 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\016\run.json (completed)
+[campaign] run          run 016 -> completed
+[campaign] run          === run 017 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 19980 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\017
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 39500 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\017\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 39500 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 19980 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\017\run.json (completed)
+[campaign] run          run 017 -> completed
+[campaign] run          === run 018 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 10972 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\018
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 34368 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\018\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 34368 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 10972 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\018\run.json (completed)
+[campaign] run          run 018 -> completed
+[campaign] run          === run 019 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 17648 -> C:\Projects\EXT-17\campaigns\m2-oq1\runs\019
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 35884 cwd C:\Projects\EXT-17\campaigns\m2-oq1\runs\019\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 35884 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 17648 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-oq1\runs\019\run.json (completed)
+[campaign] run          run 019 -> completed
+[campaign] campaign     summary -> C:\Projects\EXT-17\campaigns\m2-oq1\campaign.json
+[campaign] campaign     20 of 20 runs completed

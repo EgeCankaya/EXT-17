@@ -29,6 +29,8 @@
 #include "../../src/run/StopPredicate.h"
 
 #include <algorithm>
+#include <filesystem>
+#include <system_error>
 #include <array>
 #include <optional>
 #include <cstdio>
@@ -51,6 +53,7 @@ void printHelp() {
 "       n8ro-campaign repeat    --out-dir <dir> --count <n> [options]\n"
 "       n8ro-campaign repeat    --out-dir <dir> --campaign <file> [options]\n"
 "       n8ro-campaign self-test --out-dir <dir> [options]\n"
+"       n8ro-campaign report    --out-dir <dir> [--campaign <file>]\n"
 "       n8ro-campaign --help\n"
 "\n"
 "commands:\n"
@@ -61,6 +64,15 @@ void printHelp() {
 "                           summary carrying the self-test's result. Without\n"
 "                           --campaign that is --count runs of one configuration;\n"
 "                           with it, one run per declared parameter value.\n"
+"  report                   re-render a STORED campaign's report from the run records it\n"
+"                           already wrote. Starts nothing, reads no capture, and needs no\n"
+"                           N8RO install - a reviewer re-reading last week's campaign has no\n"
+"                           host and needs none, and a twenty-run campaign takes about 25\n"
+"                           minutes to produce. Pass --campaign to order the sweep tables:\n"
+"                           the axis declares that order and it is not re-derivable from the\n"
+"                           run records. It prints through the SAME printer the live campaign\n"
+"                           uses, so a re-rendered report cannot disagree with the one the\n"
+"                           campaign printed.\n"
 "  self-test                run the determinism self-test alone and stop. The campaign does\n"
 "                           NOT get its gate from this command - repeat runs it itself, so\n"
 "                           that it is never something anyone has to remember (CR-DET-1).\n"
@@ -534,6 +546,51 @@ std::vector<const ext17::run::RunRecord*> sweptRecords(
 //   - A run that did not complete gets no bar at all. Its result column is whatever its capture
 //     happened to contain, which is not a point on the trend, and drawing it as one would put a
 //     failure on the same line as a measurement.
+// CR-REP-3, in one place: the four outcomes, separately, summing to the runs attempted, with no
+// aggregate that collapses two of them. Shared by the live campaign and by `report`, so a
+// re-rendered report cannot disagree with the one the campaign printed.
+//
+// `completed` is a FIFTH KEY and not a fifth outcome - it is what a run is called when no
+// condition file was declared and nothing judged it - and it is printed only when non-zero, so a
+// judged campaign's closing lines carry [B]'s four and nothing else.
+struct OutcomeCounts {
+    int pass = 0, fail = 0, timeout = 0, infrastructureError = 0, completedUnjudged = 0;
+    long long indeterminateVerdicts = 0;
+};
+
+OutcomeCounts printOutcomeSummary(const std::vector<ext17::run::RunRecord>& records) {
+    OutcomeCounts c;
+    for (const auto& r : records) {
+        switch (r.outcome) {
+            case ext17::run::RunOutcome::Pass:                ++c.pass; break;
+            case ext17::run::RunOutcome::Fail:                ++c.fail; break;
+            case ext17::run::RunOutcome::Completed:           ++c.completedUnjudged; break;
+            case ext17::run::RunOutcome::Timeout:             ++c.timeout; break;
+            case ext17::run::RunOutcome::InfrastructureError: ++c.infrastructureError; break;
+        }
+        c.indeterminateVerdicts += r.verdictsIndeterminate;
+    }
+    line("campaign", std::to_string(records.size()) + " run(s) attempted");
+    line("campaign", "  pass                  " + std::to_string(c.pass));
+    line("campaign", "  fail                  " + std::to_string(c.fail));
+    line("campaign", "  timeout               " + std::to_string(c.timeout));
+    line("campaign", "  infrastructure_error  " + std::to_string(c.infrastructureError));
+    if (c.completedUnjudged > 0) {
+        line("campaign", "  completed (unjudged)  " + std::to_string(c.completedUnjudged)
+                             + "  - no condition file was declared, so nothing judged these");
+    }
+    line("campaign", "  the four sum to "
+                         + std::to_string(c.pass + c.fail + c.timeout + c.infrastructureError
+                                          + c.completedUnjudged)
+                         + ", and no aggregate above merges two of them");
+    if (c.indeterminateVerdicts > 0) {
+        line("campaign", "  " + std::to_string(c.indeterminateVerdicts)
+                             + " INDETERMINATE verdict(s) across the campaign - a verdict state, "
+                               "never a fifth run outcome. See each run's verdicts.jsonl.");
+    }
+    return c;
+}
+
 // CR-PAR-2's third criterion, and the half M5 recorded as unmet: *"at least one condition in
 // the committed example campaign actually changes outcome"*. A result changing across the sweep
 // was demonstrable at M5; a VERDICT changing was not, because no condition existed.
@@ -649,8 +706,22 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
     //
     // This is not hypothetical: R14 measured segment 0 classifying `frozen` on a parameterised
     // run, and the committed sweep hit it twice in seven.
-    const auto measured = [](const ext17::run::RunRecord* r) {
-        return r->outcome == ext17::run::RunOutcome::Completed && r->captureRunSegmentFound;
+    // "The run produced a measurement", which is NOT "the run passed". A run that failed its
+    // conditions still measured its capture, and excluding it would drop real points off the
+    // trend for a reason that has nothing to do with the trend.
+    //
+    // **This is F-24 again, and it broke the same table a second time.** M5 fixed a run with no
+    // running segment being reported as 0; M6 renamed the outcome a completed run gets - it is
+    // now `pass` or `fail` - and this predicate still asked for `Completed`, so after M6 EVERY
+    // row printed `-` and no bar. Found by reading the twenty-run campaign's output, exactly as
+    // F-24 was. Recorded as F-35.
+    const auto ran = [](const ext17::run::RunRecord* r) {
+        return r->outcome == ext17::run::RunOutcome::Pass ||
+               r->outcome == ext17::run::RunOutcome::Fail ||
+               r->outcome == ext17::run::RunOutcome::Completed;
+    };
+    const auto measured = [&ran](const ext17::run::RunRecord* r) {
+        return ran(r) && r->captureRunSegmentFound;
     };
 
     long long lo = 0, hi = 0;
@@ -658,7 +729,7 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
     int unmeasured = 0;
     for (const auto* r : ordered) {
         if (!measured(r)) {
-            if (r->outcome == ext17::run::RunOutcome::Completed) { ++unmeasured; }
+            if (ran(r)) { ++unmeasured; }
             continue;
         }
         if (!any) { lo = hi = r->captureEntityAdds; any = true; }
@@ -692,7 +763,7 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
                 (r->captureEntityAdds - lo) * 40 / (hi - lo));
             bar.assign(static_cast<std::size_t>(cells < 0 ? 0 : cells), '#');
             if (bar.empty()) { bar = "."; }   // the minimum is a point on the trend, not a gap
-        } else if (r->outcome != ext17::run::RunOutcome::Completed) {
+        } else if (!ran(r)) {
             bar = "(no bar - this run did not complete)";
         } else if (!r->captureRunSegmentFound) {
             bar = "(no bar - no RUNNING segment, so nothing here was measured)";
@@ -717,7 +788,7 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
 
     line("sweep", "");
     if (unmeasured > 0) {
-        line("sweep", "  " + std::to_string(unmeasured) + " completed run(s) show `-` rather "
+        line("sweep", "  " + std::to_string(unmeasured) + " run(s) that executed show `-` rather "
                       "than a number: their capture has no RUNNING segment, so nothing was "
                       "measured in them. That is NOT a result of zero, they are excluded from "
                       "the bar's scale as well as from the bar, and the sweep is that many "
@@ -972,6 +1043,111 @@ void writeCampaignSummary(const std::string& path,
 
 } // namespace
 
+
+// --- `report`: re-render a stored campaign's report, without running anything -----------------
+//
+// CR-REP-1 asks that the report be both machine-readable and legible to a person, and [B]'s whole
+// argument for keeping the recording separate from the assertions is that a stored campaign
+// should be **cheap to go back to**. Re-reading its report should not require re-running it, and
+// a twenty-run campaign takes about twenty-five minutes.
+//
+// It reads each run's own `run.json` and prints through **the same printer the live campaign
+// uses** - one renderer, two entry points, the same discipline that makes `n8ro-judge`'s verdicts
+// byte-identical to the live run's. A second printer would eventually disagree with the first.
+//
+// Nothing here starts a host or reads a capture. It reads the records the campaign already wrote.
+bool loadRunRecord(const std::string& path, ext17::run::RunRecord& out) {
+    std::FILE* f = std::fopen(path.c_str(), "rb");
+    if (!f) { return false; }
+    std::string text;
+    char buffer[8192];
+    std::size_t n = 0;
+    while ((n = std::fread(buffer, 1, sizeof buffer, f)) > 0) { text.append(buffer, n); }
+    std::fclose(f);
+
+    ext17::json::Value doc;
+    ext17::json::ParseError perr;
+    if (!ext17::json::parse(text, doc, perr) || !doc.isObject()) { return false; }
+
+    out.runId = doc.stringOr("run_id");
+    const std::string outcome = doc.stringOr("outcome");
+    if (outcome == "pass")                      { out.outcome = ext17::run::RunOutcome::Pass; }
+    else if (outcome == "fail")                 { out.outcome = ext17::run::RunOutcome::Fail; }
+    else if (outcome == "completed")            { out.outcome = ext17::run::RunOutcome::Completed; }
+    else if (outcome == "timeout")              { out.outcome = ext17::run::RunOutcome::Timeout; }
+    else { out.outcome = ext17::run::RunOutcome::InfrastructureError; }
+
+    if (const ext17::json::Value* p = doc.find("parameter")) {
+        if (p->isObject()) {
+            out.parameterName = p->stringOr("axis");
+            out.parameterValueText = p->stringOr("value");
+        }
+    }
+    if (const ext17::json::Value* c = doc.find("capture")) {
+        if (c->isObject()) {
+            // The key names are run.json's own, not this loader's guesses at them. Reading
+            // `entity_keys` where the record writes `running_segment_entity_keys` is how a
+            // re-rendered report comes to say `-` for every run - which it did, once.
+            out.captureSamples = c->integerOr("samples", 0);
+            out.captureEntityKeys = c->integerOr("running_segment_entity_keys", 0);
+            out.captureEntityAdds = c->integerOr("running_segment_entity_adds", 0);
+            out.captureRunSegmentFound = c->boolOr("running_segment_found", false);
+            out.capturePath = c->stringOr("path");
+            out.captureConformant = c->boolOr("conformant", false);
+            out.captureCoversWholeRun = c->boolOr("covers_whole_run", false);
+        }
+    }
+    out.injectedFault = doc.stringOr("injected_fault");
+    if (const ext17::json::Value* j = doc.find("judgement")) {
+        if (j->isObject()) {
+            out.judged = true;
+            out.conditionsPath = j->stringOr("conditions_file");
+            out.conditionsDeclared = j->integerOr("conditions_declared", 0);
+            out.judgedThisRun = j->boolOr("judged_this_run", false);
+            out.judgeable = j->boolOr("judgeable", false);
+            if (const ext17::json::Value* v = j->find("verdicts")) {
+                out.verdictsMet = v->integerOr("met", 0);
+                out.verdictsNotMet = v->integerOr("not_met", 0);
+                out.verdictsIndeterminate = v->integerOr("indeterminate", 0);
+            }
+            if (const ext17::json::Value* v = j->find("assertions")) {
+                out.verdictsSatisfied = v->integerOr("satisfied", 0);
+                out.verdictsViolated = v->integerOr("violated", 0);
+                out.verdictsUndetermined = v->integerOr("undetermined", 0);
+            }
+        }
+    }
+    return true;
+}
+
+// The per-condition verdicts come from the run's own verdicts.jsonl rather than from run.json,
+// because that file is the one `n8ro-judge --verify` compares byte for byte - so a report built
+// from it is a report built from the artifact whose identity is checked.
+void loadVerdicts(const std::string& path, ext17::run::RunRecord& out) {
+    std::FILE* f = std::fopen(path.c_str(), "rb");
+    if (!f) { return; }
+    std::string text;
+    char buffer[8192];
+    std::size_t n = 0;
+    while ((n = std::fread(buffer, 1, sizeof buffer, f)) > 0) { text.append(buffer, n); }
+    std::fclose(f);
+
+    std::size_t start = 0;
+    while (start < text.size()) {
+        std::size_t end = text.find('\n', start);
+        if (end == std::string::npos) { end = text.size(); }
+        const std::string line = text.substr(start, end - start);
+        start = end + 1;
+        if (line.empty()) { continue; }
+        ext17::json::Value v;
+        ext17::json::ParseError perr;
+        if (!ext17::json::parse(line, v, perr) || !v.isObject()) { continue; }
+        out.verdictConditionIds.push_back(v.stringOr("condition_id"));
+        out.verdictStates.push_back(v.stringOr("state"));
+        out.verdictOutcomes.push_back(v.stringOr("outcome"));
+    }
+}
+
 int main(int argc, char** argv) {
     Args a;
     std::string error;
@@ -984,13 +1160,75 @@ int main(int argc, char** argv) {
         printHelp();
         return 0;
     }
-    if (a.command != "run-once" && a.command != "repeat") {
-        std::fprintf(stderr, "n8ro-campaign: expected a command, run-once or repeat\n");
+    if (a.command != "run-once" && a.command != "repeat" && a.command != "self-test" &&
+        a.command != "report") {
+        std::fprintf(stderr, "n8ro-campaign: expected a command - run-once, repeat, self-test "
+                             "or report\n");
         return 2;
     }
     if (a.outDir.empty()) {
         std::fprintf(stderr, "n8ro-campaign: --out-dir is required\n");
         return 2;
+    }
+
+    // `report` reads a stored campaign and prints. It starts nothing, so it skips every
+    // precondition below — the recorder, the disk projection, the self-test — and it must,
+    // because a reviewer re-reading last week's campaign has no host and needs none.
+    if (a.command == "report") {
+        // The axis is read here rather than below, because everything below this block is about
+        // preparing to RUN something and `report` runs nothing. Without it the sweep tables
+        // cannot be printed at all: the axis declares the order the sweep is presented in, and
+        // that order is a property of the campaign file rather than of the run records.
+        if (!a.campaignFile.empty()) {
+            std::string axisError;
+            if (!ext17::param::readCampaignFile(a.campaignFile, a.axis, axisError)) {
+                std::fprintf(stderr, "n8ro-campaign: %s\n", axisError.c_str());
+                return 2;
+            }
+            a.hasAxis = true;
+        }
+        namespace fs = std::filesystem;
+        std::error_code ec;
+        const fs::path runsDir = fs::path(a.outDir) / "runs";
+        if (!fs::is_directory(runsDir, ec)) {
+            std::fprintf(stderr, "n8ro-campaign: no runs directory under %s\n", a.outDir.c_str());
+            return 2;
+        }
+        std::vector<fs::path> dirs;
+        for (const fs::directory_entry& e : fs::directory_iterator(runsDir, ec)) {
+            if (e.is_directory(ec)) { dirs.push_back(e.path()); }
+        }
+        std::sort(dirs.begin(), dirs.end());
+
+        std::vector<ext17::run::RunRecord> stored;
+        for (const fs::path& d : dirs) {
+            ext17::run::RunRecord rec;
+            if (!loadRunRecord((d / "run.json").string(), rec)) {
+                std::fprintf(stderr, "n8ro-campaign: could not read %s\n",
+                             (d / "run.json").string().c_str());
+                return 2;
+            }
+            loadVerdicts((d / "verdicts.jsonl").string(), rec);
+            stored.push_back(std::move(rec));
+        }
+        if (stored.empty()) {
+            std::fprintf(stderr, "n8ro-campaign: no run records under %s\n",
+                         runsDir.string().c_str());
+            return 2;
+        }
+        line("report", "re-rendered from " + std::to_string(stored.size())
+                           + " stored run record(s) in " + a.outDir);
+        line("report", "nothing was run, no host was started and no capture was read - this is "
+                       "the report the campaign already wrote, printed again by the same printer");
+        if (a.hasAxis) {
+            printSweep(stored, a.axis);
+        } else {
+            line("report", "no --campaign file was given, so the sweep table is not printed: the "
+                           "axis and the order it declares live in that file and are not "
+                           "re-derivable from the run records alone.");
+        }
+        printOutcomeSummary(stored);
+        return 0;
     }
     if (a.run.attachRecorder && a.run.recorderExe.empty()) {
         std::fprintf(stderr, "n8ro-campaign: --recorder <path> is required unless --no-recorder\n");
@@ -1295,40 +1533,10 @@ int main(int argc, char** argv) {
         if (a.hasAxis) { printSweep(records, a.axis); }
     }
 
-    // CR-REP-3: the four outcomes, separately, on the last line a person reads. `completed` is a
-    // fifth key and not a fifth outcome - it is what a run is called when no condition file was
-    // declared and nothing judged it - and it is printed only when it is non-zero, so a judged
-    // campaign's closing line carries [B]'s four and nothing else.
-    int passed = 0, failed = 0, completed = 0, timedOut = 0, infra = 0;
-    long long indeterminateVerdicts = 0;
-    for (const auto& r : records) {
-        switch (r.outcome) {
-            case ext17::run::RunOutcome::Pass:                ++passed;    break;
-            case ext17::run::RunOutcome::Fail:                ++failed;    break;
-            case ext17::run::RunOutcome::Completed:           ++completed; break;
-            case ext17::run::RunOutcome::Timeout:             ++timedOut;  break;
-            case ext17::run::RunOutcome::InfrastructureError: ++infra;     break;
-        }
-        indeterminateVerdicts += r.verdictsIndeterminate;
-    }
+    const OutcomeCounts counts = printOutcomeSummary(records);
+    const int passed = counts.pass;
+    const int completed = counts.completedUnjudged;
     const int attempted = static_cast<int>(records.size());
-    line("campaign", std::to_string(attempted) + " run(s) attempted");
-    line("campaign", "  pass                  " + std::to_string(passed));
-    line("campaign", "  fail                  " + std::to_string(failed));
-    line("campaign", "  timeout               " + std::to_string(timedOut));
-    line("campaign", "  infrastructure_error  " + std::to_string(infra));
-    if (completed > 0) {
-        line("campaign", "  completed (unjudged)  " + std::to_string(completed)
-                             + "  - no condition file was declared, so nothing judged these");
-    }
-    line("campaign", "  the four sum to " + std::to_string(passed + failed + timedOut + infra
-                                                           + completed)
-                         + ", and no aggregate above merges two of them");
-    if (indeterminateVerdicts > 0) {
-        line("campaign", "  " + std::to_string(indeterminateVerdicts)
-                             + " INDETERMINATE verdict(s) across the campaign - a verdict state, "
-                               "never a fifth run outcome. See each run's verdicts.jsonl.");
-    }
 
     ext17::log::closeMirror();
     // A campaign stopped at its ceiling did not do what it was asked to do, even if every run it

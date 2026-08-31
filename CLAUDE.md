@@ -1,7 +1,9 @@
 # CLAUDE.md — EXT-17 Headless Campaign Runner
 
-> **Provisional.** Written at repo creation, before the PRD exists, to carry the two things
-> that would be expensive to get wrong first. Rewrite it properly once `docs/prd.md` lands.
+> **Current to M6.** `docs/prd.md` (rev 6) is the binding contract; this file carries what is
+> expensive to get wrong and cheap to forget. Every section below states something that was
+> measured rather than something that was decided in a meeting, and where a number appears it is
+> this project's own.
 
 ## What this repo is
 
@@ -22,7 +24,11 @@ artifact**, and all of it is vendored in `contract/`:
 
 - `contract/capture-format-v1.md` — the capture format, **frozen** at EXT-08's M7
 - `contract/capture-*.n8rocap.jsonl` — a real capture, as a test fixture
-- `contract/condition-file-schema.md` — the referee's condition shape, reference only
+- `contract/condition-file-schema.md` — the referee's condition shape, reference only. **It is a
+  verbatim EXCERPT of EXT-08's README that stops one heading early** (F-19, F-32): the sections
+  saying how a distance is computed and how a boundary is decided did not cross, and both are
+  needed to make a verdict reproducible. Raised as E-5; EXT-17 decides the arithmetic itself in
+  `src/assert/Geodesy.h` and states the constants
 - `contract/PROVENANCE.md` — **read this first.** What crossed, what did not, and the seven
   measured findings from EXT-08 that bind what EXT-17 should build
 
@@ -133,6 +139,74 @@ honoured exactly up to **400 m/s** and clamped above it at 20 m/s²; at 900 m/s 
 of itself off parameter. Staying inside the range is the campaign author's job, on purpose: the
 ceiling belongs to a scenario's entity profiles, not to the campaign runner, and hard-coding 400
 would be this project asserting something about scenarios it has never loaded (R13).
+
+## Conditions and verdicts, since M6 — and the one key that had to be added
+
+**OQ-5 is decided: adopt the vendored declaration shape, supersede three rules around it, add
+exactly one key.** Decided by writing M6's conditions in the shape and evaluating them against
+the seven committed captures — `docs/m6-oq5.md` — rather than by reading the schema. A file
+written for EXT-08's referee parses here unmodified, and `tests/assertion_test.cpp` keeps that
+true against `contract/example.conditions.json` itself.
+
+`src/assert/` is the fourth component that **links nothing**, and `tools/n8ro-judge/build.cmd`
+proves it with two searches the others do not have: one that fails the build if the assertion
+path ever names a process, a bus or the control path, and one for a global sort. That is
+CR-CAP-1's *"no host started and no bus subscription made"* turned from a promise into a
+property. **Both searches once fired on this project's own prose** — the tokens are now call- and
+include-shaped, and the comments that tripped them say why they name no forbidden spelling.
+
+**Six things that are already right here and are easy to break:**
+
+1. **`expect` is the only key added, and it exists because [B]'s third question needs it.** The
+   vendored schema is a *referee*: it reports whether a condition was satisfied and says nothing
+   about whether that is welcome. Two of [B]'s three questions survive being read as "this should
+   hold"; *"did anything reach a terminal state it **should not** have"* does not, and the
+   vendored shape expresses non-occurrence only for the `area` kind. **The verdict still records
+   the fact in the vendored schema's own terms** (`met` / `not_met`) and the expectation is a
+   separate field (`satisfied` / `violated` / `undetermined`), so EXT-08's verdicts and a
+   re-judgement here stay comparable. **Do not fold them into one state.**
+2. **A condition file inverts `contract/`'s unknown-key rule, for the second time and the same
+   reason** — a person writes it. Unknown key and duplicate key are refused by name; `_` prefixes
+   a comment. **And `scenario_unload` is refused as a `removal_reason`**: measured, 267 of 385
+   removals across the sweep are the teardown, all at `sim_time_s` 0.
+3. **CR-AS-4 is classified per FORM, not per kind**, which is finer than the requirement asks.
+   `terminal_state` + `removal_reason` is soundly decidable in the negative by **format §8.1's
+   normative invariant** — a sample carrying `(E, k)` is positive evidence of non-removal, and a
+   gap does not weaken it because a re-creation carries a *higher* occupancy. That is what makes
+   [B]'s own dangerous example answerable rather than permanently indeterminate.
+   `field` + `equals` is **never** decidable in the negative. Do not collapse the four rows.
+4. **A not-met geometric verdict is a bounded conclusion, and the bound is on the verdict.**
+   `(v_a + v_b)·Δt + ½·20·Δt²`. Every such verdict carries the margin, the bound and the gap, so
+   the claim is checkable. The 20 m/s² is F-21's, measured on one entity profile — that is R16,
+   the weakest link, and it is stated rather than buried.
+5. **There is one evaluator and one input: a stored capture.** The live campaign judges the
+   capture it just wrote, through the same code `n8ro-judge` re-judges with. CR-CAP-1's identity
+   is therefore structural — **do not add a "live" evaluation path**. `verdictJson` lives in
+   `src/assert/Judge.cpp` and only there, and **the capture path is deliberately not a member of
+   a verdict**, because a live judgement and a re-judgement are handed different paths and
+   `--verify` compares byte for byte.
+6. **An injected or broken run is NOT judged.** `infrastructure_error` and `timeout` carry 0
+   verdicts against N declared conditions, with `judged_this_run: false` and a reason. Inventing
+   verdicts for a run the harness broke would make an infrastructure failure into a test result,
+   and the count mismatch is CR-AS-2's cut-short signal working as intended.
+
+**And the cost, measured and not hidden.** R14's mechanism has a fourth shape with a
+campaign-level blast radius: the pre-`start` update can race the roster burst so that the two
+self-test runs differ at `sim_time_s` 0, the gate correctly fails, and **zero runs are attempted**
+(exit 3). Met on the first execution of the twenty-run campaign — 23 samples, all `velocityNed`,
+all raiders the axis updates — and that execution is **kept** at `campaigns/m6-gate-refused/`
+rather than discarded in favour of the clean one. **The gate was not weakened and no retry was
+added**, and this was the first real opportunity to do either. What makes it visible is a ~1e-14
+platform artifact in a round-tripped `velocityNed` where the authored value is exactly 0 (F-30);
+our arithmetic is exact.
+
+**One defect worth remembering because of how it hid.** Until M6 every difference in an
+**array-valued** field printed two *empty* values — so `positionGeodetic`, `velocityNed` and
+`orientationYprRad` named the field and showed nothing. It shipped at M4 and survived three
+milestones, because reaching that code needs a real content-gate failure on a real pair and M4's
+failing-gate evidence came from forcing `--gate-basis bytes`, which reports a byte offset and
+never gets there. **A code path only a real failure reaches needs a test that manufactures the
+failure** (R17, F-31).
 
 ## Three things that will bite before anything else
 
@@ -259,6 +333,14 @@ unordered container or a locale-dependent number conversion. Those are CR-DET-2'
 are properties of the comparison's own sources, and each is *also* tested behaviourally in
 `tests/determinism_test.cpp` — the search catches a reintroduction on a path no test exercises,
 the test catches one the search does not know the spelling of. Neither replaces the other.
+
+`src/assert/` is the same rule a fourth time: the conditions, the geodesy the vendored digest did
+not carry (E-5), and the evaluator that turns a stored capture into verdicts. Its build script
+adds two searches the others do not have — one that fails the build if the assertion path ever
+names a process, a bus or the control path, and one for a global sort — because CR-CAP-1's *"no
+host started and no bus subscription made"* is worth making structural rather than promising.
+`n8ro-judge` is the re-judge front end and `--verify` byte-compares against the live run's
+verdicts.
 
 `src/param/` is the axis: its model and its campaign-file parser, linking nothing at all — not
 even the run path, because an axis is a declaration and turning one into bus traffic is

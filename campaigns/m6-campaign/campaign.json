@@ -1,0 +1,1566 @@
+{
+  "schema": "ext17-campaign-summary/4",
+  "milestone": "M6 - execution, the determinism gate, one parameterisation axis, and declared conditions. Runs are judged; `completed` now appears only when no condition file was declared",
+  "self_test": {
+    "schema": "ext17-self-test/1",
+    "requirement": "CR-DET-1",
+    "outcome": "passed",
+    "detail": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 85 sample(s) were present only in 000 and 0 only in 001, which is the publication schedule and not the simulation (§14).",
+    "parameter": {
+      "axis": "red_raid_speed_ms",
+      "value": "55",
+      "both_runs_at_this_value": true,
+      "establishes": "determinism AT THIS VALUE. Both self-test runs are copies of one configuration, so they are a valid pair (CR-PAR-1). A sweep's other values are not gated: this is one determinism claim at a named point, not one per run."
+    },
+    "gate": {
+      "basis": "content",
+      "basis_is_a_named_deviation": true,
+      "verdict": "pass",
+      "oq2_ruling": "unanswered",
+      "oq2_note": "Whether the gate is keyed on content or on bytes is out with the owner of the brief and has not been ruled on. A pass here does NOT discharge the brief's acceptance criterion 2 as written; it discharges it under the content reading (ADR-1)."
+    },
+    "runs": [
+      {
+        "run_id": "000",
+        "outcome": "completed",
+        "capture": "capture-atacama-air-defense-000.n8rocap.jsonl",
+        "capture_covers_whole_run": true,
+        "capture_conformant": true,
+        "samples": 50446
+      },
+      {
+        "run_id": "001",
+        "outcome": "completed",
+        "capture": "capture-atacama-air-defense-001.n8rocap.jsonl",
+        "capture_covers_whole_run": true,
+        "capture_conformant": true,
+        "samples": 50386
+      }
+    ],
+    "refused": null,
+    "content": {
+      "verdict": "pass",
+      "reason": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 85 sample(s) were present only in 000 and 0 only in 001, which is the publication schedule and not the simulation (§14).",
+      "compared_samples": 50361,
+      "agree": 50361,
+      "differ": 0,
+      "only_in_000": 85,
+      "only_in_001": 0,
+      "only_in_one_is_not_a_difference": true,
+      "coverage": 1.000000,
+      "coverage_floor": 0.990000,
+      "segments": [
+        {
+          "part": 0,
+          "segment": 0,
+          "clock_000": "running",
+          "clock_001": "running",
+          "compared": true,
+          "samples_000": 50446,
+          "samples_001": 50361,
+          "compared_samples": 50361,
+          "agree": 50361,
+          "differ": 0,
+          "only_in_000": 85,
+          "only_in_001": 0,
+          "duplicated_instants_000": 0,
+          "duplicated_instants_001": 0,
+          "duplicated_identical_000": 0,
+          "duplicated_identical_001": 0
+        },
+        {
+          "part": 0,
+          "segment": 1,
+          "clock_000": "indeterminate",
+          "clock_001": "indeterminate",
+          "compared": false,
+          "excluded_because": "clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs",
+          "samples_000": 0,
+          "samples_001": 25,
+          "compared_samples": 0,
+          "agree": 0,
+          "differ": 0,
+          "only_in_000": 0,
+          "only_in_001": 0,
+          "duplicated_instants_000": 0,
+          "duplicated_instants_001": 0,
+          "duplicated_identical_000": 0,
+          "duplicated_identical_001": 0
+        }
+      ],
+      "differences": []
+    },
+    "bytes": {
+      "identical": false,
+      "expected_to_fail": true,
+      "note": "Run and reported alongside the content comparison, never engineered to pass. The one exclusion is platform.model_path, which the format names as the single host-dependent field.",
+      "bytes_000": 24360050,
+      "bytes_001": 24332167,
+      "headers_identical": true,
+      "model_path_excluded": true,
+      "model_path_differed": false,
+      "first_differing_offset": 5034,
+      "first_differing_line": 45
+    },
+    "result_equality": {
+      "outcome_000": "completed",
+      "outcome_001": "completed",
+      "outcomes_agree": true,
+      "verdicts_000": 0,
+      "verdicts_001": 0,
+      "verdicts_agree": true,
+      "verdicts_vacuous": true,
+      "verdicts_note": "At M4 no conditions are declared, so both runs produce zero verdicts and this line is vacuous. It becomes substantive at M6 with CR-AS-3."
+    }
+  },
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200."
+  },
+  "outcomes": {
+    "attempted": 20,
+    "pass": 8,
+    "fail": 10,
+    "timeout": 0,
+    "infrastructure_error": 2,
+    "completed_unjudged": 0,
+    "sums_to_attempted": true,
+    "no_aggregate_merges_two_of_the_four": true
+  },
+  "conditions": {
+    "file": "C:\\Projects\\EXT-17\\examples\\atacama-raid.conditions.json",
+    "declared": 7,
+    "indeterminate_verdicts": 32,
+    "indeterminate_is_a_verdict_state_not_a_run_outcome": true,
+    "note": "An indeterminate verdict means this capture cannot decide that condition - it is not a pass, not a fail, and is never folded into either. See the README's absence classification (CR-AS-4)."
+  },
+  "axis": {
+    "name": "red_raid_speed_ms",
+    "kind": "velocity_ned_scaled",
+    "applies_to": "velocityNed magnitude, set before start",
+    "units": "m/s",
+    "declared_in": "the campaign configuration file, not in code (CR-PAR-1)",
+    "values": [
+      "11",
+      "22",
+      "33",
+      "44",
+      "55",
+      "70",
+      "85",
+      "100",
+      "115",
+      "130",
+      "150",
+      "170",
+      "190",
+      "210",
+      "240",
+      "270",
+      "300",
+      "330",
+      "355",
+      "380"
+    ],
+    "values_are_declared_text": true,
+    "self_test_value": "55",
+    "self_test_establishes_for_this_value_only": true,
+    "entities": [
+      "RedUAV_N_01",
+      "RedUAV_N_02",
+      "RedUAV_N_03",
+      "RedUAV_N_04",
+      "RedUAV_N_05",
+      "RedUAV_N_06",
+      "RedUAV_N_07",
+      "RedUAV_N_08",
+      "RedUAV_N_09",
+      "RedUAV_N_10",
+      "RedUAV_N_11",
+      "RedUAV_N_12",
+      "RedUAV_E_01",
+      "RedUAV_E_02",
+      "RedUAV_E_03",
+      "RedUAV_E_04",
+      "RedUAV_E_05",
+      "RedUAV_E_06",
+      "RedUAV_E_07",
+      "RedUAV_E_08",
+      "RedUAV_E_09",
+      "RedUAV_E_10",
+      "RedUAV_E_11",
+      "RedUAV_E_12",
+      "RedUAV_E_13",
+      "RedUAV_E_14",
+      "RedUAV_E_15",
+      "RedUAV_E_16",
+      "RedUAV_E_17",
+      "RedUAV_E_18"
+    ]
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "parameter_value": "11",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50534,
+      "capture_entity_keys": 48,
+      "capture_entity_adds": 48,
+      "capture_bytes": 24404910,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/000/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "001",
+      "parameter_value": "22",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50723,
+      "capture_entity_keys": 47,
+      "capture_entity_adds": 47,
+      "capture_bytes": 24525968,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/001/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "002",
+      "parameter_value": "33",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50447,
+      "capture_entity_keys": 48,
+      "capture_entity_adds": 48,
+      "capture_bytes": 24376804,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/002/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "003",
+      "parameter_value": "44",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50347,
+      "capture_entity_keys": 48,
+      "capture_entity_adds": 48,
+      "capture_bytes": 24318999,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/003/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "004",
+      "parameter_value": "55",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50410,
+      "capture_entity_keys": 47,
+      "capture_entity_adds": 47,
+      "capture_bytes": 24342376,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/004/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "005",
+      "parameter_value": "70",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50495,
+      "capture_entity_keys": 50,
+      "capture_entity_adds": 50,
+      "capture_bytes": 24361098,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/005/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "006",
+      "parameter_value": "85",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50240,
+      "capture_entity_keys": 54,
+      "capture_entity_adds": 54,
+      "capture_bytes": 24311941,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 3,
+        "violated": 3,
+        "indeterminate": 1,
+        "met": 1,
+        "not_met": 5,
+        "verdicts_file": "runs/006/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "007",
+      "parameter_value": "100",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 49828,
+      "capture_entity_keys": 58,
+      "capture_entity_adds": 58,
+      "capture_bytes": 24180453,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 4,
+        "violated": 2,
+        "indeterminate": 1,
+        "met": 2,
+        "not_met": 4,
+        "verdicts_file": "runs/007/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "008",
+      "parameter_value": "115",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48970,
+      "capture_entity_keys": 63,
+      "capture_entity_adds": 63,
+      "capture_bytes": 23824689,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 5,
+        "violated": 1,
+        "indeterminate": 1,
+        "met": 3,
+        "not_met": 3,
+        "verdicts_file": "runs/008/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "009",
+      "parameter_value": "130",
+      "outcome": "fail",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48476,
+      "capture_entity_keys": 64,
+      "capture_entity_adds": 64,
+      "capture_bytes": 23592218,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 5,
+        "violated": 1,
+        "indeterminate": 1,
+        "met": 3,
+        "not_met": 3,
+        "verdicts_file": "runs/009/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "010",
+      "parameter_value": "150",
+      "outcome": "infrastructure_error",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 49007,
+      "capture_entity_keys": 0,
+      "capture_entity_adds": 0,
+      "capture_bytes": 23925805,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 0,
+        "violated": 0,
+        "indeterminate": 7,
+        "met": 0,
+        "not_met": 0,
+        "verdicts_file": "runs/010/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "011",
+      "parameter_value": "170",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48927,
+      "capture_entity_keys": 65,
+      "capture_entity_adds": 65,
+      "capture_bytes": 23935308,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/011/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "012",
+      "parameter_value": "190",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48273,
+      "capture_entity_keys": 65,
+      "capture_entity_adds": 65,
+      "capture_bytes": 23586984,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/012/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "013",
+      "parameter_value": "210",
+      "outcome": "infrastructure_error",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 47866,
+      "capture_entity_keys": 0,
+      "capture_entity_adds": 0,
+      "capture_bytes": 23346149,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 0,
+        "violated": 0,
+        "indeterminate": 7,
+        "met": 0,
+        "not_met": 0,
+        "verdicts_file": "runs/013/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "014",
+      "parameter_value": "240",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 47916,
+      "capture_entity_keys": 59,
+      "capture_entity_adds": 59,
+      "capture_bytes": 23286367,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/014/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "015",
+      "parameter_value": "270",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 50275,
+      "capture_entity_keys": 59,
+      "capture_entity_adds": 59,
+      "capture_bytes": 24533682,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/015/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "016",
+      "parameter_value": "300",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 47990,
+      "capture_entity_keys": 56,
+      "capture_entity_adds": 56,
+      "capture_bytes": 23296115,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/016/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "017",
+      "parameter_value": "330",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 48274,
+      "capture_entity_keys": 56,
+      "capture_entity_adds": 56,
+      "capture_bytes": 23435236,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/017/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "018",
+      "parameter_value": "355",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 47746,
+      "capture_entity_keys": 55,
+      "capture_entity_adds": 55,
+      "capture_bytes": 23169481,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/018/verdicts.jsonl"
+      }
+    },
+    {
+      "run_id": "019",
+      "parameter_value": "380",
+      "outcome": "pass",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_samples": 47929,
+      "capture_entity_keys": 54,
+      "capture_entity_adds": 54,
+      "capture_bytes": 23215747,
+      "every_named_entity_present": true,
+      "judgement": {
+        "satisfied": 6,
+        "violated": 0,
+        "indeterminate": 1,
+        "met": 4,
+        "not_met": 2,
+        "verdicts_file": "runs/019/verdicts.jsonl"
+      }
+    }
+  ],
+  "sweep": [
+    {
+      "value": "11",
+      "run_id": "000",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 48,
+      "entity_keys": 48,
+      "samples": 50534,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "22",
+      "run_id": "001",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 47,
+      "entity_keys": 47,
+      "samples": 50723,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "33",
+      "run_id": "002",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 48,
+      "entity_keys": 48,
+      "samples": 50447,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "44",
+      "run_id": "003",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 48,
+      "entity_keys": 48,
+      "samples": 50347,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "55",
+      "run_id": "004",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 47,
+      "entity_keys": 47,
+      "samples": 50410,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "70",
+      "run_id": "005",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 50,
+      "entity_keys": 50,
+      "samples": 50495,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "85",
+      "run_id": "006",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 54,
+      "entity_keys": 54,
+      "samples": 50240,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "100",
+      "run_id": "007",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 58,
+      "entity_keys": 58,
+      "samples": 49828,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "115",
+      "run_id": "008",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 63,
+      "entity_keys": 63,
+      "samples": 48970,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "130",
+      "run_id": "009",
+      "outcome": "fail",
+      "running_segment_found": true,
+      "entity_adds": 64,
+      "entity_keys": 64,
+      "samples": 48476,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "not_met",
+          "outcome": "violated"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "150",
+      "run_id": "010",
+      "outcome": "infrastructure_error",
+      "running_segment_found": false,
+      "entity_adds": null,
+      "entity_keys": null,
+      "samples": 49007,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "170",
+      "run_id": "011",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 65,
+      "entity_keys": 65,
+      "samples": 48927,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "190",
+      "run_id": "012",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 65,
+      "entity_keys": 65,
+      "samples": 48273,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "210",
+      "run_id": "013",
+      "outcome": "infrastructure_error",
+      "running_segment_found": false,
+      "entity_adds": null,
+      "entity_keys": null,
+      "samples": 47866,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "240",
+      "run_id": "014",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 59,
+      "entity_keys": 59,
+      "samples": 47916,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "270",
+      "run_id": "015",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 59,
+      "entity_keys": 59,
+      "samples": 50275,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "300",
+      "run_id": "016",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 56,
+      "entity_keys": 56,
+      "samples": 47990,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "330",
+      "run_id": "017",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 56,
+      "entity_keys": 56,
+      "samples": 48274,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "355",
+      "run_id": "018",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 55,
+      "entity_keys": 55,
+      "samples": 47746,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    },
+    {
+      "value": "380",
+      "run_id": "019",
+      "outcome": "pass",
+      "running_segment_found": true,
+      "entity_adds": 54,
+      "entity_keys": 54,
+      "samples": 47929,
+      "verdicts": [
+        {
+          "condition_id": "raid-leader-reaches-airfield",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-crosses-corridor",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-enters-depot-ring",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "command-centre-destroyed",
+          "state": "not_met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "airfield-operational",
+          "state": "met",
+          "outcome": "satisfied"
+        },
+        {
+          "condition_id": "raid-leader-degraded",
+          "state": "indeterminate",
+          "outcome": "undetermined"
+        }
+      ]
+    }
+  ],
+  "sweep_note": "Ordered by parameter value. The count columns are read off each run's own capture by this project's reader; the `verdicts` array beside them IS the judgement. `samples` additionally carries the platform's publication-schedule spread, measured at 0.38% over twenty identical runs (M2); `entity_adds` does not, and is the count to read a trend from. A run with no RUNNING segment reports null rather than 0 for both: nothing was measured in it, and 0 would be a measurement - and it can decide no condition either, so its verdicts are all indeterminate."
+}

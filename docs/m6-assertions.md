@@ -29,8 +29,19 @@ and twenty runs unattended
 | `n8ro-campaign` (extended) | `--conditions`, the live judgement, the four outcomes, the verdict sweep table, `--inject-fault` | CR-EX-5, CR-EX-6, CR-EX-7, CR-REP-1..3 |
 | `src/compare` (repaired) | A diff that prints an array value instead of nothing (F-31) | CR-DET-3, CR-REP-4 |
 | `tests/assertion_test` | 166 checks, run twice under two locales | CR-AS-1..4, CR-CAP-1 |
+| `n8ro-compare --changed-input` | The half of the diff that had no implementation (**F-33**) | CR-REP-4 |
 | `examples/atacama-raid.conditions.json` | The committed conditions | CR-AS-3, CR-DOC-2 |
 | `examples/atacama-raid-speed-20.json` | The committed twenty-run campaign | CR-EX-7, CR-DOC-2 |
+
+**One of those rows is a requirement gap rather than a new feature.** **F-33**: [B] asks for two
+diffing questions — *"run the same configuration twice and show that the results are identical;
+change one input and show exactly where the two runs diverged"* — and only the first had been
+built. `n8ro-compare` would compare any two captures, but it framed every answer as a **gate**,
+which is wrong in both directions for the second question. `--changed-input` is the same
+machinery with the right framing: no gate line, no pass/fail word, the first divergence named by
+segment, `(entity, occupancy)`, `sim_time_s` and field — and **agreement flagged loudly**, because
+between two different inputs it means the input did not take effect. Found by auditing the brief
+against the built thing, not by a test failing.
 
 **`src/assert/` links nothing, and that is the fourth time this project has said so.** Not
 EXT-08, not the N8RO SDK, not a third-party JSON library. `tools/n8ro-judge/build.cmd` is where
@@ -209,6 +220,31 @@ never gets there. And every synthetic capture in `determinism_test` carried only
 so 75 checks could not see it either. **Both halves are now fixed** — a verbatim renderer, and an
 array field in the suite's own capture builder, with a check that asserts on both values.
 
+### F-35 — F-24's fix broke again, on the same table, one milestone later
+
+The twenty-run campaign finished, and its sweep table printed this on **every single row**:
+
+```
+  11     000   fail                         -        -     50534  (no bar - this run did not complete)
+  55     004   fail                         -        -     50410  (no bar - this run did not complete)
+```
+
+Eighteen of those runs measured perfectly well. `-` is F-24's "a missing measurement is not a
+measurement of zero" guard, and it was firing on runs that had measured — because the guard asked
+`outcome == Completed`, and **M6 renamed the outcome a judged run gets**. There is no `Completed`
+in a judged campaign; there is `pass` and `fail`.
+
+**The lesson is the same one twice, and it is worth stating as a rule.** A guard keyed on one
+value of an enum is a guard that breaks silently when the enum grows, and the growth was M6's own
+deliberate change. The predicate now asks what it always meant: did this run *execute*.
+
+**And it prompted something worth having on its own.** Re-checking a report cost a 25-minute
+re-run, which is why the defect survived long enough to reach a committed artifact. `n8ro-campaign
+report <dir>` now re-renders a stored campaign from the run records it already wrote — starting
+nothing, reading no capture, needing no N8RO install — through **the same printer** the live
+campaign uses, so a re-rendered report cannot disagree with the one that was printed. That is
+[B]'s *"cheap to iterate on"* applied to the report rather than to the judgement.
+
 ### F-26 — the locale-safety test was itself locale-unsafe
 
 `assertion_test` runs every check twice, the second time under `German_Germany.1252`, and its
@@ -220,6 +256,26 @@ of verdicts that were never computed. It crashed instead, which is how it was fo
 The builder now uses the product's own locale-free `fixed()`. **The finding is that a test
 written to prove locale-independence was itself locale-dependent**, and it went unnoticed because
 M5's parameter suite never formats a number, so the same double pass was genuinely clean there.
+
+### F-32 — the vendored digest is a verbatim excerpt that stops one heading early
+
+Found while deciding OQ-5, and it upgrades **F-19** rather than adding to it. F-19 recorded that
+`contract/condition-file-schema.md` *"cannot be verified by a pin check"*, which is true and is
+not the end of the check: it **can** be verified by **correspondence**, and it was. The digest's
+own pin (`eedc228`) resolves; its cited README section exists there; its content is verbatim; and
+that section is byte-identical at `main`.
+
+What the check found instead is that the excerpt **stops one heading before the arithmetic every
+geometric verdict rests on** — *"How distance is computed"* and *"Boundary semantics"*, neither of
+which crossed. From the digest alone, `within_m` is a distance with no stated metric. Raised as
+**E-5** ([issue #3](https://github.com/EgeCankaya/EXT-08/issues/3)) and detailed in
+`docs/m6-oq5.md` §5.
+
+**It is the first `contract/` finding that could not be handled by implementing what the text
+says**, because there is no text. E-3 and E-4 are imprecisions in frozen, vendored specification —
+EXT-17 implements what it says and names the gap beside it. Here EXT-17 had to *decide*, and
+`src/assert/Geodesy.h` states the decision with its constants so a verdict is reproducible with a
+calculator.
 
 ### F-27 — a dead host is not noticed until the run timeout expires
 
@@ -280,8 +336,105 @@ infrastructure failure into a test result — and it is also CR-AS-2's cut-short
 
 ## 6. The twenty-run campaign
 
-*(§6, §7 and §8 are completed from `campaigns/m6-campaign/` once it finishes; see the campaign
-summary and `campaign.log`.)*
+**One command, twenty runs, no manual step** — CR-EX-7 and [B]'s first acceptance criterion:
+
+```cmd
+n8ro-campaign repeat --out-dir campaigns\m6-campaign ^
+                     --campaign examples\atacama-raid-speed-20.json ^
+                     --conditions examples\atacama-raid.conditions.json ^
+                     --recorder <path-to-n8ro-bridge.exe>
+```
+
+**The gate passed first**, at the declared value 55 m/s: 50 361 samples compared, 50 361
+agreeing, **zero differing**, coverage 100.0000%. It establishes determinism **for that value**,
+which is one claim at a named point and not one per run.
+
+### The four outcomes
+
+| | |
+|---|---:|
+| attempted | **20** |
+| `pass` | **8** |
+| `fail` | **10** |
+| `timeout` | 0 |
+| `infrastructure_error` | **2** |
+| **sum** | **20** |
+
+No aggregate anywhere collapses two of them. **32 indeterminate verdicts** are reported beside the
+four and never folded into any of them, and the 32 decomposes exactly:
+
+- **18** — one per judgeable run, every one `raid-leader-degraded`, the `field`+`equals` form
+  that is never decidable in the negative.
+- **14** — 7 conditions × the 2 runs that could not be judged at all.
+
+**Those two are R14's shape**, at 150 and 210 m/s: segment 0 classified `frozen`, so `sim_time_s`
+does not order its samples and the gap a not-met verdict is bounded against cannot be measured.
+Their records say so in three places — `outcome: infrastructure_error`, `error.stage: "judge"`,
+and a `not_judgeable_reason` that states in the file that this is *"not a determinism failure and
+not a failing scenario"*. Each still carries **one verdict per declared condition**, all
+indeterminate, so nothing about them is silent.
+
+**2 of 20 is 10%, against R14's measured 11.4% — the predicted rate, met live.** No retry was
+added.
+
+### CR-PAR-2's third criterion, finished
+
+M5 recorded it as **half-met**: a *result* changed across the sweep and a *verdict* could not,
+because no condition existed. It is now met, and by three conditions at three thresholds:
+
+| condition | not satisfied up to | satisfied from |
+|---|---:|---:|
+| `raid-leader-crosses-corridor` (area, polygon) | 85 m/s | **100 m/s** |
+| `raid-leader-enters-depot-ring` (area, circle) | 100 m/s | **115 m/s** |
+| `raid-leader-reaches-airfield` (proximity) | 130 m/s | **170 m/s** |
+
+**And the run outcome flips with them**: `fail` from 11 through 130, `pass` from 170 through 380.
+The report prints one column per condition **whose outcome changes** and lists the rest below as
+constant, because a column that never changes is not a trend.
+
+### The count column, and a trend that is not a line
+
+```
+  value  run   outcome                   adds     keys   samples
+  11     000   fail                        48       48     50534  ##
+  55     004   fail                        47       47     50410  .
+  85     006   fail                        54       54     50240  ###############
+  115    008   fail                        63       63     48970  ###################################
+  170    011   pass                        65       65     48927  ########################################
+  190    012   pass                        65       65     48273  ########################################
+  240    014   pass                        59       59     47916  ##########################
+  300    016   pass                        56       56     47990  ####################
+  380    019   pass                        54       54     47929  ###############
+```
+
+`adds` counts entities the run created — weapons fired. It rises 47 → 65 to a **peak at 170–190
+m/s** and falls back to 54 at 380. That is the non-monotone behaviour M5 could only see at the
+top of its range, now resolved across twenty points: **a raid fast enough to overfly is engaged
+less, not more.** A sweep reporting "higher is more" would be reporting a line that is not there.
+
+The bar is scaled between 47 and 65 rather than from zero, and the table says so.
+
+### CR-CAP-1, over the whole campaign
+
+```
+  no host is started and no bus subscription is made - this binary links nothing that could
+  ...
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+```
+
+### What is committed, and what is not
+
+The configuration, every `run.json`, every `verdicts.jsonl`, `campaign.json`, `campaign.log`,
+`self-test.json` and `report.txt`. **Not the captures** — they are about 480 MB, and
+`.gitignore` has excluded captures since this repository's first commit for that reason.
+`MANIFEST.md` carries each one's size, SHA-256 and read-back counts instead. **F-34**, and
+`docs/decisions-m6-m7.md` B6 says what that buys and what it does not.
+
+**`campaign.log` and `report.txt` are both kept, and they disagree about one table.** The log is
+what the campaign printed live, with F-35's defect in it — every row of the count table reading
+`-`. `report.txt` is the same records re-rendered after the fix, by the same printer. Keeping
+both is this project's habit with a re-run: the evidence of the defect is worth more than a tidy
+directory.
 
 ---
 

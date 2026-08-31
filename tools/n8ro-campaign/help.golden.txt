@@ -6,6 +6,7 @@ usage: n8ro-campaign run-once  --out-dir <dir> [options]
        n8ro-campaign repeat    --out-dir <dir> --count <n> [options]
        n8ro-campaign repeat    --out-dir <dir> --campaign <file> [options]
        n8ro-campaign self-test --out-dir <dir> [options]
+       n8ro-campaign report    --out-dir <dir> [--campaign <file>]
        n8ro-campaign --help
 
 commands:
@@ -16,6 +17,15 @@ commands:
                            summary carrying the self-test's result. Without
                            --campaign that is --count runs of one configuration;
                            with it, one run per declared parameter value.
+  report                   re-render a STORED campaign's report from the run records it
+                           already wrote. Starts nothing, reads no capture, and needs no
+                           N8RO install - a reviewer re-reading last week's campaign has no
+                           host and needs none, and a twenty-run campaign takes about 25
+                           minutes to produce. Pass --campaign to order the sweep tables:
+                           the axis declares that order and it is not re-derivable from the
+                           run records. It prints through the SAME printer the live campaign
+                           uses, so a re-rendered report cannot disagree with the one the
+                           campaign printed.
   self-test                run the determinism self-test alone and stop. The campaign does
                            NOT get its gate from this command - repeat runs it itself, so
                            that it is never something anyone has to remember (CR-DET-1).

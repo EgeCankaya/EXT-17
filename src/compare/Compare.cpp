@@ -980,10 +980,18 @@ std::string renderReport(const ComparisonResult& r) {
     }
 
     // --- content ---
-    const std::string cv = name(r.content.verdict);
-    std::string cvUpper = cv;
-    for (char& c : cvUpper) { c = static_cast<char>(std::toupper(static_cast<unsigned char>(c))); }
-    row("content comparison", cvUpper);
+    // Under ChangedInput the verdict is computed the same way and is not printed as a *verdict*,
+    // because "fail" is the wrong word for two runs that were supposed to differ.
+    if (r.purpose == Purpose::ChangedInput) {
+        row("content comparison", r.content.differ > 0 ? "DIVERGED" : "AGREED EVERYWHERE");
+    } else {
+        const std::string cv = name(r.content.verdict);
+        std::string cvUpper = cv;
+        for (char& c : cvUpper) {
+            c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        }
+        row("content comparison", cvUpper);
+    }
     for (const SegmentComparison& sc : r.content.segments) {
         const std::string key = "(part " + std::to_string(sc.key.part) + ", segment "
                                 + std::to_string(sc.key.segment) + ")";
@@ -1017,11 +1025,17 @@ std::string renderReport(const ComparisonResult& r) {
                           + "), floor " + percent(r.content.coverageFloor));
     row("  verdict", r.content.verdictReason);
 
+    // CR-DET-3 and CR-REP-4 ask for **the first** point of divergence, not merely that two runs
+    // differ. A handful more are printed as context and are labelled as context — eight blocks
+    // all headed FIRST DIFFERENCE reads as eight findings, when everything after the first is
+    // downstream of it.
+    bool firstDifference = true;
     for (const Difference& d : r.content.differences) {
         s += "\n";
-        row("  FIRST DIFFERENCE", "segment (part " + std::to_string(d.segment.part) + ", segment "
-                                      + std::to_string(d.segment.segment) + ")  entity "
-                                      + d.key.str());
+        row(firstDifference ? "  FIRST DIFFERENCE" : "  then (context only)",
+            "segment (part " + std::to_string(d.segment.part) + ", segment "
+                + std::to_string(d.segment.segment) + ")  entity " + d.key.str());
+        firstDifference = false;
         cont("  sim_time_s " + d.simTimeText);
         cont("  field \"" + d.field + "\": " + d.valueA + "   against   " + d.valueB);
         cont("  " + r.labelA + " line " + std::to_string(d.lineA) + ", " + r.labelB + " line "
@@ -1029,7 +1043,26 @@ std::string renderReport(const ComparisonResult& r) {
     }
     s += "\n";
 
+    // Under ChangedInput the byte comparison and the result-equality check are both omitted, and
+    // the omission is stated rather than left as a gap. Neither answers a question worth asking
+    // here: two runs at different inputs are of course not byte-identical, and their outcomes are
+    // of course allowed to differ — that is what a sweep is. Printing them under this framing
+    // would put two "DIFFER" lines beside a divergence that is the intended answer, and invite
+    // exactly the reading this mode exists to prevent.
+    const bool changedInput = (r.purpose == Purpose::ChangedInput);
+    if (changedInput) {
+        row("byte comparison", "not run - see below");
+        row("result equality", "not checked - see below");
+        cont("Neither answers a question worth asking about two DIFFERENT inputs. Two such");
+        cont("runs are of course not byte-identical, and their outcomes are of course allowed");
+        cont("to differ - that is what a sweep is. Both belong to the self-test, where");
+        cont("agreement is the expectation; here they would read as two more failures sitting");
+        cont("beside an answer.");
+        s += "\n";
+    }
+
     // --- bytes ---
+    if (!changedInput) {
     row("byte comparison", r.bytes.identical ? "IDENTICAL" : "DIFFER");
     row("  sizes", std::to_string(r.bytes.bytesA) + " and " + std::to_string(r.bytes.bytesB)
                        + " byte(s)");
@@ -1070,12 +1103,15 @@ std::string renderReport(const ComparisonResult& r) {
                           + std::to_string(r.results.verdictsB) + " â€” "
                           + (r.results.verdictsAgree ? "agree" : "DISAGREE")
                           + (r.results.verdictsVacuous
-                                 ? ". Vacuous at M4: no conditions are declared, so no run "
-                                   "produces a verdict. The line becomes substantive at M6."
+                                 ? ". Vacuous: neither capture carries a producer verdict, so "
+                                   "there is nothing here to agree about. A campaign's own "
+                                   "verdicts live in each run's verdicts.jsonl, not in the "
+                                   "capture."
                                  : ""));
     s += "\n";
+    }   // if (!changedInput) — the byte and result-equality sections
 
-    if (r.purpose == Purpose::ChangedInput) {
+    if (changedInput) {
         // No gate line, and no pass/fail word anywhere. The answer to "where did they diverge"
         // is the FIRST DIFFERENCE block above; this states what was and was not established.
         if (r.content.differ > 0) {

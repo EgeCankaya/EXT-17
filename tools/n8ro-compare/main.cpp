@@ -166,5 +166,13 @@ int main(int argc, char** argv) {
     }
 
     if (r.refusal != ext17::compare::Refusal::None) { return 2; }
+
+    // A changed-input diff has no gate, so it has no pass. Its exit code answers the question it
+    // was asked: 0 when the two runs diverged and the divergence was named, 1 when they did NOT —
+    // because two DIFFERENT inputs producing identical output means the input did not take
+    // effect, and that is the finding worth a non-zero exit in a script.
+    if (options.purpose == ext17::compare::Purpose::ChangedInput) {
+        return r.content.differ > 0 ? 0 : 1;
+    }
     return r.passed() ? 0 : 1;
 }

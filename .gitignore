@@ -39,6 +39,34 @@ out/
 # ...except the pinned fixture vendored from EXT-08, which is test input and evidence.
 !contract/*.n8rocap.jsonl
 
+# ...and except a committed campaign's REPORT, which is a deliverable. [B] asks for "a real
+# campaign - its configuration, its captured runs and its report, committed as an example",
+# and the report is the part that is small enough to version: at M6 the twenty-run campaign's
+# captures are about 480 MB and its report is under 1 MB.
+#
+# What is committed is everything a judgement rests on - the run records, the verdicts, the
+# campaign summary, the self-test's result and the driver's transcript - plus a MANIFEST.md
+# giving each capture's size, SHA-256 and read-back counts, so a claim can be traced to a file
+# whose contents are pinned even though the file is not in the tree.
+#
+# The captures themselves stay out. A re-run does not reproduce them byte for byte anyway -
+# that is this project's central measurement, not a limitation of this decision.
+!campaigns/
+campaigns/**
+!campaigns/*/
+!campaigns/*/runs/
+!campaigns/*/runs/*/
+!campaigns/*/selftest/
+!campaigns/*/selftest/runs/
+!campaigns/*/selftest/runs/*/
+!campaigns/*/*.md
+!campaigns/*/*.json
+!campaigns/*/*.log
+!campaigns/*/runs/*/run.json
+!campaigns/*/runs/*/verdicts*.jsonl
+!campaigns/*/selftest/*.json
+!campaigns/*/selftest/runs/*/run.json
+
 # n8ro-sim-local writes a per-entity JSONL dump into ./test_artifacts relative to its
 # working directory, unasked. Hundreds of MB per run.
 test_artifacts/

@@ -186,28 +186,37 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
 tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
 tools\n8ro-compare\build.cmd       ->  build\n8ro-compare\n8ro-compare.exe
+tools\n8ro-judge\build.cmd         ->  build\n8ro-judge\n8ro-judge.exe
 tests\build.cmd                    ->  builds and runs the tests
 ```
 
 `tests\build.cmd` links nothing and needs no N8RO install — it covers the parts whose
 correctness is about our own output rather than about the platform; since M3 the capture reader,
-whose correctness is about somebody else's bytes; and since M4 the determinism comparison, whose
-correctness is what every other result rests on. **78 conformance checks and 75 determinism
-checks.**
+whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
+correctness is what every other result rests on; since M5 the axis; and since M6 the whole
+assertion surface. **78 + 96 + 126 + 166 = 466 checks**, of which the last two suites are each
+run twice, the second time under a comma-decimal locale.
 
-**`tools\n8ro-capture\build.cmd` and `tools\n8ro-compare\build.cmd` need no N8RO install either,
-and that is the point.** Look at their compile lines: no `/I`, no `/LIBPATH`, no `.lib`. Neither
-the reader nor the comparison links EXT-08 or the SDK, and a build script anyone can read in ten
-seconds is a better proof of that than an argument about translation units. Each build then
-searches its own sources for the SDK's and the producer's names, and for any global sort of a
-capture, and fails on a hit. **`n8ro-compare`'s carries two searches more** — for a clock read or
-a formatted time, and for an unordered container or a locale-dependent number conversion —
-because those are CR-DET-2's hazards and they are properties of the comparison's own sources
-rather than of whatever links them.
+**Three of the four tools need no N8RO install to build or to run, and that is the point.** Look
+at the compile lines of `n8ro-capture`, `n8ro-compare` and `n8ro-judge`: no `/I`, no `/LIBPATH`,
+no `.lib`. Neither the reader, nor the comparison, nor the condition evaluator links EXT-08 or
+the SDK, and a build script anyone can read in ten seconds is a better proof of that than an
+argument about translation units. Each build then searches its own sources for the SDK's and the
+producer's names, and for any global sort of a capture, and fails on a hit.
+
+**`n8ro-compare`'s carries two searches more** — for a clock read or a formatted time, and for an
+unordered container or a locale-dependent number conversion — because those are CR-DET-2's
+hazards and they are properties of the comparison's own sources rather than of whatever links
+them.
+
+**`n8ro-judge`'s carries those and one beyond them:** it fails the build if the assertion path
+ever names a process, a bus or the control path. The compile line already makes a host
+unreachable, since none of those symbols could resolve; the search is the second lock, and it
+fires a milestone before the link would notice. That is CR-CAP-1's *"no host started and no bus
+subscription made"* made structural rather than promised.
 
 Each build ends by running its binary's own `--help` and comparing it against the golden file
-beside it — `tools\n8ro-campaign\help.golden.txt`, `tools\n8ro-capture\help.golden.txt`,
-`tools\n8ro-compare\help.golden.txt`. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
+beside it — `help.golden.txt`, one in each of the four tool directories. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
 a list nobody executes is exactly what drifted in the sibling project. **The golden file is the
 CLI's specification.**
 
@@ -241,9 +250,35 @@ n8ro-campaign repeat ^
     --campaign examples\atacama-raid-speed.json ^
     --recorder <...> ^
     --frames 1200
+
+rem The committed twenty-run campaign, judged. One command, no manual step.
+n8ro-campaign repeat ^
+    --out-dir campaigns\m6-campaign ^
+    --campaign examples\atacama-raid-speed-20.json ^
+    --conditions examples\atacama-raid.conditions.json ^
+    --recorder <...>
+
+rem Re-read a stored campaign's report. Starts nothing; needs no N8RO install.
+n8ro-campaign report --out-dir campaigns\m6-campaign ^
+    --campaign examples\atacama-raid-speed-20.json
+
+rem Re-judge stored captures against new conditions, and check the identity.
+n8ro-judge campaign campaigns\m6-campaign ^
+    --conditions <new-conditions> --write verdicts-new.jsonl
+
+rem Change one input, and show exactly where the two runs diverged.
+n8ro-compare --changed-input ^
+    campaigns\m6-campaign\runs\000\capture-atacama-air-defense-000.n8rocap.jsonl ^
+    campaigns\m6-campaign\runs\019\capture-atacama-air-defense-019.n8rocap.jsonl
 ```
 
-`n8ro-campaign --help` is the authority for the options.
+`n8ro-campaign --help` is the authority for the options, and the same is true of the other three
+binaries — each build compares its binary's own `--help` against the golden file beside it.
+
+**A note on `--run-timeout-ms`, because the default is generous.** A 1200-frame run takes about
+70 s here, and the default backstop is 600 000 ms. That costs nothing on a healthy run and ten
+minutes on a host that dies mid-run, which is not detected until the timeout expires (F-27). Size
+it against the frame budget for an unattended campaign.
 
 ## Sweeping one parameter — the axis, and where the trend is
 

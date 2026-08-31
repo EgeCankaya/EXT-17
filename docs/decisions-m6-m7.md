@@ -157,6 +157,33 @@ and gets the platform's own refusal — which takes the dangerous shape F-5 name
 idle rather than failing. `run_never_ends` sets a predicate the run cannot reach and lets
 CR-EX-4's real backstop fire.
 
+### B6. A committed campaign ships its report and a manifest, not its captures
+
+**Decided:** `campaigns/m6-campaign/` commits the configuration, every `run.json`, every
+`verdicts.jsonl`, `campaign.json`, `campaign.log`, `self-test.json` and a `MANIFEST.md` giving
+each capture's byte size, SHA-256 and read-back counts. **The raw `.n8rocap.jsonl` files are
+not committed.**
+
+**The alternative** was committing them, which [B]'s deliverable 3 asks for in those words:
+*"its configuration, its captured runs and its report, committed as an example."*
+
+**Why.** Twenty runs of Atacama Air Defense are about **480 MB** of JSON Lines. `.gitignore`
+excluded captures from this repository's first commit with the reason stated there — *"artifacts
+to produce and check, not to version"* — and that judgement has not changed.
+
+**What the manifest buys, and what it does not.** It does not make a re-run reproducible byte for
+byte; nothing does, and that is this project's central measurement rather than a limitation of
+this decision. What it establishes is that these specific files existed, what was in them, and
+what was concluded from them — so any number in `docs/m6-assertions.md` traces to a file whose
+contents are pinned. **The counts are the part a re-run can be compared against**, because the
+reports are computed from those rather than from the bytes. And everything a *judgement* rests on
+is committed, because that is the report and it is under 1 MB.
+
+**Recorded as F-34** rather than left implicit, because a reviewer reading deliverable 3 should
+find the deviation named rather than discover it.
+
+**To reverse:** delete four lines from `.gitignore` and add 480 MB to the repository.
+
 ### B5. `host_dies_mid_run` fires at a frame, not on a stopwatch
 
 **Decided:** the host is terminated at a quarter of the frame budget, by the handle this run

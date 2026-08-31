@@ -51,6 +51,8 @@ exercised it. All fixed.
 
 | F-31 | M6 | **Every difference in an array-valued field printed two EMPTY values.** M4's diff rendered a value as `isNumber() ? raw() : text()`, and `text()` is empty for an array — so `positionGeodetic`, `velocityNed` and `orientationYprRad`, three of the four fields a divergence is most likely to be in, named the field correctly and then showed nothing. CR-DET-3 and CR-REP-4 both require the deciding **values** | `closed` — a verbatim renderer, and the synthetic capture in `determinism_test` now carries an array field so the suite can see it. **It survived three milestones because it takes a real content-gate failure on a real pair to reach that code**, and until F-29 the content gate had never failed on one — M4's failing-gate evidence came from forcing `--gate-basis bytes`, which reports a byte offset and never gets there | `m6-assertions.md` §4, `tests/determinism_test.cpp` |
 
+| F-35 | M6 | **F-24's fix broke again, the same table, one milestone later.** M5 stopped a run with no running segment printing its result as `0`; the guard it added asked `outcome == Completed`. M6 renamed the outcome a judged run gets — `pass` or `fail` — and the guard stopped matching, so the twenty-run campaign's sweep table printed **`-` and no bar on every single row**, including the eighteen runs that measured perfectly well | `closed` — the predicate now asks whether the run *executed* (`pass`, `fail` or `completed`), which is the question it always meant. **Found by reading the twenty-run campaign's output, exactly as F-24 was**, and the lesson is the same one twice: a guard keyed on an enum value is a guard that breaks silently when the enum grows. `report` now re-renders a stored campaign so a table can be checked without a 25-minute re-run | `m6-assertions.md` §4, `campaigns/m6-campaign/report.txt` |
+
 **M4 found none of these in its own new code.** That is a weaker claim than it looks: M4's code is
 what M4's 75 tests were written against, and three of the four above were found by running probes
 rather than by testing. The equivalent probe work at M4 was the byte-gate and overload runs, and
@@ -152,6 +154,18 @@ What it costs, stated rather than discovered later:
 **Revisit at:** the close of M7, together with OQ-2, the sweep report and the twenty-run
 campaign — which is a better package to put in front of a reviewer than any single milestone
 was, and is the one upside of having waited.
+
+---
+
+## F. Requirements this project found under-covered in its own work
+
+Not defects in anyone's code — gaps between what a requirement asks for and what had been built,
+found by re-reading the requirement against the thing rather than against the plan.
+
+| # | Found | What | Status | Recorded in |
+|---|---|---|---|---|
+| F-33 | M6 | **CR-REP-4's changed-input half had no implementation and no test.** [B] asks for two diffing questions — *"run the same configuration twice and show that the results are identical; change one input and show exactly where the two runs diverged"* — and only the first was built. `n8ro-compare` would compare any two captures, but it framed every answer as a **gate**, which is wrong in both directions for the second question: a divergence between two configurations is not a failure, and agreement is not a pass | `closed` — `--changed-input`. Same machinery, different framing: no gate line, no pass/fail word, and **agreement is the outcome flagged loudly**, because it means the changed input did not take effect. Found by auditing the brief against the built thing at M6, not by a test failing | `m6-assertions.md` §1, `tests/determinism_test.cpp` |
+| F-34 | M6 | **A committed campaign's captures cannot be committed.** [B]'s third deliverable is *"a real campaign — its configuration, its captured runs and its report, committed as an example"*, and twenty runs of Atacama Air Defense are about **480 MB** of JSON Lines. `.gitignore` excluded captures from the repository's first commit, for that reason | `open` **by decision** — the configuration, the whole report and a **MANIFEST** of each capture's size, SHA-256 and read-back counts are committed; the raw captures are not. A re-run does not reproduce them byte-for-byte in any case, which is this project's central measurement rather than a limitation of the decision. Stated in the manifest rather than left for a reviewer to notice | `campaigns/m6-campaign/MANIFEST.md`, `decisions-m6-m7.md` B6, `.gitignore` |
 
 ---
 

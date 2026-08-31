@@ -1,0 +1,22 @@
+[campaign] spike        === p2b-update-mid : does the same update take effect at frame 100 ===
+[campaign] run          === run p2b-update-mid : "Atacama Air Defense" ===
+[campaign] start        recorder pid 23564 -> C:\Projects\EXT-17\campaigns\m2-axis\p2b-update-mid
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 25244 cwd C:\Projects\EXT-17\campaigns\m2-axis\p2b-update-mid\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] axis         applying the after-start hook
+[campaign] observed     frame 100 reached, before the mid-run update -> state=running frame=100 simTime=5.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] spike        sendEntityUpdate(RedUAV_N_01) at frame 100 -> published
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] observed     stop predicate satisfied -> state=running frame=200 simTime=10.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 25244 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 23564 exit 0 (on its own)
+[campaign] record       C:\Projects\EXT-17\campaigns\m2-axis\p2b-update-mid\run.json (completed)
+[campaign] run          run p2b-update-mid -> completed
+[campaign] spike        every probe completed

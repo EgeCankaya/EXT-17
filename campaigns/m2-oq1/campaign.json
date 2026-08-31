@@ -1,0 +1,197 @@
+{
+  "schema": "ext17-campaign-summary/1",
+  "milestone": "M2 - execution only; no conditions are evaluated, so no run is a pass or a fail yet",
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200."
+  },
+  "outcomes": {
+    "attempted": 20,
+    "completed": 20,
+    "timeout": 0,
+    "infrastructure_error": 0,
+    "sums_to_attempted": true
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24311063
+    },
+    {
+      "run_id": "001",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24299416
+    },
+    {
+      "run_id": "002",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24317983
+    },
+    {
+      "run_id": "003",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24338870
+    },
+    {
+      "run_id": "004",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24287007
+    },
+    {
+      "run_id": "005",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24313788
+    },
+    {
+      "run_id": "006",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24382694
+    },
+    {
+      "run_id": "007",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24324864
+    },
+    {
+      "run_id": "008",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24334967
+    },
+    {
+      "run_id": "009",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24315450
+    },
+    {
+      "run_id": "010",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24344026
+    },
+    {
+      "run_id": "011",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24299845
+    },
+    {
+      "run_id": "012",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24280305
+    },
+    {
+      "run_id": "013",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24327208
+    },
+    {
+      "run_id": "014",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24311801
+    },
+    {
+      "run_id": "015",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24288102
+    },
+    {
+      "run_id": "016",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24321853
+    },
+    {
+      "run_id": "017",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24280305
+    },
+    {
+      "run_id": "018",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24360134
+    },
+    {
+      "run_id": "019",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 1200,
+      "observed_sim_time_s": 60.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 24320078
+    }
+  ]
+}
