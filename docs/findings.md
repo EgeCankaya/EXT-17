@@ -106,18 +106,38 @@ not delivered is *recorded*, not *raised*.
 
 | # | Question | To | Delivery | Blocked on |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`drafted`, not sent — re-examined at M5 and still not delivered** | **The DRI.** There is no channel to a mentor from here. Does not block: the invocation is measured working, and the whole control path is one file if the answer changes it. **Five milestones now**, and M5 has added runs that publish entity updates over that same invocation |
+| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`deferred` — a decision taken 2026-09-01, not drift** | **Nothing, now.** The DRI has decided to complete every milestone first and return to the mentor items afterwards, on the grounds that the mentor is not readily accessible and schedule is the binding constraint. That is a scheduling decision with a stated cost (below), not an item still waiting to be noticed. It does not block: the invocation is measured working, and `src/control/EngineControl` is one file if the answer changes it |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`raised`** — sent 2026-08-31 via EXT-08's E-1; re-checked at M4 and again at M5, **no reply** | **The recipient.** Does not block: M4 shipped both readings as selectable gates, so a ruling changes a default and no code |
 | E-3 | §6.7's summing rule (F-15) | EXT-08 | **`raised`** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1) | Nothing. Does not block |
 | E-4 | §5.1's frozen-clock test (F-16) | EXT-08 | **`raised`** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2) | Nothing. Does not block, and it is the one with a measured operational cost (~1 pair in 14) |
 
-**E-1 is the one to act on, and it is now the oldest thing in this file.** It has been drafted
-since M1 and has grown twice since. It is the only finding here whose delivery is blocked on a
-person rather than on a reply. M4 keyed a determinism gate to runs produced by the invocation it
-asks about — the stated reason for wanting the answer before M4, in E-1's own words — and **M5
-has now added entity updates published into that same invocation before `start`**, which is a
-second thing riding on an unconfirmed answer. Nothing is blocked by it and that is precisely why
-it keeps not being sent.
+### E-1 is deferred by decision, and here is what that costs
+
+**Decided 2026-09-01 by the DRI:** complete M6 and M7, then return to the mentor items. The
+mentor is not readily accessible and schedule is the binding constraint. **This is a decision,
+and it is recorded as one** — the failure mode this table exists to prevent is an item that was
+never decided about, not an item that was.
+
+What it costs, stated rather than discovered later:
+
+- **PRD's OQ-3 decision target was M2.** By M7 it will be five milestones past it. That is a
+  fact about the schedule, not a new risk.
+- **M7 cannot fully close.** Its validation line is *"CR-DOC-1, CR-DOC-2, and every success
+  metric"*, and one success metric (`prd.md`, "Sweep legibility") names **mentor review of the
+  sweep report** as its method. **M7 must state that metric as unmet rather than claim it**, and
+  CR-DOC-2's unexplained-observations section is where OQ-2 and OQ-3 both belong.
+- **The exposure is re-measurement, not rework.** Every number this project holds — M2's twenty
+  runs, M4's 190 pairs, M5's thirty-five parameterised runs — was taken through the invocation
+  E-1 asks about. A different answer would not make them wrong; it would make them measurements
+  of a path the client did not intend, and re-running the campaigns is a few hours of machine
+  time. The code change stays one file, which is why `EngineControl` was shaped that way.
+- **Two things now ride on the unconfirmed answer**, where at M1 there were none: M4 keyed the
+  determinism gate to runs produced this way, and M5 added entity updates published into it
+  before `start`.
+
+**Revisit at:** the close of M7, together with OQ-2, the sweep report and the twenty-run
+campaign — which is a better package to put in front of a reviewer than any single milestone
+was, and is the one upside of having waited.
 
 ---
 
