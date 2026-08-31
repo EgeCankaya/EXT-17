@@ -1,0 +1,143 @@
+# M7 — Evidence and documentation
+
+**Date:** 2026-09-01
+**Milestone:** M7 (the last). [B]'s deliverables 2–5: the README, the committed campaign, the
+recording, and the notes on determinism
+**Validation line, as the PRD writes it:** *"CR-DOC-1, CR-DOC-2, and every success metric."*
+
+> **This milestone does not fully close, and that was decided in advance rather than discovered
+> here.** Two of the things its validation line asks for cannot be produced by this project
+> alone. They are reported as **unmet**, with what is missing and who can supply it, because a
+> metric whose named method did not happen is not a metric that passed. `docs/findings.md` §E
+> recorded this cost when E-1 was deferred; it is carried forward unchanged.
+
+---
+
+## 1. What M7 delivered
+
+| Deliverable | [B]'s words | Status |
+|---|---|---|
+| README | *"how to configure a campaign, how to write an assertion, the output format, and the limits"* | **Done.** Four sections, each named for the topic, indexed from the top |
+| A real campaign | *"its configuration, its captured runs and its report, committed as an example"* | **Done, with one named deviation** — the captures are not committed (F-34); a manifest of each one's size, SHA-256 and read-back counts is |
+| Determinism notes | *"what you had to do to make comparison meaningful, and anything you saw that you could not explain"* | **Done.** `docs/determinism-notes.md`, five unexplained observations |
+| The 5-minute recording | *"launch a campaign, watch it run, read the report"* | **NOT DELIVERED.** Scripted beat by beat in `docs/recording-script.md`; it needs a person |
+
+---
+
+## 2. CR-DOC-1, against its own acceptance criteria
+
+- **All four topics present, each as its own section.** Yes, and each is titled in [B]'s own
+  words so a reader matching the deliverable against the file does not have to interpret. The
+  index at the top of the README maps [B]'s four phrases to the four sections.
+- **The limits section states what the PRD requires it to.** What a pass proves and does not
+  prove given a sampled stream; the determinism gate's content basis and why (ADR-1); the stop
+  predicate; the disk ceiling. It also carries what M5 and M6 measured afterwards — the axis's
+  fidelity ceiling, the gate's refusal rate, what a not-met verdict is entitled to claim, and the
+  one condition [B]'s own example implies that cannot be expressed here.
+- **The CLI is documented by the golden `--help` and the build-time comparison**, not by prose.
+  Four tools, four golden files, four builds that fail on a drift.
+
+**The limits section is the longest in the README, deliberately.** [B] names it last of the four
+and it is the one a reviewer should read first, so it is linked from the top with that said.
+
+---
+
+## 3. CR-DOC-2, and the two halves that are not the same
+
+### The campaign — done, with a deviation that is named rather than quiet
+
+`campaigns/m6-campaign/` holds the configuration, the report, and a manifest. **What it does not
+hold is 527 MB of captures**, and `.gitignore` has excluded captures since this repository's
+first commit for that reason. `MANIFEST.md` carries each capture's byte size, SHA-256 and
+read-back counts, so a number in `docs/m6-assertions.md` traces to a file whose contents are
+pinned even though the file is not in the tree.
+
+**This is F-34 and `docs/decisions-m6-m7.md` B6.** It states what the manifest buys and what it
+does not: it does **not** make a re-run reproducible byte for byte — nothing does, and that is
+this project's central measurement rather than a limitation of the decision.
+
+**One thing M7 improved beyond M6's scope.** The `.gitignore` change admits *any* campaign's
+report, so every prior milestone's evidence is now committed too — M2's twenty runs, M3's
+rotation probes, M4's gate and byte-basis runs, M5's two sweep executions. 1.2 MB in total. Every
+number in every milestone document now traces to a committed record rather than to a directory on
+one machine.
+
+### The recording — not delivered, and not substituted for
+
+`docs/recording-script.md` is the script: every command in order, what to say over each, what the
+screen will show, and — the part that matters — **what not to say**, because three claims are
+easy to overstate on camera and each has a named limit.
+
+**It is not the recording and it is not offered as one.** R10 exists because the equivalent
+deliverable was not delivered upstream, and the failure it names is not lateness — it is
+*substituting a written walkthrough and calling the requirement met*. So the status is stated
+plainly: **outstanding, needs a person and a screen recorder**, and the preparation is done so
+that the remaining work is the recording alone.
+
+---
+
+## 4. The success metrics, reported honestly
+
+| Metric | Target | Result |
+|---|---|---|
+| Unattended campaign length | ≥ 20 runs, zero manual steps | **Met.** 20 runs, one command |
+| Runs surviving an injected infrastructure failure | campaign continues; the run is `infrastructure_error`, not `fail` | **Met**, all four faults, each continuing to the next run |
+| Determinism self-test, content | 100% of compared samples agree | **Met.** 50 361 of 50 361 on the committed campaign's gate; 9 573 667 of 9 573 667 over M2's 190 pairs |
+| Determinism self-test, bytes | expected to FAIL, recorded and explained | **Met as specified** — it fails, and is reported rather than used as the gate |
+| Comparison-path variability introduced by us | zero | **Met**, by a build search and a behavioural test for each hazard, each verified to reject |
+| Gate refusals that are not determinism failures | not zero, and measured | **Met.** ~1 pair in 14 ordinary; 11.4% parameterised; 2 of 20 on the committed campaign |
+| **Sweep legibility** | a result that varies with the parameter, presented so the trend is visible — **measured by mentor review of the sweep report** | **UNMET.** See below |
+| Re-judgement without re-running | a stored campaign re-judged, no host started | **Met.** 20 of 20 byte-identical, 0 verify failures |
+| Diff precision | names the **first** point of divergence | **Met**, on two real runs: segment, `(entity, occupancy)`, `sim_time_s` and field |
+| Peak campaign disk footprint | bounded and stated | **Met.** 8 GiB ceiling, checked before run 1 and after every run |
+
+### Sweep legibility is UNMET, and the reason is not the sweep
+
+**The measurement method this metric names is *mentor review of the sweep report*. No mentor has
+reviewed it.** That is the whole of the failure.
+
+The *artifact* the metric is about exists and is better than the target asks: the committed sweep
+shows a count varying with the parameter, rising 47 → 65 to a peak at 170–190 m/s and falling
+back to 54 at 380 — non-monotone, and drawn so that is visible — plus three conditions whose
+**verdicts** flip at three different thresholds, and a run outcome that flips with them.
+
+**It would be easy and wrong to mark this met on that basis.** The metric does not say "a trend
+is visible"; it says a mentor confirms one is. Substituting the author's own judgement for the
+named method is exactly the move that makes a metrics table worthless, and this table is one of
+the things a reviewer is meant to be able to trust.
+
+**It traces to E-1**, deferred by DRI decision on 2026-09-01, and `findings.md` §E predicted this
+outcome in those words: *"M7 must state that metric as unmet rather than claim it."*
+
+---
+
+## 5. What is still open at the end of the project
+
+Stated here in one place, because the last milestone is where an open item is most likely to
+quietly become a closed one.
+
+| # | What | Whose | Does it block anything? |
+|---|---|---|---|
+| **OQ-2** | Is the determinism gate keyed on content or on bytes? | The owner of [B] | **No.** Both readings ship as selectable gates; a ruling changes a default and no code. **No document here claims [B]'s acceptance criterion 2 as discharged** |
+| **E-1 / OQ-3** | Is this the intended production invocation of the headless host? | The DRI, then the mentor | No. The invocation is measured working. Deferred by decision, with its cost recorded |
+| **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | No |
+| **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | No — and it is the one with a measured operational cost, now including a campaign-level one (R15) |
+| **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | No. The arithmetic is decided here and stated with its constants |
+| **The recording** | [B]'s deliverable 4 | Needs a person | It is the deliverable |
+| **Sweep legibility** | Needs mentor review | The DRI, then the mentor | It is the metric |
+
+**Nothing in that table was discovered at M7.** Every row was open before this milestone began
+and is carried forward with its status unchanged, which is the only honest way to end.
+
+---
+
+## 6. What M7 did *not* do
+
+- **It did not close OQ-2**, and the implementer must not. Re-checked at M7: still unanswered.
+- **It did not deliver or re-raise E-1.** Deferred by DRI decision; M7's job was to carry its cost
+  correctly, which is §4's unmet metric.
+- **It did not record the video**, and did not substitute anything for it.
+- **It did not re-run any campaign to improve an artifact.** `campaigns/m6-gate-refused/` and
+  `campaigns/m5-sweep-first/` are both still there, both still counted.
+- **It did not widen ADR-1's one-machine scope**, and no document claims [B]'s *"every machine"*.
+- **It did not add a requirement, weaken one, or relax a provenance marker.**
