@@ -1,0 +1,39 @@
+n8ro-capture - EXT-17 conformant reader for n8ro-capture/1
+
+usage: n8ro-capture read <capture-file> [options]
+       n8ro-capture read-set <first-part-file> [options]
+       n8ro-capture campaign <campaign-dir> [options]
+       n8ro-capture --help
+
+commands:
+  read                     read one capture file and report on it.
+  read-set                 read a rotated capture as the set it is, following
+                           trailer.continued_in from the named first part. A capture
+                           that was never rotated reads as a one-part set.
+  campaign                 read every run's capture under <campaign-dir>/runs/NNN.
+
+options:
+  --quiet                  one line per capture; omit the header, trailer and segment
+                           detail. The verdict and the diagnostics are still printed.
+  --no-verify-fields       skip checking each sample's fields against the header's
+                           schema: undeclared keys, declaration order, encoding by
+                           declared type, array lengths. Faster, and less of a check.
+  --max-diagnostics <n>    keep at most n entries per diagnostic code. Default 8. The
+                           counts are never capped, only the listed entries.
+  --help                   this text.
+
+what it reports:
+  Every statistic is scoped to a segment, and the segment it belongs to is named as the
+  pair (part, segment) - ordinals restart at 0 in every part of a rotated set. A
+  segment's clock is one of three values, never two: running (the format's exact test
+  fired and the maximum samples any one (entity, occupancy) carries at a single
+  sim_time_s is 1), frozen (that maximum is greater than 1, so the segment cannot be
+  aligned against another run at all), or indeterminate (too few samples for the test
+  to fire - which is what an empty teardown segment is, and calling it running would
+  assert the result of a test that never ran).
+
+exit codes:
+  0  every capture read is conformant
+  1  a capture was read and something was found wrong with it
+  2  a capture was rejected - unreadable, not a capture, or a format_version this
+     reader does not implement - or a usage error

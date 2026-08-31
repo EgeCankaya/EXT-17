@@ -73,6 +73,29 @@ struct RunRecord {
 
     std::string capturePath;
     std::optional<std::uint64_t> captureBytes;
+    // Every part of a rotated set, in name order; one entry for an ordinary capture. A run's
+    // capture is a set of files when --on-size-limit is rotate (format 6.7).
+    std::vector<std::string> captureParts;
+    std::uint64_t captureTotalBytes = 0;
+
+    // What the campaign's own reader made of the capture it just produced. This is the M3
+    // deliverable used on the run it was built for, and it exists to answer one question the
+    // run record could not otherwise answer: **does this capture cover the run?**
+    //
+    // With --on-size-limit stop, a run that overruns its byte bound yields a capture that is
+    // complete, valid and a third of the run - and the run still reaches its stop predicate and
+    // still reports `completed`. Measured at M3: a 1200-frame run bounded at 8 MB recorded to
+    // sim_time_s 19.5 of 60.0, conformantly. Nothing outside the file said so. A stored run that
+    // M6 will later judge has to state its own coverage, or the judgement is of a third of a run
+    // reported as the whole of one.
+    bool captureRead = false;
+    std::string captureEndReason;
+    bool captureCoversWholeRun = false;
+    bool captureConformant = false;
+    std::string captureDiagnostics;      // "" when there were none
+    long long captureSamples = 0;
+    long long captureSegmentKeys = 0;
+    long long captureRunSegments = 0;   // segment keys minus those cut by a rotation
     bool recorderAttached = false;
     std::uint64_t captureMaxBytes = 0;
     std::string onSizeLimit;

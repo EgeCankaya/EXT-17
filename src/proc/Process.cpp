@@ -405,4 +405,38 @@ std::string baseName(const std::string& path) {
     return slash == std::string::npos ? path : path.substr(slash + 1);
 }
 
+std::string absolutePath(const std::string& path) {
+    char buf[MAX_PATH * 4];
+    const DWORD n = GetFullPathNameA(path.c_str(), static_cast<DWORD>(sizeof buf), buf, nullptr);
+    if (n == 0 || n >= sizeof buf) return path;
+    return std::string(buf, n);
+}
+
+std::optional<std::uint64_t> freeSpaceBytes(const std::string& path) {
+    ULARGE_INTEGER available{};
+    if (!GetDiskFreeSpaceExA(path.c_str(), &available, nullptr, nullptr)) return std::nullopt;
+    return static_cast<std::uint64_t>(available.QuadPart);
+}
+
+std::uint64_t directorySizeBytes(const std::string& dir) {
+    std::uint64_t total = 0;
+    WIN32_FIND_DATAA find{};
+    const HANDLE h = FindFirstFileA((dir + "\\*").c_str(), &find);
+    if (h == INVALID_HANDLE_VALUE) return 0;
+    do {
+        const std::string name = find.cFileName;
+        if (name == "." || name == "..") continue;
+        if (find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            total += directorySizeBytes(dir + "\\" + name);
+        } else {
+            ULARGE_INTEGER size{};
+            size.LowPart = find.nFileSizeLow;
+            size.HighPart = find.nFileSizeHigh;
+            total += size.QuadPart;
+        }
+    } while (FindNextFileA(h, &find));
+    FindClose(h);
+    return total;
+}
+
 } // namespace ext17::proc

@@ -43,12 +43,29 @@ processes:
                            recorded in run.json; there is simply no capture.
   --sim-config-host <e>    host-side config entry. Default SimEngineHost_SharedMemory.
   --sim-config-client <e>  client-side config entry. Default SimEngineClient_SharedMemory.
-  --capture-max-bytes <n>  per-capture byte bound, passed to the recorder. Default 0,
-                           meaning unbounded. A campaign-level ceiling is not this;
-                           see OQ-6.
-  --on-size-limit <a>      stop (default) or rotate, on reaching --capture-max-bytes.
-                           rotate makes a run's capture a set of files whose segment
-                           ordinals restart in every part.
+  --capture-max-bytes <n>  per-capture byte bound, passed to the recorder. Default:
+                           61000 x --frames, which is three times the measured
+                           per-frame capture cost - a bound that does not fire on
+                           a normal run and does fire on a runaway. Pass 0 for
+                           unbounded. A campaign-level ceiling is not this; that
+                           is --disk-ceiling-bytes below.
+  --on-size-limit <a>      stop (default, and OQ-6's decision) or rotate, on reaching
+                           --capture-max-bytes. rotate keeps the run's tail and makes
+                           the capture a SET of files whose segment ordinals restart
+                           in every part - measured at M3 to turn one run's two
+                           segments into five (part, segment) keys. stop keeps one
+                           file per run and loses the tail, and says so in the file
+                           and in run.json's capture.covers_whole_run.
+
+disk (CR-CAP-5; the upstream bound above is per file, this one is per campaign):
+  --disk-ceiling-bytes <n> ceiling over the WHOLE campaign directory, captures and logs
+                           together. Default 8589934592 (8 GiB). Checked against free
+                           space before run 1 and against actual usage after every run;
+                           reaching it stops the campaign with a named outcome and
+                           leaves every completed run valid. 0 disables the ceiling.
+  --bytes-per-frame <n>    the projection used by the pre-flight check. Default 25400,
+                           measured over M2's twenty runs: 24.3 MB of capture plus
+                           5.4 MB of host log per 1200-frame run.
 
 environment (both are measured preconditions, not preferences):
   --n8ro-release <dir>     N8RO_RELEASE for the child processes. Default C:\N8RO.
@@ -66,5 +83,6 @@ other:
 
 exit codes:
   0  every run completed - the stop predicate was satisfied and teardown was clean
-  1  at least one run did not complete (timeout or infrastructure error)
+  1  at least one run did not complete (timeout or infrastructure error), or the
+     campaign stopped at its disk ceiling
   2  usage or configuration error; no run was attempted

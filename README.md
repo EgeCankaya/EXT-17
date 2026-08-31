@@ -3,10 +3,11 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
-**Status: milestone 2 of 7.** What exists today is the execution half — one run, automated, with
-an explicit end and a bounded timeout, repeatable unattended. There is no capture reader (M3),
-no determinism self-test (M4), no parameterisation sweep (M5), and no assertions or campaign
-report (M6). `n8ro-campaign` therefore reports three outcomes rather than four; see
+**Status: milestone 3 of 7.** What exists today is the execution half and the reading half: one
+run, automated, with an explicit end and a bounded timeout, repeatable unattended — and a
+conformant reader for the capture format that **links nothing at all**. There is no determinism
+self-test (M4), no parameterisation sweep (M5), and no assertions or campaign report (M6).
+`n8ro-campaign` therefore reports three outcomes rather than four; see
 [The four outcomes](#the-four-outcomes).
 
 The binding contract is `docs/prd.md`, which is itself written against the client brief. The
@@ -54,16 +55,25 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
 
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
+tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
 tests\build.cmd                    ->  builds and runs the tests
 ```
 
 `tests\build.cmd` links nothing and needs no N8RO install — it covers the parts whose
-correctness is about our own output rather than about the platform.
+correctness is about our own output rather than about the platform, and, since M3, the capture
+reader, whose correctness is about somebody else's bytes.
 
-The build ends by running the binary's own `--help` and comparing it against
-`tools\n8ro-campaign\help.golden.txt`. A drift fails the build. This is deliberate: the PRD does
-not enumerate the option list in prose, because a list nobody executes is exactly what drifted in
-the sibling project. **The golden file is the CLI's specification.**
+**`tools\n8ro-capture\build.cmd` needs no N8RO install either, and that is the point.** Look at
+its compile line: no `/I`, no `/LIBPATH`, no `.lib`. The reader links neither EXT-08 nor the SDK,
+and a build script anyone can read in ten seconds is a better proof of that than an argument
+about translation units. The build then searches its own sources for the SDK's and the producer's
+names, and for any global sort of a capture, and fails on a hit.
+
+Each build ends by running its binary's own `--help` and comparing it against the golden file
+beside it — `tools\n8ro-campaign\help.golden.txt`, `tools\n8ro-capture\help.golden.txt`. A drift
+fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
+a list nobody executes is exactly what drifted in the sibling project. **The golden file is the
+CLI's specification.**
 
 ## Two environment preconditions, both measured
 
@@ -93,6 +103,23 @@ n8ro-campaign repeat --count 20 --out-dir campaigns\twenty --recorder <...> --fr
 
 `n8ro-campaign --help` is the authority for the options.
 
+## Reading a capture back
+
+```
+n8ro-capture read      <capture-file>       one capture
+n8ro-capture read-set  <first-part-file>    a rotated capture, as the set it is
+n8ro-capture campaign  <campaign-dir>       every run's capture under <dir>/runs/NNN
+```
+
+Exit `0` if every capture read is conformant, `1` if something was found wrong with one, `2` if
+one was rejected — unreadable, not a capture, or a `format_version` this reader does not
+implement. `n8ro-capture --help` is the authority for the options.
+
+It reads a 24 MB, 50 573-line capture in 0.24 s and a twenty-run campaign in 4.7 s.
+
+`n8ro-campaign` also reads back each capture as it produces it, and writes what it found into
+`run.json` — see [What a run produces](#what-a-run-produces).
+
 ## What a run produces
 
 ```
@@ -103,6 +130,8 @@ n8ro-campaign repeat --count 20 --out-dir campaigns\twenty --recorder <...> --fr
     000/
       run.json                     the per-run record
       capture-<scenario>-000.n8rocap.jsonl
+                                   one file per run under --on-size-limit stop; under
+                                   rotate, also .partNNN siblings, listed in run.json
       host.out  host.err           the host's streams
       host-logger.log              this run's slice of the host's shared log
       recorder.out  recorder.err
@@ -117,10 +146,83 @@ held, the timeout and whether it expired, every wait with its bound, and every p
 pid and exit code. Everything in it that varies between identical runs is fenced inside one
 `diagnostics` object which says, in the file, that it is excluded from every comparison.
 
+Since M3 it also carries what this project's own reader made of the capture, read back
+immediately, on the run that produced it:
+
+```json
+"capture": {
+  "parts": ["capture-atacama-air-defense-000.n8rocap.jsonl"],
+  "end_reason": "host_lost",
+  "covers_whole_run": true,
+  "conformant": true,
+  "samples": 50401, "segment_keys": 2, "run_segments": 2
+}
+```
+
+**`covers_whole_run` is the one to read.** `false` means the recorder stopped at its byte bound
+before the run did: the capture is complete and valid and does **not** cover the whole run.
+Anything computed from it is over the part of the run that was recorded. Measured at M3 — a
+1200-frame run bounded at 8 MB recorded to `sim_time_s` 19.5 of 60.0, conformantly, and nothing
+outside the file said so until this field existed.
+
+**A run that was asked to record and produced no capture is an `infrastructure_error`**, not a
+completed run. It reached its stop predicate and it recorded nothing, so there is nothing to
+judge or compare later, and reporting it as completed would be reporting a number that is wrong.
+
 **A non-zero host exit code is normal.** The engine's command vocabulary is closed at
 `start` / `stop` / `pause` / `step` — there is no shutdown command, so the host is ended with a
 console control event, and Windows reports `3221225786` (`0xC000013A`) for that. The host still
 shuts down in an orderly way. `terminated_by: "handle"` in the record is the case to look at.
+
+## Disk — the ceiling, and what it is measured over
+
+**The ceiling is `8 GiB` over the whole campaign directory** — captures *and* logs — and reaching
+it stops the campaign with a named outcome, leaving every completed run valid and readable.
+`--disk-ceiling-bytes 0` disables it, deliberately and visibly.
+
+This is CR-CAP-5, and it is still this project's own concern because **the upstream bound is per
+capture file**: a per-file bound multiplied by twenty is not a campaign bound.
+
+**The projection is measured, not estimated.** One 1200-frame run costs **29 788 003 bytes**:
+
+| | bytes | |
+|---|---:|---|
+| the capture | 24 297 928 | 81.6% |
+| `host-logger.log` | 2 849 933 | this run's slice of the host's shared log |
+| `host.err` | 2 559 540 | the terrain-error flood the install is expected to produce |
+| the rest | 80 602 | |
+| **total** | **29 788 003** | **24 823 bytes per frame** |
+
+**The ceiling is over the directory rather than over the captures, and that is the point.** A
+projection built from capture size alone under-states a campaign by **22.6%**. A campaign that
+passed a capture-only pre-flight check could still exhaust the disk on logs, which is the failure
+this requirement exists to prevent. Cross-checked against M2's twenty runs: 595 590 013 bytes of
+campaign directory against 486 359 759 of captures — a projection from the captures alone
+under-states it by 22.5%. The two agree to a tenth of a percent.
+
+At [B]'s scale a 200-second run is 4 000 frames, **~99 MB**, and a twenty-run campaign is
+**~1.99 GB**. The 8 GiB ceiling is four times that: large enough that no legitimate campaign meets
+it, small enough to catch a runaway early.
+
+Checked **twice**, and the second is not redundant with the first:
+
+- **Before run 1** — the projection (`--bytes-per-frame`, default 25 400) against the ceiling and
+  against free space. A refusal names both numbers and creates no run directory at all.
+- **After every run** — actual usage against the ceiling. A projection is an estimate, and a run
+  that overruns is a run whose estimate was wrong.
+
+**Per run, the upstream bound is `--on-size-limit stop`**, with `--capture-max-bytes` defaulting
+to `61 000 × --frames` — three times the measured per-frame capture cost, so the bound exists on
+every run and does not fire on a normal one. A run that reaches it has overrun its projection
+rather than merely run, and says so in `covers_whole_run`.
+
+`rotate` was **exercised, not merely declined**: a real four-part capture, stitched and read back
+conformantly. It works completely. It was not chosen because a rotated run's two segments become
+five `(part, segment)` keys, four of which are fragments of one segment that nothing in any file
+identifies as such — a cost every per-segment statistic downstream would pay on every run, whether
+or not any run ever rotates. The full comparison is in [`docs/m3-oq6.md`](docs/m3-oq6.md). **The
+reader supports rotation regardless**, because a capture rotated by somebody else still has to be
+readable here.
 
 ## The four outcomes
 
@@ -136,9 +238,51 @@ there are three, because nothing judges a run yet:
 Exit code: `0` if every run completed, `1` if any did not, `2` for a usage error before any run
 was attempted.
 
+## The capture format, and the one thing that is never negotiable
+
+The reader implements **`n8ro-capture/1`** and is written from `contract/capture-format-v1.md`
+alone. Two rules govern how it meets a file it was not expecting, and they pull in opposite
+directions on purpose:
+
+> **A `format_version` it does not implement is rejected with a named error and no partial parse.**
+> **A key it does not recognise, inside a record type it does recognise, is ignored.**
+
+Reject on the **version**; ignore unknown **keys**. That is the entire compatibility mechanism and
+it is deliberately blunt: partial parsing of an unknown format is how silently-wrong analysis
+happens, and a campaign runner's whole output is analysis.
+
+It is also why the version has held across three producer releases while `contract/` drifted twice
+— 0.8.0 added `header.sample_form`, 0.9.0 added four more keys, and neither moved the version. The
+conformance suite tests both halves: a version-bumped file is rejected after **one line**, and a
+file carrying four keys from a producer that does not exist yet reads identically to the original.
+
+Absence is reported as absence throughout. A missing `sample_form` is *unknown*, never
+`"predicted"`; missing `limits` is *unknown*, never "unbounded"; a missing counter is *unknown*,
+never zero. "All zeros" and "we were not told" are different claims.
+
+**Every statistic is scoped to a segment, and the segment is named as the pair `(part, segment)`**
+— ordinals restart at 0 in every part of a rotated set. An entity's identity is
+`(entity, occupancy)` everywhere, never the name: the engine re-creates entities under names it
+has already used, both mid-run and at teardown.
+
+**A segment's clock is one of three values, never two.** `running` — the format's exact test fired
+and passed. `frozen` — it fired and failed; the segment cannot be aligned against another run at
+all. `indeterminate` — **it could not fire**, because no key repeated a `sim_time_s`. That third
+value exists because M2 measured segment 1 empty in 15 of 20 runs and this project met the other
+shape too: 42 samples, one per entity, all at `sim_time_s` 0.0. A boolean has to call both of
+those "running", which is asserting the result of a test that never ran. `frozen` and
+`indeterminate` are both excluded from comparison; only `running` is comparable, and it is
+comparable *because* the test fired.
+
+**Conformance is checked by 78 checks over four tiers** (`tests\build.cmd`): the vendored fixture
+untouched; five mutations and one positive one generated into the build tree — never into
+`contract/`, which is read-only; 17 synthetic micro-captures, one rule each; and all twenty of
+M2's real producer-0.9.0 captures, read with the same reader, skipped **with a printed message**
+when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-reader.md).
+
 ## Limits — what a result here does and does not prove
 
-Partial at M2; CR-DOC-1 requires the full version at M7.
+Partial at M3; CR-DOC-1 requires the full version at M7.
 
 - **The capture is a high-fidelity sample of the published stream, not a transcript, and no
   counter reports the difference.** Measured in this project's own runs: samples go missing with
@@ -157,6 +301,23 @@ Partial at M2; CR-DOC-1 requires the full version at M7.
   `TerrainElevationServiceClient` / `GeoidGridModel` / `requestGoTo 'agl'` errors. This is
   deliberately not fixed: every measurement inherited from EXT-08 was taken in this
   configuration, and provisioning terrain would invalidate the comparability of all of it.
+- **A conformant capture is not a complete one, and a complete one need not cover its run.**
+  `n8ro-capture` reporting `CONFORMS` means the file is internally consistent and agrees with its
+  own trailer. It says nothing about what the bus delivered — see the first bullet — and nothing
+  about how much of the run it covers. A capture bounded by `--capture-max-bytes` under
+  `--on-size-limit stop` is complete, valid, conformant and possibly a third of a run; measured at
+  M3 at `sim_time_s` 19.5 of 60.0. `run.json`'s `capture.covers_whole_run` is the field that says
+  which, and it is a precondition on anything computed from the file, not a footnote.
+- **The reader is checked against one producer's output and one specification.** Thirty real
+  captures, every one written by `n8ro-bridge` — twenty-nine at producer 0.9.0 and the vendored
+  fixture at 0.5.0 — plus the mutants and micro-captures the conformance suite writes itself.
+  Nothing here has met a capture from a second producer, and "conformant" means "agrees with
+  `contract/capture-format-v1.md` as this project reads it".
+- **One imprecision in that specification has been found and not worked around.** §6.7 says a
+  rotated run's totals are the sum across its parts; for `segments` that is false, because a
+  segment cut by a rotation is closed in one part and opened in the next. Measured: 5 summed for a
+  2-segment run. It is raised with EXT-08 as E-3, and the reader reports both numbers and names
+  the gap rather than picking one silently.
 - **The headless invocation is not yet confirmed.** It is measured working; whether it is the
   *intended* production shape is OQ-3, open, in `docs/escalations.md`.
 
@@ -168,8 +329,11 @@ Partial at M2; CR-DOC-1 requires the full version at M7.
   host and the recorder are driven as processes.
 - **`C:\N8RO` is read-only.** Nothing here writes into the install tree. The host writes its own
   log there; the campaign copies out of it and never into it.
-- **The SDK is linked in exactly one place**, `src/control/`. The capture reader (M3) will link
-  nothing at all.
+- **The SDK is linked in exactly one place**, `src/control/`, and **the capture reader links
+  nothing at all** — checked on every build of it, twice: once for the SDK's and the producer's
+  names, once for any global sort of a capture. `n8ro-campaign` links the reader, which is the
+  allowed direction; the requirement is that the reader links no SDK, not that nothing linking the
+  SDK may link the reader.
 
 ## Layout
 
@@ -178,11 +342,13 @@ Partial at M2; CR-DOC-1 requires the full version at M7.
 | `src/proc/` | Child process supervision. Started, and ended, by handle |
 | `src/control/` | The control path. The one place the N8RO SDK is linked |
 | `src/run/` | The stop predicate, the run record, and the run itself |
-| `src/common/` | Logging and a JSON writer with no run-to-run variation in it |
+| `src/capture/` | The conformant reader for `n8ro-capture/1`. Links nothing |
+| `src/common/` | Logging, a JSON writer with no run-to-run variation in it, and an order-preserving JSON parser |
 | `tests/` | Tests that link nothing and need no install. `tests\build.cmd` builds and runs them |
-| `tools/n8ro-campaign/` | The CLI, and its golden `--help` |
+| `tools/n8ro-campaign/` | The execution CLI, and its golden `--help` |
+| `tools/n8ro-capture/` | The reader CLI, and its golden `--help`. Its build script is the boundary's proof |
 | `tools/spike-axis/` | M2's R9/OQ-4 feasibility spike. Evidence, not product |
-| `tools/m2-checks/` | Throwaway analysis scripts. **Not** the capture reader; M3 builds that |
+| `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind `docs/m1-lifecycle.md` |
 | `contract/` | Vendored from EXT-08. Read-only |
 | `docs/` | The PRD, the milestone records, and the escalations |
