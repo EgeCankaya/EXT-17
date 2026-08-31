@@ -1,0 +1,70 @@
+n8ro-campaign - EXT-17 headless campaign runner (milestone 2: execution only)
+
+usage: n8ro-campaign run-once --out-dir <dir> [options]
+       n8ro-campaign repeat --out-dir <dir> --count <n> [options]
+       n8ro-campaign --help
+
+commands:
+  run-once                 execute one run into <out-dir>/runs/<run-id>.
+  repeat                   execute --count runs of one configuration, continuing past a
+                           run that fails, and write a campaign summary.
+
+the run:
+  --out-dir <dir>          campaign directory. Runs land in <dir>/runs/NNN. Required.
+  --scenario <name>        scenario to load. Default "Atacama Air Defense".
+  --model-name <name>      model the scenario lives in. Default N8roSimSchema.
+  --model-path <dir>       schema and instance database. Default C:\N8RO\data\db.
+  --schema-file <name>     schema name inside that database. Default N8roSimSchema.
+  --count <n>              repeat only: how many runs. Default 20.
+  --first-run <n>          repeat only: ordinal of the first run. Default 0.
+
+the end of a run:
+  --frames <n>             stop predicate: a run is finished when the engine's frame
+                           number, as published on sim/engine/state, reaches n.
+                           Default 1200. No wall-clock quantity participates.
+  --run-timeout-ms <n>     backstop, never the definition of the end. A run that hits it
+                           is reported as timeout - its own outcome, neither pass nor
+                           fail. There is no way to run unbounded. Default 600000.
+
+bring-up timeouts (each bounds one observed condition; none is a delay):
+  --ready-timeout-ms <n>   host publishes engine state. Default 60000.
+  --load-timeout-ms <n>    scenario reports loaded. Default 120000.
+  --start-timeout-ms <n>   engine reports running. Default 30000.
+  --stop-timeout-ms <n>    engine leaves running after stop. Default 30000.
+  --host-exit-timeout-ms <n>      host exits after being asked. Default 20000.
+  --recorder-exit-timeout-ms <n>  recorder closes its capture after host loss, which it
+                           detects after 3.0 s of engine-state silence. Default 30000.
+
+processes:
+  --host-exe <path>        headless host. Default C:\N8RO\bin\n8ro-sim-app.exe.
+  --recorder <path>        capture recorder, driven as a process. Required unless
+                           --no-recorder.
+  --no-recorder            run without recording. The run still executes and is still
+                           recorded in run.json; there is simply no capture.
+  --sim-config-host <e>    host-side config entry. Default SimEngineHost_SharedMemory.
+  --sim-config-client <e>  client-side config entry. Default SimEngineClient_SharedMemory.
+  --capture-max-bytes <n>  per-capture byte bound, passed to the recorder. Default 0,
+                           meaning unbounded. A campaign-level ceiling is not this;
+                           see OQ-6.
+  --on-size-limit <a>      stop (default) or rotate, on reaching --capture-max-bytes.
+                           rotate makes a run's capture a set of files whose segment
+                           ordinals restart in every part.
+
+environment (both are measured preconditions, not preferences):
+  --n8ro-release <dir>     N8RO_RELEASE for the child processes. Default C:\N8RO.
+                           Without it the host skips its plugin scan, never registers
+                           componentPhysics, and refuses every 42-entity scenario load
+                           while sitting idle rather than failing.
+  --path-prepend <dir>     prepended to PATH for the child processes, and needed by this
+                           binary too. Default C:\N8RO\bin. Without it an SDK-linked
+                           binary does not load at all.
+
+other:
+  --query-catalogue        query the scenario catalogue over the bus during bring-up and
+                           log what it answers.
+  --help                   this text.
+
+exit codes:
+  0  every run completed - the stop predicate was satisfied and teardown was clean
+  1  at least one run did not complete (timeout or infrastructure error)
+  2  usage or configuration error; no run was attempted

@@ -1,0 +1,45 @@
+@echo off
+rem EXT-17 M2 - build n8ro-campaign. Release, x64, C++17.
+rem Links the N8RO SDK only: n8ro-sim + n8ro-core. No EXT-08 anything.
+rem
+rem The build ends by comparing the binary's own --help against help.golden.txt. That comparison
+rem is the mechanism the PRD names as keeping the CLI authority table true: the document does not
+rem enumerate the options, the golden file does, and a drift fails the build rather than an audit.
+setlocal
+call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat" >nul
+if errorlevel 1 exit /b 1
+
+set ROOT=%~dp0..\..
+set OUT=%ROOT%\build\n8ro-campaign
+if not exist "%OUT%" mkdir "%OUT%"
+
+cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
+   /I "C:\N8RO\include\n8ro-sim" /I "C:\N8RO\include\n8ro-core" ^
+   "%ROOT%\src\common\Log.cpp" ^
+   "%ROOT%\src\common\Json.cpp" ^
+   "%ROOT%\src\proc\Process.cpp" ^
+   "%ROOT%\src\control\EngineControl.cpp" ^
+   "%ROOT%\src\run\StopPredicate.cpp" ^
+   "%ROOT%\src\run\RunRecord.cpp" ^
+   "%ROOT%\src\run\RunOnce.cpp" ^
+   "%~dp0main.cpp" ^
+   /Fe:"%OUT%\n8ro-campaign.exe" /Fo:"%OUT%\\" ^
+   /link /LIBPATH:"C:\N8RO\lib" n8ro-sim.lib n8ro-core.lib
+if errorlevel 1 exit /b 1
+
+rem --- CLI authority check: --help must match the golden file, byte for byte -----------------
+set PATH=C:\N8RO\bin;%PATH%
+"%OUT%\n8ro-campaign.exe" --help > "%OUT%\help.actual.txt"
+if errorlevel 1 (
+  echo BUILD FAILED: n8ro-campaign --help did not run
+  exit /b 1
+)
+fc /n "%~dp0help.golden.txt" "%OUT%\help.actual.txt" >nul
+if errorlevel 1 (
+  echo BUILD FAILED: --help does not match tools\n8ro-campaign\help.golden.txt
+  echo Update the golden file deliberately, or fix the option list.
+  fc /n "%~dp0help.golden.txt" "%OUT%\help.actual.txt"
+  exit /b 1
+)
+echo n8ro-campaign: built, and --help matches the golden file.
+exit /b 0

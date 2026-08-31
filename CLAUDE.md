@@ -81,9 +81,33 @@ it stays one file. Prefer `stop` unless there is a reason not to — see PRD OQ-
   stock `bin\plugins\sim\n8ro-physics.dll`), and **refuses every 42-entity scenario load** — while
   sitting idle rather than failing. `contract/PROVENANCE.md` finding 6 omits it; that is the
   contract's to correct, not ours. See `docs/m1-lifecycle.md` §7(a).
+- **`C:\N8RO\bin` must be on `PATH`** for any binary of ours that links the SDK — it is where
+  `n8ro-sim.dll` and `n8ro-core.dll` resolve from, and there is nowhere else. Measured at M2: a
+  client launched from a scratch directory without it exits 53 having produced no output at all,
+  which reads like a crash and is a missing DLL. This is a **second, separate** precondition from
+  `N8RO_RELEASE`; setting one does not cover the other. `n8ro-campaign` sets both for its
+  children and needs `PATH` itself.
 - **Run any N8RO binary from a scratch directory.** `n8ro-sim-local.exe` writes a per-entity
   JSONL dump into its working directory, and `n8ro-sim-app.exe` creates `data/db/` and `logs/`
   there — it did so in this repo's root during M1 before the rule was known.
+- **The host keeps its real log in the install tree, and appends to it across runs.**
+  `C:\N8RO\logs\n8ro-logger-n8ro-sim-app.log` is one fixed filename that every host process
+  **appends** to, so after twenty runs it holds all twenty (measured at M2: two identical runs
+  produced a file of exactly twice one run's size, carrying two startup banners). Two
+  consequences: redirected stderr is not a reliable record of a run — the same run wrote 5 777
+  navigation errors to the log and, under PowerShell's redirection, three lines to `host.err` —
+  and a campaign that wants one log per run must record the file's size before starting the host
+  and copy only the bytes after it. `n8ro-campaign` does exactly that (`host_logger_offset` in
+  each run record). A `.running` marker sits beside it, and an unclean exit makes the *next* host
+  start rename the previous log as `.crash-<timestamp>.log`.
+- **There is no shutdown command; ending the host is a process signal.** `sim/engine/command`'s
+  vocabulary is closed at `start` / `stop` / `pause` / `step`
+  (`docs/modules/n8ro-sim/dev/engine-lifecycle-and-control.md`). Measured at M2: a
+  `CTRL_BREAK_EVENT` to the host's own process group shuts it down in an orderly way — the
+  `.running` marker is removed and no crash rename follows — but Windows still reports exit
+  `0xC000013A` (`STATUS_CONTROL_C_EXIT`), so **a non-zero host exit code is the normal case here
+  and is not evidence of a crash**. `TerminateProcess` leaves the marker behind and does cause
+  the crash rename, so prefer the control event and keep termination-by-handle as the fallback.
 - The install ships **no geoid grid and no elevation service**, so every run floods with
   `TerrainElevationServiceClient` / `GeoidGridModel` errors. **Do not fix this.** Every
   measurement inherited from EXT-08 was taken in this configuration; provisioning terrain would
