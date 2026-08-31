@@ -90,4 +90,10 @@ struct ParseError {
 // of a capture is exactly one object (§2), so anything after it is a malformed line.
 bool parse(const std::string& text, Value& out, ParseError& err);
 
+// Text to double through the C locale explicitly, never through the ambient one. This is the
+// parser's own conversion, exported at M5 so that the axis reads a declared value the same way
+// the reader reads a captured one - CR-DET-2's locale hazard has exactly one implementation
+// here, and `tools/n8ro-compare/build.cmd` searches for any other spelling of it.
+double toDoubleCLocale(const std::string& text);
+
 } // namespace ext17::json

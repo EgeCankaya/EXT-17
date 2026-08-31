@@ -51,6 +51,8 @@ double parseDoubleCLocale(const std::string& text) {
 
 } // namespace
 
+double toDoubleCLocale(const std::string& text) { return parseDoubleCLocale(text); }
+
 class Parser {
 public:
     Parser(const std::string& text, ParseError& err) : s_(text), err_(err) {}

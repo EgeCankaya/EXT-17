@@ -139,6 +139,24 @@ void SelfTestResult::writeMembers(json::Writer& w) const {
     w.member("outcome", std::string(toString(outcome)));
     w.member("detail", detail);
 
+    // CR-PAR-1's third criterion, made visible in the gate's own document. When the campaign
+    // declares an axis, the gate runs at ONE of its values and what it establishes is about
+    // that value - a reader of this file must not be able to mistake it for a claim about the
+    // whole sweep. Absent when there is no axis, so an unparameterised campaign's self-test
+    // document is byte-identical to what M4 wrote.
+    if (!runA.parameterName.empty()) {
+        w.beginObject("parameter");
+        w.member("axis", runA.parameterName);
+        w.member("value", runA.parameterValueText);
+        w.member("both_runs_at_this_value", runA.parameterValueText == runB.parameterValueText);
+        w.member("establishes",
+                 std::string("determinism AT THIS VALUE. Both self-test runs are copies of one "
+                             "configuration, so they are a valid pair (CR-PAR-1). A sweep's other "
+                             "values are not gated: this is one determinism claim at a named "
+                             "point, not one per run."));
+        w.endObject();
+    }
+
     // The deviation, stated in the machine-readable record and not only in the prose. A campaign
     // report that a reader takes at face value has to carry the fact that its gate is not the
     // gate the brief asked for and that the question is open.

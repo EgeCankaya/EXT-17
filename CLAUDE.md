@@ -78,6 +78,62 @@ Four things about the comparison that are already right and are easy to break:
    failure. **Do not add a retry.** The refusal names which shape it found; the imprecision in
    §5.1 went back to EXT-08 as E-4.
 
+## The one parameterisation axis, since M5 — and the cost it carries
+
+**OQ-4 is decided: [B]'s first axis, *initial positions and velocities*, as one declared scalar
+applied to named entities before `start`.** Decided by exercising a range rather than by arguing
+from M2's feasibility result — `docs/m5-oq4.md`, 18 probe runs. It beat "which scenario from the
+catalogue" on **ordering** (the catalogue enumerates fine — 10 scenarios, 119 ms, asynchronous —
+but a name has no order, and CR-PAR-2 asks for a *trend*), and "which entities are present" on
+CR-AS-4.
+
+It acts through `RunConfig::afterLoadBeforeStart`, the seam M2 built. **There is no second
+mechanism and there must not be**: a parameter applied anywhere else is a parameter the run
+record does not know about.
+
+Five things that are already right here and are easy to break:
+
+1. **The declared TEXT of a value is authoritative and the double is derived.** `27.5` reaches
+   `run.json` and the report as `27.5`. The double publishes the value and orders the sweep, and
+   is never printed. This is M4's rule (the comparison never converts a number for a decision)
+   applied to the parameter — **do not introduce a formatted double on the report path.**
+2. **Entities are named, never matched. There is no glob.** Resolving one would mean subscribing
+   the control path to `sim/entity/state`, which perturbs the publication schedule the
+   determinism gate measures. Instead, the capture read-back checks each named entity carried a
+   sample, and `run.json` lists any that did not — a publish returning true says the message
+   reached the bus and nothing about whether anything received it.
+3. **A campaign file inverts `contract/`'s unknown-key rule, deliberately.** The capture format
+   says ignore an unrecognised key (§13) and the reader does exactly that. A campaign file is
+   ours and a person wrote it, so an unknown key is **refused** — `"value"` for `"values"` would
+   otherwise be a sweep that silently did not happen. A key beginning with `_` is a comment.
+4. **The gate runs at ONE declared value and establishes determinism for that value.** Both
+   self-test runs are copies of one `RunConfig`, which is what makes them a valid pair rather
+   than an arrangement (measured: 4 runs at one value, all 6 pairings, 293 576 samples, zero
+   differing). **Two runs at different values are never compared** — measured negative control:
+   two runs 0.1 m/s apart correctly fail the gate with 33 546 differing samples.
+5. **The sweep's result column is a count read off a capture, not a verdict.** No condition
+   exists until M6. `adds` is the column to read a trend from because M2 measured the roster
+   lifecycle agreeing exactly across twenty identical runs; `samples` carries the platform's
+   0.38% publication spread and `adds` does not.
+
+**And the cost, which is not hidden anywhere and must not be traded away.** The axis acts before
+`start`, so it can land between two publications of the start-up roster burst — making segment 0
+`frozen` with repeated values that **differ**. That is a *third* shape through §5.1's one test
+(a reset clock, a duplicated publication with identical values, and this), and the only one this
+project causes. Measured **4 of 35** parameterised runs (11.4%) against R12's 1 of 27 ordinary
+ones (3.7%), consistent across two independent batches: elevated on a sample that supports a
+direction and not a number, and recorded that way. **The exclusion is not
+relaxed, there is still no retry, and this strengthens E-4 rather than opening a new
+escalation.** A mitigation exists and was deliberately not taken — applying the parameter after
+`start` at frame ≥ 1 avoids the burst entirely (M2's `p2b`), but then the axis is "state at
+frame 1" and [B]'s axis is *"initial positions and velocities"*.
+
+**The axis also has a measured range, and the tool does not enforce it.** An injected speed is
+honoured exactly up to **400 m/s** and clamped above it at 20 m/s²; at 900 m/s a run spends 42%
+of itself off parameter. Staying inside the range is the campaign author's job, on purpose: the
+ceiling belongs to a scenario's entity profiles, not to the campaign runner, and hard-coding 400
+would be this project asserting something about scenarios it has never loaded (R13).
+
 ## Three things that will bite before anything else
 
 Full detail and numbers in `contract/PROVENANCE.md`. In short:
@@ -204,7 +260,14 @@ are properties of the comparison's own sources, and each is *also* tested behavi
 `tests/determinism_test.cpp` — the search catches a reintroduction on a path no test exercises,
 the test catches one the search does not know the spelling of. Neither replaces the other.
 
-`n8ro-campaign` links both, which is the allowed direction. The requirement is that they link no
+`src/param/` is the axis: its model and its campaign-file parser, linking nothing at all — not
+even the run path, because an axis is a declaration and turning one into bus traffic is
+`n8ro-campaign`'s job. That is what puts the **whole** of CR-PAR-1's configuration surface into
+`tests/parameter_test.cpp`, which needs no install; the only part needing a simulator is whether
+the platform honours a swept value, and that is measured in `docs/m5-oq4.md` rather than
+asserted.
+
+`n8ro-campaign` links all three, which is the allowed direction. The requirement is that they link no
 SDK, not that nothing linking the SDK may link them.
 
 Three things about the model that are easy to get wrong and are already right here: the segment

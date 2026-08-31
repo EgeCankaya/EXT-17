@@ -63,6 +63,26 @@ if errorlevel 1 (
   exit /b 1
 )
 
+rem CR-PAR-1, and the half of CR-PAR-2 that needs no simulator. src\param\Axis links nothing but
+rem the JSON parser, so the WHOLE of the axis's configuration surface - what parses, what is
+rem refused and by what name, that a value's declared text survives, and that the sweep is
+rem ordered by value rather than by spelling - is checkable here. The only part that needs a
+rem simulator is whether the platform honours a swept value, and that is measured against real
+rem runs in docs\m5-oq4.md rather than asserted anywhere.
+echo.
+cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
+   "%ROOT%\src\common\JsonParse.cpp" ^
+   "%ROOT%\src\param\Axis.cpp" ^
+   "%~dp0parameter_test.cpp" ^
+   /Fe:"%OUT%\parameter_test.exe" /Fo:"%OUT%\\"
+if errorlevel 1 exit /b 1
+
+"%OUT%\parameter_test.exe"
+if errorlevel 1 (
+  echo TESTS FAILED
+  exit /b 1
+)
+
 echo.
 echo tests: all passed.
 exit /b 0

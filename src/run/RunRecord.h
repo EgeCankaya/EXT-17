@@ -49,7 +49,11 @@ struct ProcessRecord {
 };
 
 struct RunRecord {
-    std::string schema = "ext17-run-record/1";
+    // /2 at M5: the record gained `parameter` (CR-PAR-1) and the running segment's roster
+    // counts. Every addition is additive, and the version moves anyway - a consumer written
+    // against /1 has not seen the parameter, and a shape that grew without saying so is how a
+    // reader comes to believe it read everything there was.
+    std::string schema = "ext17-run-record/2";
     std::string runId;
     RunOutcome outcome = RunOutcome::InfrastructureError;
 
@@ -96,6 +100,20 @@ struct RunRecord {
     long long captureSamples = 0;
     long long captureSegmentKeys = 0;
     long long captureRunSegments = 0;   // segment keys minus those cut by a rotation
+
+    // Roster lifecycle in the run's FIRST RUNNING SEGMENT, which is the run proper. Not the
+    // whole set: a capture's second segment is the teardown reload, and M4 measured it carrying
+    // samples in only five runs of twenty - a count summed over both would move for a reason
+    // that has nothing to do with anything the campaign varied.
+    //
+    // These exist for CR-PAR-2. A sweep needs a per-run result that varies with the parameter,
+    // and until M6 declares conditions there are no verdicts to show. `entityAdds` is the
+    // honest stand-in: it counts entities the run created - weapons fired, in the committed
+    // example - and M2 measured the roster lifecycle agreeing exactly across twenty identical
+    // runs, so unlike `samples` it carries no publication-schedule spread.
+    long long captureEntityKeys = 0;
+    long long captureEntityAdds = 0;
+    bool captureRunSegmentFound = false;
     bool recorderAttached = false;
     std::uint64_t captureMaxBytes = 0;
     std::string onSizeLimit;
@@ -111,6 +129,22 @@ struct RunRecord {
     std::string hostLoggerCopy;
     std::uint64_t hostLoggerOffset = 0;
     std::optional<std::uint64_t> hostLoggerBytes;
+
+    // CR-PAR-1: "each run's parameter value appears in its per-run record and in the report".
+    // `parameterValueText` is the value as the campaign file declared it, character for
+    // character; there is no double here on purpose (see RunConfig).
+    //
+    // `parameterEntitiesMissing` is the check that the axis did anything. The campaign publishes
+    // an entity update per named entity and a publish returning true means only that the message
+    // reached the bus. So the capture read-back collects which of the named entities actually
+    // carried samples, and a name that carried none is listed here - a mistyped entity is then a
+    // reported fault rather than a sweep that quietly varied nothing.
+    std::string parameterName;
+    std::string parameterValueText;
+    std::string parameterAppliesTo;
+    std::string parameterUnits;
+    std::vector<std::string> parameterEntities;
+    std::vector<std::string> parameterEntitiesMissing;
 
     // The final engine snapshot seen after teardown, for the record.
     control::EngineSnapshot finalSnapshot;

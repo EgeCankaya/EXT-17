@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "EXT-17 M5 - the committed example sweep. CR-PAR-1 and CR-PAR-2.",
+    "",
+    "One axis, declared here rather than in code: the closing speed of the Red raid in",
+    "Atacama Air Defense. The scenario authors every raider at 55 m/s on a fixed heading,",
+    "about 8.6 km out from a defended cluster, and a 1200-frame run is 60 s - so the speed",
+    "decides how far the raid gets inside the window, and whether the defences engage.",
+    "",
+    "Which axis is OQ-4, and it is decided; the measurement that decided it is docs/m5-oq4.md.",
+    "",
+    "The range stops at 220 on purpose. The platform honours an injected speed exactly up to",
+    "400 m/s and clamps above it, walking the entity down at 20 m/s^2 - so a value above 400",
+    "is not the value that flies, and a sweep that crossed it would plot a result against a",
+    "number that stopped being true partway through the run. Measured, m5-oq4.md section 3.",
+    "",
+    "The gate runs at 55 - the scenario's own authored speed, and one of the values swept. It",
+    "establishes determinism FOR THAT VALUE. Six pairs at one value were compared while",
+    "deciding OQ-4: 293 576 samples, zero differing."
+  ],
+  "axis": {
+    "name": "red_raid_speed_ms",
+    "kind": "velocity_ned_scaled",
+    "applies_to": "velocityNed magnitude, set before start",
+    "units": "m/s",
+    "entity_groups": [
+      {
+        "_comment": "the north group, flying south. Authored at [-55, 0, 0].",
+        "direction_ned": [-1, 0, 0],
+        "names": [
+          "RedUAV_N_01", "RedUAV_N_02", "RedUAV_N_03", "RedUAV_N_04",
+          "RedUAV_N_05", "RedUAV_N_06", "RedUAV_N_07", "RedUAV_N_08",
+          "RedUAV_N_09", "RedUAV_N_10", "RedUAV_N_11", "RedUAV_N_12"
+        ]
+      },
+      {
+        "_comment": "the east group, flying west. Authored at [0, -55, 0].",
+        "direction_ned": [0, -1, 0],
+        "names": [
+          "RedUAV_E_01", "RedUAV_E_02", "RedUAV_E_03", "RedUAV_E_04", "RedUAV_E_05",
+          "RedUAV_E_06", "RedUAV_E_07", "RedUAV_E_08", "RedUAV_E_09", "RedUAV_E_10",
+          "RedUAV_E_11", "RedUAV_E_12", "RedUAV_E_13", "RedUAV_E_14", "RedUAV_E_15",
+          "RedUAV_E_16", "RedUAV_E_17", "RedUAV_E_18"
+        ]
+      }
+    ],
+    "values": ["11", "27.5", "55", "82.5", "110", "165", "220"],
+    "self_test_value": "55"
+  }
+}

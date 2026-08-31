@@ -233,9 +233,108 @@ n8ro-campaign run-once ^
     --frames 1200
 
 n8ro-campaign repeat --count 20 --out-dir campaigns\twenty --recorder <...> --frames 1200
+
+n8ro-campaign repeat ^
+    --out-dir campaigns\sweep ^
+    --campaign examples\atacama-raid-speed.json ^
+    --recorder <...> ^
+    --frames 1200
 ```
 
 `n8ro-campaign --help` is the authority for the options.
+
+## Sweeping one parameter — the axis, and where the trend is
+
+**One axis, declared in a file, and no rebuild to change it.** [B]: *"One axis done properly
+beats four done loosely."* Which axis was OQ-4, and it is decided — **initial positions and
+velocities**, as one declared scalar applied to named entities before `start`. The measurement
+that decided it, against all three of [B]'s candidates, is `docs/m5-oq4.md`.
+
+`examples/atacama-raid-speed.json` is the committed example: the closing speed of the Red raid
+in `Atacama Air Defense`, swept from 11 to 220 m/s.
+
+```json
+{
+  "axis": {
+    "name": "red_raid_speed_ms",
+    "kind": "velocity_ned_scaled",
+    "units": "m/s",
+    "entity_groups": [
+      { "direction_ned": [-1, 0, 0], "names": ["RedUAV_N_01", "RedUAV_N_02"] },
+      { "direction_ned": [0, -1, 0], "names": ["RedUAV_E_01"] }
+    ],
+    "values": ["11", "27.5", "55", "82.5", "110", "165", "220"],
+    "self_test_value": "55"
+  }
+}
+```
+
+The number of runs **is** the number of values; `--count` is refused alongside `--campaign`,
+because two statements of how many runs there are is one statement too many. Runs execute in
+sweep order, so a run's ordinal ascends with its value.
+
+### Five things about it that are decisions, not details
+
+**The value is carried as the text you wrote.** `27.5` reaches `run.json` and the report as
+`27.5`. The double derived from it exists to publish the value and to order the sweep, and is
+never printed. M4 closed CR-DET-2's locale hazard by never converting a number for a decision,
+and a re-formatted double in a report would put it straight back on a path the build searches
+for. A value written `1,5` is refused rather than half-read.
+
+**Entities are named, never matched.** There is no glob. Resolving one would mean subscribing
+the control path to `sim/entity/state` — which would perturb the publication schedule the
+determinism gate measures — and a pattern that silently matches nothing is the failure this
+project keeps finding. An entity the axis names that carries **no sample in the run's own
+capture** is listed in that run's record: publishing an update says the message reached the bus
+and nothing about whether anything was there to receive it.
+
+**The gate runs at one declared value, and establishes determinism for that value.** CR-DET-1
+says *"the same configuration twice"*; a sweep has many. `self_test_value` picks which, and
+defaults to the first value written. Both gate runs are copies of one configuration, which is
+what makes them a valid pair rather than an arrangement — and **two runs at different values are
+never compared**: they are two configurations, and a gate over them would report a difference
+meaning only that the sweep worked. Measured while deciding OQ-4: four runs at one value, all
+six pairings, **293 576 samples compared, zero differing**.
+
+**A campaign file is not a capture, and the unknown-key rule is inverted.** The capture format
+says an unrecognised key is *ignored* (§13), and the reader does exactly that — it is why the
+format version has held across three producer releases. Here a key the format does not know is
+**refused**, because a person wrote this file and `"value"` for `"values"` is a typo that would
+otherwise be a sweep that silently did not happen. A key beginning with `_` is a comment.
+
+**The axis has a measured range, and the example stops inside it.** The platform honours an
+injected speed exactly up to **400 m/s** and clamps above it, walking the entity down at
+20 m/s². At 900 m/s a run spends 25 s — 42% of it — off parameter. So the sweep stops at 220,
+and `docs/m5-oq4.md` §3 carries the measurement.
+
+### Where the trend is
+
+In the campaign log and in `campaign.json`, ordered by parameter value, with no other tool:
+
+```
+[campaign] sweep        SWEEP  red_raid_speed_ms  (m/s)  velocityNed magnitude, set before start  -  7 run(s), ordered by value
+[campaign] sweep
+[campaign] sweep          value  run   outcome                   adds     keys   samples
+[campaign] sweep          11     000   completed                   90       48     50614  .
+[campaign] sweep          27.5   001   completed                   90       48     50511  .
+...
+```
+
+The bar is scaled between the **minimum and maximum** of the column rather than from zero, and
+the report says so — a column running 89 to 104 drawn from zero is five identical bars.
+
+**A run with no result shows `-`, never `0`.** A run that did not complete, and a run whose
+capture has no `running` segment for the determinism gate's own reason (R12, R14), had nothing
+measured in it. Both are excluded from the bar *and from the bar's scale*, and the table says
+how many points the sweep is short. This is not a hypothetical nicety: the committed sweep hits
+it, and the first version of this table printed those runs as `0`, drew them, and used the zero
+as the scale's floor — which made every other bar in the table wrong as well.
+
+**The result columns are counts read off each capture, not verdicts.** No condition is declared
+until M6, so no run here is a pass or a fail. `adds` is the column to read a trend from: M2
+measured the roster lifecycle agreeing *exactly* across twenty identical runs, so unlike
+`samples` it carries none of the platform's 0.38% publication-schedule spread. What the
+committed sweep shows it doing, and why, is `docs/m5-sweep.md`.
 
 ## Reading a capture back
 
@@ -425,7 +524,7 @@ when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-re
 
 ## Limits — what a result here does and does not prove
 
-Partial at M4; CR-DOC-1 requires the full version at M7.
+Partial at M5; CR-DOC-1 requires the full version at M7.
 
 - **The determinism gate passes on content, and that is weaker than the strictest reading of the
   brief.** Two runs of one configuration are **never byte-identical here** — 0 of 190 pairs — and
@@ -447,6 +546,40 @@ Partial at M4; CR-DOC-1 requires the full version at M7.
   27 ordinary runs and so about 1 in 14 pairs**. There is deliberately **no retry**: a harness
   that re-rolls its gate until it likes the answer has no gate. The refusal names the shape it
   found — a duplicated publication or a reset clock — and the imprecision is with EXT-08 as E-4.
+- **A sweep's determinism claim is about ONE of its values.** The gate runs two runs at
+  `self_test_value` and compares them. That establishes determinism at that value; it is not one
+  claim per run, and the campaign report, `self-test.json` and the sweep table each say so in
+  words. A twenty-value sweep is one determinism claim at a named point plus nineteen runs of a
+  harness whose determinism was demonstrated at that point.
+- **A parameterised run can refuse the gate more often than an unparameterised one, and it is
+  the same refusal.** The axis acts before `start`, and it can land between two publications of
+  the start-up roster burst — making segment 0 `frozen` with repeated values that **differ**
+  rather than agree. Measured over 35 parameterised runs: **4** — 11.4%, against R12's 1 in 27
+  (3.7%) for ordinary runs — consistent across two independent batches. That is elevated on a
+  sample that supports a direction and not a number, and it is reported as elevated rather than
+  as established. The exclusion is not relaxed and there is still no retry.
+  It is a third shape through a test `contract/`'s §5.1 presents as detecting one thing, and it
+  strengthens E-4 rather than being worked around.
+- **The swept parameter has a range the platform enforces, and outside it the value is not what
+  flew.** An injected speed is honoured exactly up to **400 m/s**; above it the platform walks the
+  entity down at 20 m/s² until it reaches the ceiling. At 440 m/s a 60 s run spends 2.0 s off
+  parameter; at 900 m/s, **25.0 s — 42% of the run**. That ceiling belongs to the entity profile
+  the committed example uses; another scenario's raiders may clamp elsewhere, and nothing here
+  establishes where. **Nothing checks this at run time** — the campaign publishes the value it
+  was given, and a sweep past the ceiling would plot a real result against a number that stopped
+  being true partway through each run. `docs/m5-oq4.md` §3 is the measurement; staying inside the
+  range is the campaign author's, not the tool's.
+- **The sweep's result columns are counts, not verdicts.** `adds`, `keys` and `samples` are read
+  off each run's capture by this project's reader. They are not judgements — no condition exists
+  until M6 — and a trend in them is a trend in what the runs recorded, not in whether the runs
+  were correct. `samples` additionally carries the platform's 0.38% publication-schedule spread
+  and `adds` does not, which is why the trend is drawn from `adds`.
+- **Nothing verifies that a declared entity direction matches the one the scenario authored.**
+  The campaign file states a heading per entity and the value scales it; if the file says south
+  and the scenario authored east, the sweep is real, deterministic, reported correctly, and about
+  a different question than the author meant. What *is* checked is that every named entity
+  carried a sample — a name that matched nothing is in the run record.
+
 - **The comparison establishes agreement, never completeness.** It compares digests of values
   present in both files. Two runs that both failed to publish the same frame agree about it
   perfectly, and no comparison of two captures can detect that. This is the first bullet below,
@@ -514,12 +647,16 @@ Partial at M4; CR-DOC-1 requires the full version at M7.
 | `src/run/` | The stop predicate, the run record, the run itself, and the self-test |
 | `src/capture/` | The conformant reader for `n8ro-capture/1`. Links nothing |
 | `src/compare/` | The determinism comparison — alignment, the coverage floor, the twelve refusals, both comparisons, the report. Links nothing |
+| `src/param/` | The one parameterisation axis: its model and its campaign-file parser. Links nothing, not even the run path — an axis is a declaration |
 | `src/common/` | Logging, a JSON writer with no run-to-run variation in it, and an order-preserving JSON parser |
 | `tests/` | Tests that link nothing and need no install. `tests\build.cmd` builds and runs them |
 | `tools/n8ro-campaign/` | The execution CLI, and its golden `--help` |
 | `tools/n8ro-capture/` | The reader CLI, and its golden `--help`. Its build script is the boundary's proof |
 | `tools/n8ro-compare/` | The comparison CLI, and its golden `--help`. Its build script proves the boundary **and** that none of CR-DET-2's four hazards is on the path |
+| `examples/` | A committed campaign configuration — the sweep `docs/m5-sweep.md` reports |
 | `tools/spike-axis/` | M2's R9/OQ-4 feasibility spike. Evidence, not product |
+| `tools/spike-oq4/` | M5's OQ-4 **fidelity** spike — the criterion M2's deliberately did not measure. Evidence, not product |
+| `tools/m5-checks/` | The throwaway reader for that spike's captures |
 | `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind `docs/m1-lifecycle.md` |
 | `contract/` | Vendored from EXT-08. Read-only |

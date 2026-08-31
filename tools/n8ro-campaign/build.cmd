@@ -32,6 +32,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\CaptureReader.cpp" ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\compare\Compare.cpp" ^
+   "%ROOT%\src\param\Axis.cpp" ^
    "%ROOT%\src\proc\Process.cpp" ^
    "%ROOT%\src\control\EngineControl.cpp" ^
    "%ROOT%\src\run\StopPredicate.cpp" ^

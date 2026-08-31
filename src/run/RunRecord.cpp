@@ -37,6 +37,28 @@ std::string RunRecord::toJson() const {
     w.member("model_name", modelName);
     w.endObject();
 
+    // CR-PAR-1: the value this run used, in the run's own record. Absent - not null, and not an
+    // empty string - when the campaign declared no axis, so that "this run was not parameterised"
+    // and "this run was parameterised with an empty value" are never the same file.
+    if (!parameterName.empty()) {
+        w.beginObject("parameter");
+        w.member("axis", parameterName);
+        // The declared text, verbatim. There is deliberately no numeric member beside it: a
+        // consumer that needs a number converts the text itself, in a locale it chose.
+        w.member("value", parameterValueText);
+        w.member("value_is_declared_text", true);
+        if (!parameterAppliesTo.empty()) { w.member("applies_to", parameterAppliesTo); }
+        if (!parameterUnits.empty()) { w.member("units", parameterUnits); }
+        w.beginArray("entities");
+        for (const std::string& e : parameterEntities) { w.value(e); }
+        w.endArray();
+        w.beginArray("entities_absent_from_capture");
+        for (const std::string& e : parameterEntitiesMissing) { w.value(e); }
+        w.endArray();
+        w.member("every_named_entity_present", parameterEntitiesMissing.empty());
+        w.endObject();
+    }
+
     // CR-EX-3: the predicate itself, its one-sentence statement, and the value it evaluated to.
     w.beginObject("stop_predicate");
     if (predicate) {
@@ -122,6 +144,17 @@ std::string RunRecord::toJson() const {
         w.member("conformant", captureConformant);
         w.member("samples", static_cast<std::int64_t>(captureSamples));
         w.member("segment_keys", static_cast<std::int64_t>(captureSegmentKeys));
+    // Scoped to the first running segment; see RunRecord.h for why not to the whole set.
+    w.member("running_segment_found", captureRunSegmentFound);
+    // null, never 0, when there was no running segment: nothing was measured, and 0 here would
+    // be a measurement of zero. Tenet 3, applied to our own report.
+    if (captureRunSegmentFound) {
+        w.member("running_segment_entity_keys", static_cast<std::int64_t>(captureEntityKeys));
+        w.member("running_segment_entity_adds", static_cast<std::int64_t>(captureEntityAdds));
+    } else {
+        w.memberNull("running_segment_entity_keys");
+        w.memberNull("running_segment_entity_adds");
+    }
         // Equal to segment_keys unless the capture rotated. A segment cut by a
         // rotation is one segment of the run appearing under two keys.
         w.member("run_segments", static_cast<std::int64_t>(captureRunSegments));
