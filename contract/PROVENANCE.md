@@ -9,7 +9,13 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `0fe7cd5`**, format version `n8ro-capture/1`, producer `0.9.0`.
+**Pinned at EXT-08 commit `78fd4ef`**, format version `n8ro-capture/1`, producer `0.9.0`.
+
+The specification last changed at EXT-08 `9e63315` (producer 0.9.0, BTB-CAP-6); `78fd4ef` is
+EXT-08's `main` at the time of pinning and carries that file unchanged. Pinning the branch
+head rather than the last commit that touched the file is deliberate — it makes "is this
+current?" one comparison against `main` rather than a question about which commit last
+mattered.
 
 This is the **third** pin, and the drift is worth stating as a live hazard rather than a
 footnote:
@@ -18,7 +24,7 @@ footnote:
 |---|---|---|---|
 | 1st | `eedc228` | 0.7.0 | Stale within the hour — producer 0.8.0 added `header.sample_form` |
 | 2nd | `063b5ba` | 0.8.0 | Producer 0.9.0 added `header.limits`, `header.part`, `header.continues_from` and `trailer.continued_in` (BTB-CAP-6) |
-| 3rd | `0fe7cd5` | 0.9.0 | Current |
+| 3rd | `78fd4ef` | 0.9.0 | Current |
 
 **In both cases the addition was non-breaking and the freeze held — which is the pattern, not a
 coincidence.** EXT-08's format was designed so its producer can grow without moving the version:
