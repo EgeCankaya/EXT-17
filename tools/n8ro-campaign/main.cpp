@@ -1295,12 +1295,40 @@ int main(int argc, char** argv) {
         if (a.hasAxis) { printSweep(records, a.axis); }
     }
 
-    int completed = 0;
+    // CR-REP-3: the four outcomes, separately, on the last line a person reads. `completed` is a
+    // fifth key and not a fifth outcome - it is what a run is called when no condition file was
+    // declared and nothing judged it - and it is printed only when it is non-zero, so a judged
+    // campaign's closing line carries [B]'s four and nothing else.
+    int passed = 0, failed = 0, completed = 0, timedOut = 0, infra = 0;
+    long long indeterminateVerdicts = 0;
     for (const auto& r : records) {
-        if (r.outcome == ext17::run::RunOutcome::Completed) { ++completed; }
+        switch (r.outcome) {
+            case ext17::run::RunOutcome::Pass:                ++passed;    break;
+            case ext17::run::RunOutcome::Fail:                ++failed;    break;
+            case ext17::run::RunOutcome::Completed:           ++completed; break;
+            case ext17::run::RunOutcome::Timeout:             ++timedOut;  break;
+            case ext17::run::RunOutcome::InfrastructureError: ++infra;     break;
+        }
+        indeterminateVerdicts += r.verdictsIndeterminate;
     }
-    line("campaign", std::to_string(completed) + " of " + std::to_string(records.size())
-                         + " runs completed");
+    const int attempted = static_cast<int>(records.size());
+    line("campaign", std::to_string(attempted) + " run(s) attempted");
+    line("campaign", "  pass                  " + std::to_string(passed));
+    line("campaign", "  fail                  " + std::to_string(failed));
+    line("campaign", "  timeout               " + std::to_string(timedOut));
+    line("campaign", "  infrastructure_error  " + std::to_string(infra));
+    if (completed > 0) {
+        line("campaign", "  completed (unjudged)  " + std::to_string(completed)
+                             + "  - no condition file was declared, so nothing judged these");
+    }
+    line("campaign", "  the four sum to " + std::to_string(passed + failed + timedOut + infra
+                                                           + completed)
+                         + ", and no aggregate above merges two of them");
+    if (indeterminateVerdicts > 0) {
+        line("campaign", "  " + std::to_string(indeterminateVerdicts)
+                             + " INDETERMINATE verdict(s) across the campaign - a verdict state, "
+                               "never a fifth run outcome. See each run's verdicts.jsonl.");
+    }
 
     ext17::log::closeMirror();
     // A campaign stopped at its ceiling did not do what it was asked to do, even if every run it
@@ -1308,5 +1336,8 @@ int main(int argc, char** argv) {
     // in the log; the exit code cannot carry a fifth value, so it carries "not everything asked
     // for happened", which is what 1 means.
     if (ceilingReached) return 1;
-    return completed == static_cast<int>(records.size()) ? 0 : 1;
+    // 0 means every run reached the outcome the campaign was asking for. With conditions
+    // declared that is `pass`; without them it is `completed`, because a run nothing judged is
+    // not a pass and calling it one here would undo the whole distinction.
+    return (passed + completed) == attempted ? 0 : 1;
 }

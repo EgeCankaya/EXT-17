@@ -125,9 +125,17 @@ struct RunConfig {
     //   host_start_failure   the host executable is replaced with one that exits immediately
     //   scenario_load_refusal a scenario name the catalogue does not contain
     //   run_never_ends       the stop predicate is set beyond what the run timeout allows
-    //   host_dies_mid_run    the host process is terminated by the handle we created, mid-run
+    //   host_dies_mid_run    the host process is terminated by the handle we created, at a
+    //                        quarter of the frame budget - a FRAME and not a stopwatch, because
+    //                        the frame is what this project measures runs in and a fault
+    //                        injected on a clock lands somewhere different every time
     std::string injectFault;
-    int injectFaultAtMs = 8000;   // when `host_dies_mid_run` fires, after the engine is running
+    // The run timeout an INJECTED run is given, so that a fault demonstration takes seconds
+    // rather than minutes. It applies to `run_never_ends`, whose whole point is the backstop,
+    // and to `host_dies_mid_run`, where a dead host is not noticed until the timeout expires
+    // (F-27). It is a wall-clock number because CR-EX-4's timeout is one - the single place in
+    // a run where a clock legitimately appears, and a backstop rather than a definition.
+    int injectFaultAtMs = 20000;
 };
 
 // Execute one run. Returns the record; the record's outcome is the answer.

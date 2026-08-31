@@ -212,6 +212,15 @@ std::string RunRecord::toJson() const {
         w.beginObject("judgement");
         w.member("conditions_file", conditionsPath);
         w.member("conditions_declared", static_cast<std::int64_t>(conditionsDeclared));
+        // Whether THIS run was judged at all, and why not when it was not. A run carrying zero
+        // verdicts against seven declared conditions is a run that was cut short, and saying so
+        // here is the difference between a reader knowing that and inferring it from a count.
+        w.member("judged_this_run", judgedThisRun);
+        if (notJudgedReason.empty()) {
+            w.memberNull("not_judged_reason");
+        } else {
+            w.member("not_judged_reason", notJudgedReason);
+        }
         w.member("judgeable", judgeable);
         if (notJudgeableReason.empty()) {
             w.memberNull("not_judgeable_reason");

@@ -307,11 +307,33 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
     // rule and CR-EX-1's. The run then meets exactly what an unattended campaign meets when a
     // host crashes at 3 a.m.: the engine-state heartbeat stops, the wait for the predicate runs
     // out, and the recorder closes its capture on its own after 3.0 s of silence.
-    if (cfg.injectFault == "host_dies_mid_run") {
+    //
+    // It fires at a FRAME, not at a wall-clock delay: the frame is what this project measures
+    // runs in, and a fault injected on a stopwatch would land in a different place every time -
+    // which is the one thing an injected fault must not do if the record of it is to mean
+    // anything. `injectFaultAtFrame` is a quarter of the budget by default.
+    const long long dieAtFrame =
+        cfg.injectFault == "host_dies_mid_run"
+            ? static_cast<long long>(cfg.predicate.frameBudgetValue() / 4) + 1
+            : -1;
+    bool hostKilled = false;
+    if (dieAtFrame > 0) {
+        log::line("inject", "fault host_dies_mid_run: the host will be terminated by the handle "
+                            "this run created - never by image name - at frame "
+                                + std::to_string(dieAtFrame));
+        // **A dead host is not noticed until the run timeout expires**, and that is a real
+        // property of this design rather than an artifact of the injection. The wait blocks on
+        // engine-state publications; when the host goes away they simply stop arriving, and
+        // there is no second timed quantity watching for silence - deliberately, because
+        // CR-EX-4 makes the run timeout the ONLY clock in a run and a heartbeat-silence
+        // detector would be a second one. So an unattended campaign meeting [B]'s fourth ugly
+        // reality survives it and pays --run-timeout-ms in wall clock for each occurrence.
+        // Recorded as F-27; the README's operational note is to size --run-timeout-ms against
+        // the frame budget rather than leaving it at ten minutes.
+        //
+        // The injected run shortens it so the demonstration takes seconds instead of minutes.
+        // The shortening is the injection's, not the product's.
         runTimeoutMs = cfg.injectFaultAtMs;
-        log::line("inject", "fault host_dies_mid_run: the host will be terminated by handle "
-                            "after the engine reports running");
-        if (st.host) { st.host->terminate(); }
     }
 
     log::line("run", "watching for: " + predicate.statement());
@@ -321,6 +343,13 @@ RunOutcome runBody(const RunConfig& cfg, RunRecord& rec, RunState& st) {
         const auto w = st.control->waitFor(
             "stop predicate satisfied",
             [&](const control::EngineSnapshot& s) {
+                if (dieAtFrame > 0 && !hostKilled &&
+                    s.frame >= static_cast<std::uint64_t>(dieAtFrame)) {
+                    hostKilled = true;
+                    log::line("inject", "terminating the host at frame "
+                                            + std::to_string(s.frame));
+                    if (st.host) { st.host->terminate(); }
+                }
                 if (!predicate.satisfiedBy(s)) { return false; }
                 if (!captured) {
                     firstSatisfaction = predicate.evaluate(s);
@@ -439,6 +468,11 @@ RunRecord executeRun(const RunConfig& cfg) {
     rec.parameterUnits = cfg.parameterUnits;
     rec.parameterEntities = cfg.parameterEntities;
     rec.parameterEntitiesMissing = cfg.parameterEntities;
+    // CR-EX-6: recorded BEFORE runBody, so that a fault which stops the run before anything else
+    // happens still leaves a record saying the run was injected. Found by running the four
+    // injections and reading run.json: the field was set nowhere, so every injected run looked
+    // exactly like a clean one that had happened to fail.
+    rec.injectedFault = cfg.injectFault;
 
     log::line("run", "=== run " + cfg.runId + " : \"" + cfg.scenario + "\""
                          + (cfg.parameterName.empty()
@@ -625,13 +659,19 @@ RunRecord executeRun(const RunConfig& cfg) {
         rec.conditionsDeclared = static_cast<long long>(cfg.conditions->conditions.size());
 
         if (rec.outcome != RunOutcome::Completed) {
-            log::line("judge", "not judged: this run's outcome is "
-                                   + std::string(toString(rec.outcome))
-                                   + ", and an infrastructure failure or a timeout is never a "
-                                     "test result (CR-EX-5). No verdict is invented for it.");
+            rec.notJudgedReason =
+                "this run's outcome is " + std::string(toString(rec.outcome))
+                + ", and an infrastructure failure or a timeout is never a test result "
+                  "(CR-EX-5). No verdict is invented for it, so this run carries 0 verdicts "
+                  "against " + std::to_string(rec.conditionsDeclared)
+                + " declared conditions - which is what tells a reader the run was cut short "
+                  "rather than that it passed.";
+            log::line("judge", "not judged: " + rec.notJudgedReason);
         } else if (rec.capturePath.empty()) {
-            log::line("judge", "not judged: there is no capture to judge.");
+            rec.notJudgedReason = "there is no capture to judge.";
+            log::line("judge", "not judged: " + rec.notJudgedReason);
         } else {
+            rec.judgedThisRun = true;
             assertion::JudgeResult jr;
             assertion::judgeCapture(joinPath(cfg.runDir, rec.capturePath), *cfg.conditions, jr);
 

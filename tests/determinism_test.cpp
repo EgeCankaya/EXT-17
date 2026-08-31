@@ -61,12 +61,15 @@ bool contains(const std::string& haystack, const std::string& needle) {
 
 // --- A synthetic capture builder -------------------------------------------------------------
 //
-// Two fields, which is enough: one double and one int cover §8.3's two numeric encodings, and
-// the comparison's digest treats every value type the same way.
+// Three fields. One double and one int cover §8.3's two numeric encodings; `v` is a
+// three-element ARRAY, and it is here because of F-31 — until M6 a difference in an array field
+// named the field correctly and then printed two EMPTY values, and every synthetic capture in
+// this suite carried only scalars, so nothing here could see it. The real fields a divergence is
+// most likely to be in — positionGeodetic, velocityNed, orientationYprRad — are all arrays.
 const char* kSchemas =
     R"("schemas":[{"message_name":"m","topic":"t","schema_hash":7,"message_id":8,)"
     R"("wire_version":1,"fields":[{"name":"a","type":"double","size":1},)"
-    R"({"name":"b","type":"int","size":1}]}])";
+    R"({"name":"b","type":"int","size":1},{"name":"v","type":"double","size":3}]}])";
 
 struct Cap {
     std::vector<std::string> lines;
@@ -104,11 +107,12 @@ struct Cap {
     // `t` is written verbatim, because the alignment is on the verbatim text and a test that
     // formatted it through the current locale would be testing the wrong thing.
     void sample(long long seg, const std::string& t, const char* e, long long occ,
-                const std::string& a, const std::string& b) {
+                const std::string& a, const std::string& b,
+                const std::string& v = "[0,0,0]") {
         lines.push_back(R"({"type":"sample","sim_time_s":)" + t + R"(,"segment":)"
                         + std::to_string(seg) + R"(,"entity":")" + e + R"(","occupancy":)"
                         + std::to_string(occ) + R"(,"message":"m","fields":{"a":)" + a
-                        + R"(,"b":)" + b + "}}");
+                        + R"(,"b":)" + b + R"(,"v":)" + v + "}}");
         ++samples;
     }
     void trailer(const char* endReason = "shutdown", long long notRecorded = 0,
@@ -400,6 +404,113 @@ void aDifferingValueFailsAndIsAttributed() {
            r.content.differences[0].lineB > 0);
     ok("the report states whether the headers agree and how the record counts compare",
        contains(renderReport(r), "headers") && contains(renderReport(r), "sizes"));
+}
+
+// [B] asks for BOTH halves of the diff and they are different questions: *"run the same
+// configuration twice and show that the results are identical; change one input and show exactly
+// where the two runs diverged."* The machinery is identical; what changes is what the answer
+// means, and getting that framing wrong would be wrong in both directions — a divergence between
+// two configurations is not a failure, and agreement between them is not a pass.
+void aChangedInputDiffIsNotAGate() {
+    std::printf("\nCR-REP-4: the changed-input half - a divergence is the ANSWER, not a failure\n");
+    Cap b = goodRun();
+    for (std::string& l : b.lines) {
+        if (contains(l, R"("entity":"bravo")") && contains(l, R"("sim_time_s":0.05,)")) {
+            const std::size_t at = l.find(R"("a":1.1)");
+            if (at != std::string::npos) { l.replace(at, 7, R"("a":9.9)"); }
+        }
+    }
+
+    CompareOptions changed;
+    changed.purpose = Purpose::ChangedInput;
+    const ComparisonResult r = compareTwo(goodRun(), b, changed);
+    const std::string report = renderReport(r);
+
+    ok("it still finds and names the FIRST point of divergence",
+       r.content.differ == 1 && !r.content.differences.empty() &&
+           r.content.differences[0].key.entity == "bravo" &&
+           r.content.differences[0].field == "a");
+    ok("...by segment, (entity, occupancy), sim_time_s and field - never by line number alone",
+       contains(report, "FIRST DIFFERENCE") && contains(report, "sim_time_s") &&
+           contains(report, "bravo@1"));
+    ok("the report says what this comparison IS",
+       contains(report, "two runs at DIFFERENT inputs"));
+    ok("...and quotes the brief's own words for it",
+       contains(report, "change one input and show exactly"));
+    ok("it prints NO gate line, because a gate would be the wrong question",
+       !contains(report, "GATE"));
+    ok("...and says so explicitly, so nobody reads a missing line as an omission",
+       contains(report, "what it is NOT") && contains(report, "a gate."));
+    ok("...and says a campaign cannot reach this framing by accident",
+       contains(report, "copies of one RunConfig"));
+    ok("it reports the divergence as the ANSWER", contains(report, "DIVERGED"));
+
+    std::printf("\n...and AGREEMENT between two different inputs is worth flagging\n");
+    {
+        const ComparisonResult same = compareTwo(goodRun(), goodRun(), changed);
+        const std::string sameReport = renderReport(same);
+        ok("two identical captures under --changed-input report DID NOT DIVERGE",
+           same.content.differ == 0 && contains(sameReport, "DID NOT DIVERGE"));
+        ok("...and say the changed input may not have taken effect",
+           contains(sameReport, "did not take effect"));
+        ok("...which is the failure this project keeps finding, named as such",
+           contains(sameReport, "silently varied nothing"));
+        ok("...and still no gate line, and still no pass/fail word",
+           !contains(sameReport, "GATE"));
+    }
+
+    std::printf("\n...while the SAME pair on the self-test framing is a gate FAILURE\n");
+    {
+        const ComparisonResult gated = compareTwo(goodRun(), b);
+        ok("the default purpose still gates", gated.gate == Verdict::Fail);
+        ok("...and prints the gate line", contains(renderReport(gated), "GATE"));
+        ok("...over exactly the same measured difference",
+           gated.content.differ == r.content.differ);
+    }
+}
+
+// F-31, and the reason it went three milestones unnoticed: a difference in an ARRAY field named
+// the field correctly and then printed two empty values. `positionGeodetic`, `velocityNed` and
+// `orientationYprRad` are all arrays, so this was every geometric divergence the diff would ever
+// report — and CR-DET-3 and CR-REP-4 both require the deciding VALUES, not only the field.
+//
+// It survived because it takes a real content-gate failure on a real pair to see it, and until
+// M6 the content gate had never failed on one: M4's failing-gate evidence came from forcing
+// `--gate-basis bytes`, which reports a byte offset and never reaches that code. The synthetic
+// captures here carried only scalars, so nothing in this suite could see it either. Both halves
+// of that are now fixed — the builder carries an array field, and this is the check.
+void aDifferingArrayFieldNamesBothValues() {
+    std::printf("\nCR-DET-3 / CR-REP-4: a differing ARRAY value is printed, not left blank\n");
+    Cap b = goodRun();
+    for (std::string& l : b.lines) {
+        if (contains(l, R"("entity":"bravo")") && contains(l, R"("sim_time_s":0.05,)")) {
+            const std::size_t at = l.find(R"("v":[0,0,0])");
+            if (at != std::string::npos) {
+                l.replace(at, 11, R"("v":[-1.0103336092965664e-14,-55,0])");
+            }
+        }
+    }
+    const ComparisonResult r = compareTwo(goodRun(), b);
+    ok("the gate FAILS", r.gate == Verdict::Fail, r.gateReason);
+    ok("the difference is attributed to the array field by name",
+       !r.content.differences.empty() && r.content.differences[0].field == "v",
+       r.content.differences.empty() ? "(none)" : r.content.differences[0].field);
+    ok("...and NEITHER value is empty, which is the whole of F-31",
+       !r.content.differences.empty() && !r.content.differences[0].valueA.empty() &&
+           !r.content.differences[0].valueB.empty());
+    ok("...and each renders every element, verbatim",
+       !r.content.differences.empty() &&
+           r.content.differences[0].valueA == "[0, 0, 0]" &&
+           r.content.differences[0].valueB == "[-1.0103336092965664e-14, -55, 0]",
+       r.content.differences.empty()
+           ? "(none)"
+           : r.content.differences[0].valueA + "  against  " + r.content.differences[0].valueB);
+    ok("...including a value the platform round-tripped to 1e-14 rather than to zero - which is "
+       "the real difference this defect was hiding",
+       !r.content.differences.empty() &&
+           contains(r.content.differences[0].valueB, "1.0103336092965664e-14"));
+    ok("...and the rendered report carries them too, not just the machine-readable record",
+       contains(renderReport(r), "-1.0103336092965664e-14"));
 }
 
 void anEntityInOneRunOnlyIsAFailure() {
@@ -694,6 +805,8 @@ int main(int argc, char** argv) {
     aThinIntersectionIsIndeterminateNotPass();
     aFrozenSegmentNamesTheShapeOfItsFreeze();
     aDifferingValueFailsAndIsAttributed();
+    aDifferingArrayFieldNamesBothValues();
+    aChangedInputDiffIsNotAGate();
     anEntityInOneRunOnlyIsAFailure();
     occupancyIsPartOfTheIdentity();
     preconditions();

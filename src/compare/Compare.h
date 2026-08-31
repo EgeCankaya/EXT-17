@@ -229,7 +229,28 @@ enum class GateBasis { Content, Bytes };
 const char* name(GateBasis b);
 bool parseGateBasis(const std::string& text, GateBasis& out);
 
+// What the comparison is FOR. The machinery is identical either way — the same alignment, the
+// same digest, the same coverage floor, the same twelve refusals. What differs is the question
+// being asked, and therefore what the answer means.
+//
+//   SelfTest      two runs of ONE configuration. They are expected to agree, and a divergence is
+//                 a determinism finding. This is CR-DET-1's gate.
+//   ChangedInput  two runs at DIFFERENT inputs. They are expected to diverge, and the question is
+//                 **where** — [B]: *"change one input and show exactly where the two runs
+//                 diverged."* Calling that a gate would be wrong in both directions: a divergence
+//                 is not a failure, and agreement is not a pass. Agreement here means the input
+//                 did not take effect, which is the shape this project keeps finding.
+//
+// Keeping them apart is deliberate. `n8ro-campaign` can only ever produce a self-test pair — two
+// copies of one RunConfig — so nothing in a campaign can hand the gate a changed-input pair by
+// accident. This flag is how a person asks for the other question on purpose.
+enum class Purpose { SelfTest, ChangedInput };
+
+const char* name(Purpose p);
+
 struct CompareOptions {
+    Purpose purpose = Purpose::SelfTest;
+
     // Measured, not chosen: the worst unmatched rate over all 190 pairs of M2's twenty runs was
     // 0.4192%, so a 99% floor sits about 2.4x clear of anything this machine has produced. It is
     // a guard against a collapsed intersection, not a tolerance on the platform's behaviour.
@@ -257,6 +278,10 @@ struct ComparisonResult {
     ResultEquality results;
 
     GateBasis gateBasis = GateBasis::Content;
+    // What this comparison was for. The gate below is computed either way — the machinery is
+    // identical — but under `ChangedInput` the report does not print it, because a divergence
+    // between two configurations is an answer and not a failure.
+    Purpose purpose = Purpose::SelfTest;
     Verdict gate = Verdict::Refused;
     std::string gateReason;
 

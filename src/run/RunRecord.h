@@ -170,7 +170,15 @@ struct RunRecord {
     // hand: the segment, the (entity, occupancy) pairs, the deciding sim_time_s and the deciding
     // values. A reader seeing fewer verdicts than conditions is entitled to treat the run as cut
     // short rather than as passing.
+    // `judged` means a condition file was DECLARED for this campaign. `judgedThisRun` means
+    // this particular run was actually judged - a run that failed for an infrastructure reason
+    // or timed out is not, because CR-EX-5 says an infrastructure failure is never a test
+    // result and inventing verdicts for one would make it one. The two are separate because
+    // "no conditions declared" and "conditions declared, this run not judged" are different
+    // facts and a reader must be able to tell them apart.
     bool judged = false;
+    bool judgedThisRun = false;
+    std::string notJudgedReason;
     std::string conditionsPath;
     long long conditionsDeclared = 0;
 
