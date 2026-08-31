@@ -9,7 +9,14 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `eedc228`**, format version `n8ro-capture/1`, producer `0.7.0`.
+**Pinned at EXT-08 commit `063b5ba`**, format version `n8ro-capture/1`, producer `0.8.0`.
+
+Re-pinned once already, and that is worth stating as a live hazard rather than a footnote: the
+first pin was taken at `eedc228` and was stale within the hour, because producer 0.8.0 added
+`header.sample_form`. **Adding a key is non-breaking under the format's own rule (§13), so
+`n8ro-capture/1` is unchanged and the freeze holds** — but a vendored copy still drifts.
+Re-check this pin before relying on it, and treat a drifted `contract/` as a defect to fix
+rather than a difference to tolerate.
 
 ## What is here
 
