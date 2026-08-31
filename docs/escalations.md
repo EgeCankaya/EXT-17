@@ -23,7 +23,15 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 
 ## E-1 — OQ-3: confirm the headless invocation
 
-**Status: STILL DRAFTED, NOT SENT — outstanding since M1, across four milestones.** There is no
+**Status: DEFERRED BY DECISION, 2026-09-01 — not sent, and not waiting to be noticed.** The DRI
+has decided to complete M6 and M7 first and return to the mentor items afterwards: the mentor is
+not readily accessible and schedule is the binding constraint. The cost of that choice is stated
+in `docs/findings.md` §E rather than left to be discovered — chiefly that **M7 must report its
+sweep-legibility success metric as unmet**, since that metric's named method is mentor review.
+Revisit at the close of M7, with OQ-2, the sweep report and the twenty-run campaign together.
+
+**Its previous status, for the record: STILL DRAFTED, NOT SENT — outstanding since M1, across
+four milestones.** There is no
 channel to a mentor from this repository, so delivering it is the DRI's action and nothing here
 can discharge it. E-3 and E-4 went to EXT-08 as issues because EXT-08 is a repository this project
 can reach; a mentor is not. [B]'s surface table asks its reader to confirm this
