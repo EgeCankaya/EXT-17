@@ -267,10 +267,13 @@ tests\build.cmd                    ->  builds and runs the tests
 correctness is about our own output rather than about the platform; since M3 the capture reader,
 whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
 correctness is what every other result rests on; since M5 the axis; and since M6 the whole
-assertion surface. **72 + 93 + 105 + 126 + 166 = 484 checks** across five suites, of which the
-last two are each run twice, the second time under a comma-decimal locale. It was 469 until the
-fifth pin, when the capture reader gained **tier 1b** — fifteen checks over a committed
-producer-**0.9.0** fixture, because until then nothing on a fresh clone had read one (F-49).
+assertion surface. **87 + 105 + 126 + 166 = 484 checks** across five suites, of which the last
+two are each run twice, the second time under a comma-decimal locale. (Four addends and five
+suites: `json_writer_test` prints no count line and contributes 0 to the sum, which
+`tests\build.cmd` says beside the code that sums them. A failure there still fails the build,
+through its exit code rather than through its count.) It was 469 until the fifth pin, when the
+capture reader gained **tier 1b** — fifteen checks over a committed producer-**0.9.0** fixture,
+because until then nothing on a fresh clone had read one (F-49).
 
 **That number is not typed here on trust.** `tests\build.cmd` sums what the suites actually
 printed and fails if the total is not the one in `tests\checks.golden.txt` — the same mechanism
