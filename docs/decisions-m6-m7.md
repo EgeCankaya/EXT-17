@@ -231,6 +231,13 @@ was not delivered upstream (R10). Substituting a written walkthrough and calling
 met would be exactly the failure R10 exists to name. The walkthrough is written anyway, as the
 script the recording would follow, so the remaining work is the recording and not the preparation.
 
+> **Outcome, 2026-09-01: the recording was made, and the decision is what made that sentence
+> checkable.** [One take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing),
+> shot to the runbook with no step skipped. The decision is left standing rather than rewritten:
+> it was correct while it was live, and the reason it is worth keeping is that **"outstanding"
+> held right up until the film existed** — nothing was ever claimed on the strength of the script.
+> The runbook is now the record of what was filmed. See `docs/recording-script.md`.
+
 ---
 
 ## D. Things deliberately NOT decided

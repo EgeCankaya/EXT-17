@@ -20,7 +20,7 @@ recording, and the notes on determinism
 | README | *"how to configure a campaign, how to write an assertion, the output format, and the limits"* | **Done.** Four sections, each named for the topic, indexed from the top |
 | A real campaign | *"its configuration, its captured runs and its report, committed as an example"* | **Done, with one named deviation** — the captures are not committed (F-34); a manifest of each one's size, SHA-256 and read-back counts is |
 | Determinism notes | *"what you had to do to make comparison meaningful, and anything you saw that you could not explain"* | **Done.** `docs/determinism-notes.md`, five unexplained observations |
-| The 5-minute recording | *"launch a campaign, watch it run, read the report"* | **NOT DELIVERED.** Scripted as a command runbook in `docs/recording-script.md`; it needs a person |
+| The 5-minute recording | *"launch a campaign, watch it run, read the report"* | **DELIVERED 2026-09-01** — [one take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing). All three clauses in order, no narration. **4:10 against "5-minute", stated rather than rounded** |
 
 ---
 
@@ -62,7 +62,7 @@ rotation probes, M4's gate and byte-basis runs, M5's two sweep executions. 1.2 M
 number in every milestone document now traces to a committed record rather than to a directory on
 one machine.
 
-### The recording — not delivered, and not substituted for
+### The recording — delivered, and not substituted for
 
 `docs/recording-script.md` is the runbook: every command in order, what each one puts on screen,
 and how long it takes. **There is no narration and nothing is opened in an editor** — the
@@ -73,11 +73,22 @@ be present is one the recording cannot evidence. What survives from the narrated
 last section — **what not to claim in a caption or a title**, because three claims are easy to
 overstate and each has a named limit.
 
-**It is not the recording and it is not offered as one.** R10 exists because the equivalent
+**It was shot on 2026-09-01 and is published**:
+[one take, 4 min 10 s](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing),
+all eight steps in order, beside a command-by-command companion for a viewer. The campaign it
+launches on camera is committed at `campaigns/demo/` — three runs at 200 frames with a host-start
+failure injected into run 1, gate passed on content at 8503 of 8503 comparable samples, outcomes
+2 fail / 1 infrastructure error / 0 pass — and the report read at step 5 is the committed
+twenty-run campaign. **It runs 4:10 against [B]'s "5-minute", which is stated rather than rounded
+up**: with no narration the commands take less time than they did when they were narrated, and
+every clause of the deliverable — *launch a campaign, watch it run, read the report* — is in it.
+
+**What the delay bought, and it is worth one sentence.** R10 exists because the equivalent
 deliverable was not delivered upstream, and the failure it names is not lateness — it is
-*substituting a written walkthrough and calling the requirement met*. So the status is stated
-plainly: **outstanding, needs a person and a screen recorder**, and the preparation is done so
-that the remaining work is the recording alone.
+*substituting a written walkthrough and calling the requirement met*. From M7 until the take
+existed, the runbook's first line read `NOT RECORDED` and every document here said **outstanding**
+rather than claiming the requirement met on the strength of the script. That is the only reason
+this section can now say *delivered* and mean it.
 
 ---
 
@@ -132,13 +143,14 @@ outcome in those words: *"M7 must state that metric as unmet rather than claim i
 ## 5. What is still open at the end of the project
 
 Stated in one place, because the last milestone is where an open item is most likely to quietly
-become a closed one. **Updated three times on 2026-09-01: after the mentor's first reply, after
-all four upstream issues came back fixed, and after the mentor's follow-up closed E-1.** Two rows
-survived all three, and both need somebody outside this project.
+become a closed one. **Updated four times on 2026-09-01: after the mentor's first reply, after
+all four upstream issues came back fixed, after the mentor's follow-up closed E-1, and after the
+recording was shot.** Two rows survived the first three; **one row survives all four**, and it
+needs somebody outside this project.
 
 | # | What | Whose | Status | Blocks anything? |
 |---|---|---|---|---|
-| **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted as a command runbook in `docs/recording-script.md`, including what *not* to claim in a caption | **It is the deliverable.** Nothing else waits on it |
+| ~~**The recording**~~ | [B]'s deliverable 4 | Needed a person | **DELIVERED 2026-09-01.** [One take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing), shot to `docs/recording-script.md`. The runbook is kept as the record of what was filmed, including what *not* to claim in a caption | No. It was the last one |
 | **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) and `concurred` (mentor, same day, independently) — content. Still never answered**, across five milestones. **The concurrence is a second opinion, not a ruling**: criterion 2 is [B]'s author's to discharge | No. Both readings ship as selectable gates; a ruling changes a default and no code |
 | ~~**OQ-3 (a) and (c)**~~ | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **CLOSED, 2026-09-01.** The follow-up ran: **(a) yes**; **(c) *"pick the one you prefer"***, so no variant is prescribed. **E-1 is answered in full** | No, and it never did. Nothing changed |
 | **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | **CLOSED — FIXED 2026-09-01**, option (a) taken, vendored back at the fourth pin | No, and it never did |

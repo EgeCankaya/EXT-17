@@ -1,0 +1,164 @@
+[campaign] campaign     disk: projecting 25400000 bytes for 5 run(s) of 200 frames at 25400 bytes/frame (including the self-test's 2 runs)
+[campaign] campaign     disk: 335747796992 bytes free, ceiling 8589934592
+[campaign] campaign     per-capture bound: 12200000 bytes, derived from 200 frames. It is three times the measured per-frame capture cost, so a run that reaches it has overrun its projection rather than merely run.
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] campaign     run timeout: 600000 ms (backstop; never the definition of the end)
+[campaign] campaign     gate basis: content. OQ-2 is DECIDED (DRI, 2026-09-01) - content, from the brief's own words - and CONCURRED with by the mentor the same day, independently. It was still never ANSWERED by the brief's author, who has not replied, and criterion 2 is theirs to discharge. Both comparisons are run and both are reported; the basis chooses which one decides. See docs/m7-oq2-oq3.md.
+[campaign] self-test    CR-DET-1: the same configuration, run twice, compared. [B] step 4 makes this a hard stop, so no campaign run is attempted until it passes.
+[campaign] self-test    its two runs are NOT campaign runs. They land in C:\Projects\EXT-17\campaigns\demo\selftest\runs and are never counted among the campaign's outcomes.
+[campaign] self-test    run 000 of 2
+[campaign] run          === run 000 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 38280 -> C:\Projects\EXT-17\campaigns\demo\selftest\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 2052 cwd C:\Projects\EXT-17\campaigns\demo\selftest\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] observed     stop predicate satisfied -> state=running frame=200 simTime=10.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 2052 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 38280 exit 0 (on its own)
+[campaign] capture      read back: 8530 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\demo\selftest\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] self-test    run 001 of 2
+[campaign] run          === run 001 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 47048 -> C:\Projects\EXT-17\campaigns\demo\selftest\runs\001
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 36996 cwd C:\Projects\EXT-17\campaigns\demo\selftest\runs\001\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] observed     stop predicate satisfied -> state=running frame=200 simTime=10.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 36996 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 47048 exit 0 (on its own)
+[campaign] capture      read back: 8586 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\demo\selftest\runs\001\run.json (completed)
+[campaign] run          run 001 -> completed
+[campaign] self-test    determinism self-test
+[campaign] self-test      runs                  000  against  001
+[campaign] self-test      gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
+[campaign] self-test      OQ-2                  DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words and
+[campaign] self-test                            CONCURRED with by the mentor on the same day, independently. Still NOT
+[campaign] self-test                            answered by [B]'s author, who has not replied - and criterion 2 is theirs to
+[campaign] self-test                            discharge, so a second opinion strengthens the decision without closing the
+[campaign] self-test                            question. The deciding sentence is "if it ever fails, you have found either a
+[campaign] self-test                            defect in your harness or something far more interesting, and you must be able
+[campaign] self-test                            to tell which" - a byte gate fails 100% of the time here and so distinguishes
+[campaign] self-test                            neither. See docs/m7-oq2-oq3.md. Both comparisons still run and are still
+[campaign] self-test                            reported below.
+[campaign] self-test    
+[campaign] self-test      content comparison    PASS
+[campaign] self-test        compared            (part 0, segment 0)  running in both, 43 entity key(s)
+[campaign] self-test        excluded            (part 0, segment 1)  clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs
+[campaign] self-test                              0 and 0 sample(s) in it were not compared
+[campaign] self-test        compared            8503 sample(s)
+[campaign] self-test        agree               8503
+[campaign] self-test        differ              0
+[campaign] self-test        present in one only 000: 27   001: 83   (not differences - see verdict)
+[campaign] self-test        coverage            99.6835% of the smaller run's comparable samples (8503 of 8530), floor 99.0000%
+[campaign] self-test        verdict             every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 27 sample(s) were present only in 000 and 83 only in 001, which is the publication schedule and not the simulation (§14).
+[campaign] self-test    
+[campaign] self-test      byte comparison       DIFFER
+[campaign] self-test        sizes               4098831 and 4124995 byte(s)
+[campaign] self-test        first difference    byte 5034, line 45
+[campaign] self-test        headers             byte-identical
+[campaign] self-test        model_path          EXCLUDED per format §14; it was identical here, so the exclusion changed nothing
+[campaign] self-test        status              EXPECTED TO FAIL on this platform, and not a defect. The host publishes a
+[campaign] self-test                            different subset of frames every run (§14). Nothing here is normalised,
+[campaign] self-test                            filtered or masked beyond the one field §14 names — a comparison made to
+[campaign] self-test                            pass by construction would measure nothing (ADR-1).
+[campaign] self-test    
+[campaign] self-test      result equality       outcomes completed and completed — AGREE
+[campaign] self-test        verdicts            0 and 0 — agree. Vacuous: neither capture carries a producer verdict, so there is nothing here to agree about. A campaign's own verdicts live in each run's verdicts.jsonl, not in the capture.
+[campaign] self-test    
+[campaign] self-test      GATE                  PASS   on the content basis
+[campaign] self-test                            every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 27 sample(s) were present only in 000 and 83 only in 001, which is the publication schedule and not the simulation (§14).
+[campaign] self-test                            This discharges [B]'s acceptance criterion 2 under the CONTENT reading,
+[campaign] self-test                            which is this project's named deviation (ADR-1) and is now RULED - by the
+[campaign] self-test                            DRI on 2026-09-01, from [B]'s own words, and NOT by [B]'s author, who has
+[campaign] self-test                            not replied. It does not discharge criterion 2 under a byte reading, and
+[campaign] self-test                            nothing here claims it does: --gate-basis bytes fails on this platform and
+[campaign] self-test                            has been run (campaigns/m4-bytes/).
+[campaign] campaign     self-test -> C:\Projects\EXT-17\campaigns\demo\selftest\self-test.json
+[campaign] campaign     self-test: passed
+[campaign] run          === run 000 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 12804 -> C:\Projects\EXT-17\campaigns\demo\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 32036 cwd C:\Projects\EXT-17\campaigns\demo\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] observed     stop predicate satisfied -> state=running frame=200 simTime=10.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 32036 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 12804 exit 0 (on its own)
+[campaign] capture      read back: 8545 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] verdict      raid-leader-reaches-airfield       NOT MET <- VIOLATED          t=10.000000000000007 closest_approach_m=8796.2641 within_m=3000 [RedUAV_N_01@1 line 8579, BlueBase_Airfield@1 line 8548]
+[campaign] verdict      raid-leader-crosses-corridor       NOT MET <- VIOLATED          t=10.000000000000007 closest_to_boundary_m=5136.5175 polygon=4 vertices [RedUAV_N_01@1 line 8579]
+[campaign] verdict      raid-leader-enters-depot-ring      NOT MET <- VIOLATED          t=10.000000000000007 closest_to_boundary_m=4796.7407 radius_m=5000 [RedUAV_N_01@1 line 8579]
+[campaign] verdict      raid-leader-destroyed              NOT MET (as asserted)        removed_with=scenario_unload removal_reason=destroyed [RedUAV_N_01@1 line 8622]
+[campaign] verdict      command-centre-destroyed           NOT MET (as asserted)        removed_with=scenario_unload removal_reason=destroyed [BlueBase_CommandCenter@1 line 8593]
+[campaign] verdict      airfield-operational               met                          t=0.05 phase=operational equals=operational [BlueBase_Airfield@1 line 45]
+[campaign] verdict      raid-leader-degraded               INDETERMINATE                health=nominal equals=degraded
+[campaign] judge        satisfied 3, violated 3, indeterminate 1  (met 1, not met 5)
+[campaign] record       C:\Projects\EXT-17\campaigns\demo\runs\000\run.json (fail)
+[campaign] run          run 000 -> fail
+[campaign] run          === run 001 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 29964 -> C:\Projects\EXT-17\campaigns\demo\runs\001
+[campaign] connect      client created, message pump started
+[campaign] inject       fault host_start_failure: the host executable is C:\Projects\EXT-17\campaigns\demo\runs\001\no-such-host.exe, which does not exist
+[campaign] FAIL         host_start: CreateProcess failed for C:\Projects\EXT-17\campaigns\demo\runs\001\no-such-host.exe: win32 error 2
+[campaign] teardown     recorder pid 29964 did not exit within 30000 ms; terminating by handle
+[campaign] teardown     recorder pid 29964 exit 1 (by handle)
+[campaign] capture      no capture file in C:\Projects\EXT-17\campaigns\demo\runs\001
+[campaign] judge        not judged: this run's outcome is infrastructure_error, and an infrastructure failure or a timeout is never a test result (CR-EX-5). No verdict is invented for it, so this run carries 0 verdicts against 7 declared conditions - which is what tells a reader the run was cut short rather than that it passed.
+[campaign] record       C:\Projects\EXT-17\campaigns\demo\runs\001\run.json (infrastructure_error)
+[campaign] run          run 001 -> infrastructure_error
+[campaign] run          === run 002 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 36620 -> C:\Projects\EXT-17\campaigns\demo\runs\002
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 35592 cwd C:\Projects\EXT-17\campaigns\demo\runs\002\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.
+[campaign] observed     stop predicate satisfied -> state=running frame=200 simTime=10.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 35592 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 36620 exit 0 (on its own)
+[campaign] capture      read back: 8580 samples over 2 segment key(s) for 2 run segment(s), end_reason host_lost, conformant
+[campaign] verdict      raid-leader-reaches-airfield       NOT MET <- VIOLATED          t=10.000000000000007 closest_approach_m=8796.2641 within_m=3000 [RedUAV_N_01@1 line 8579, BlueBase_Airfield@1 line 8548]
+[campaign] verdict      raid-leader-crosses-corridor       NOT MET <- VIOLATED          t=10.000000000000007 closest_to_boundary_m=5136.5175 polygon=4 vertices [RedUAV_N_01@1 line 8579]
+[campaign] verdict      raid-leader-enters-depot-ring      NOT MET <- VIOLATED          t=10.000000000000007 closest_to_boundary_m=4796.7407 radius_m=5000 [RedUAV_N_01@1 line 8579]
+[campaign] verdict      raid-leader-destroyed              NOT MET (as asserted)        removed_with=scenario_unload removal_reason=destroyed [RedUAV_N_01@1 line 8622]
+[campaign] verdict      command-centre-destroyed           NOT MET (as asserted)        removed_with=scenario_unload removal_reason=destroyed [BlueBase_CommandCenter@1 line 8593]
+[campaign] verdict      airfield-operational               met                          t=0.05 phase=operational equals=operational [BlueBase_Airfield@1 line 45]
+[campaign] verdict      raid-leader-degraded               INDETERMINATE                health=nominal equals=degraded
+[campaign] judge        satisfied 3, violated 3, indeterminate 1  (met 1, not met 5)
+[campaign] record       C:\Projects\EXT-17\campaigns\demo\runs\002\run.json (fail)
+[campaign] run          run 002 -> fail
+[campaign] campaign     summary -> C:\Projects\EXT-17\campaigns\demo\campaign.json
+[campaign] campaign     3 run(s) attempted
+[campaign] campaign       pass                  0
+[campaign] campaign       fail                  2
+[campaign] campaign       timeout               0
+[campaign] campaign       infrastructure_error  1
+[campaign] campaign       the four sum to 3, and no aggregate above merges two of them
+[campaign] campaign       2 INDETERMINATE verdict(s) across the campaign - a verdict state, never a fifth run outcome. See each run's verdicts.jsonl.

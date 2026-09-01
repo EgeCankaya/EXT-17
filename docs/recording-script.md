@@ -1,61 +1,74 @@
-# The 5-minute recording — the script, and exactly which shell to run each command in
+# The 5-minute recording — the commands, in order
 
-**Status: NOT RECORDED.** The recording is a deliverable [B] names — *"a 5-minute recording:
-launch a campaign, watch it run, read the report"* — and it needs a person. This document is
-everything except the person: which terminal, which command, in what order, what the screen will
-show, and what to say over it.
+> **Status: RECORDED and PUBLISHED, 2026-09-01.** One take, **4 min 10 s**, shot to this runbook:
+> **[Take 1, on Google Drive](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing)**,
+> beside a command-by-command companion for a viewer. All eight steps below are on camera in
+> order. The campaign it launches is the three-run, 200-frame demo with a host-start failure
+> injected into run 1 — its records are committed at `campaigns/demo/` — and the report read at
+> step 5 is the committed twenty-run campaign.
+>
+> **It is 4:10 against [B]'s *"5-minute recording"***, and that is stated rather than rounded up.
+> Every clause of the deliverable is in it — *launch a campaign, watch it run, read the report* —
+> and with no narration the commands simply take less time than they did when they were narrated.
 
-**Why the status is stated rather than implied.** The PRD scheduled this at M7 *explicitly*
-because the equivalent deliverable was not delivered by the upstream project (R10). The failure
-R10 names is not lateness; it is **substituting a written walkthrough and calling the requirement
-met**. So this file does not claim to be the recording. It is the script the recording follows,
-which means the remaining work is the recording alone.
+The recording is a deliverable [B] names — *"a 5-minute recording: launch a campaign, watch it
+run, read the report"* — and it needed a person. This document is everything except the person:
+which shell, which command, in what order, and what each one puts on screen. **It is kept as the
+record of what was filmed and how to reshoot any step**, not as a substitute for the film.
+
+**Why the status is stated this precisely.** The PRD scheduled this at M7 *explicitly* because the
+equivalent deliverable was not delivered by the upstream project (R10). The failure R10 names is
+not lateness; it is **substituting a written walkthrough and calling the requirement met** — so
+from M7 until the take existed, this file said `NOT RECORDED` in its first line. It now says the
+opposite because the film exists and is published, and for no other reason.
+
+**There is no narration, and nothing is opened in an editor. The recording is the terminal.**
+That is a deliberate constraint rather than a shortcut, and it holds because **the tools caption
+themselves**: the self-test block prints the gate basis and the OQ-2 wording, the report prints
+why its bar is not scaled from zero and what `OK` / `XX` / `??` mean, and every verdict that is
+not satisfied prints its own reason. A claim that would have to be spoken to be present is a
+claim the recording cannot evidence — so if it is not on screen, it is not in the recording.
+
+## What the brief asks for, and which step does it
+
+| [B]'s words | step |
+|---|---|
+| *launch a campaign* | **3** — one command |
+| *watch it run* | **4** — nothing typed for ~90 s |
+| *read the report* | **5** |
+
+Steps 1, 2, 6, 7 and 8 are beyond those three. They fill the remaining time and are the parts to
+cut first if you run long — cut from the bottom, never from 3–5.
 
 ---
 
 ## 0. Before you press record
 
-### 0.1 Use `cmd`, not PowerShell — both windows
+### 0.1 Use `cmd`, not PowerShell
 
-**Every command in this script is written for `cmd.exe`.** That is a deliberate choice and it is
-worth one sentence on camera if anyone asks:
+**Every command here is written for `cmd.exe`:**
 
 | | |
 |---|---|
-| The build scripts are `.cmd` | `tools\*\build.cmd` are batch files. In `cmd` you run them by name; in PowerShell you must wrap every one as `cmd /c "tools\n8ro-judge\build.cmd"` |
-| The line-continuation character differs | This project's README and help text use `^`, which is **cmd**. PowerShell uses a backtick `` ` ``. A command copied from the README into PowerShell breaks at the first line break |
+| The build scripts are `.cmd` | `tools\*\build.cmd` are batch files. In `cmd` you run them by name; in PowerShell each needs `cmd /c "tools\n8ro-judge\build.cmd"` |
+| The line-continuation character differs | This project's README and help text use `^`, which is **cmd**. PowerShell uses a backtick `` ` ``, so a command copied from the README into PowerShell breaks at the first line break |
 | Environment variables differ | `set N8RO_RELEASE=C:\N8RO` in cmd; `$env:N8RO_RELEASE="C:\N8RO"` in PowerShell |
-| Running an exe with a quoted path differs | cmd: `"build\n8ro-judge\n8ro-judge.exe" --help`. PowerShell needs the call operator: `& "build\n8ro-judge\n8ro-judge.exe" --help` |
+| Running an exe with a quoted path differs | cmd: `"build\n8ro-judge\n8ro-judge.exe" --help`. PowerShell needs the call operator `&` |
 
-**One `cmd` gotcha to know about even though this script avoids it:** `%errorlevel%` inside a
-single-line `&`-chain is expanded when the line is *parsed*, not when it runs, so it reports the
-**previous** command's code. If you want to show an exit code on camera, put it on its own line —
-every command below does.
+`%errorlevel%` inside a single-line `&`-chain expands when the line is *parsed*, not when it runs,
+so it reports the **previous** command's code. Every `echo %errorlevel%` below is on its own line
+for that reason. Those echoes matter here: with no narration, the exit code is how the recording
+says what a command decided.
 
-> If you would rather record in PowerShell, every command still works; wrap each `.cmd` in
-> `cmd /c "..."`, swap `^` for `` ` ``, prefix each `.exe` with `&`, and use `$env:` for the two
-> variables. The script does not do this because one shell on screen is one fewer thing to
-> explain.
-
-### 0.2 Open two `cmd` windows, both at the repo root
+### 0.2 One `cmd` window at the repo root, with both variables set
 
 ```cmd
 cd /d C:\Projects\EXT-17
-```
-
-- **Terminal A — "the campaign."** Runs the long thing. It stays busy for about 90 seconds while
-  you talk over it.
-- **Terminal B — "the reading."** Everything else. Fast commands, all of them under a second.
-
-### 0.3 Set the two environment variables in Terminal A only
-
-```cmd
 set N8RO_RELEASE=C:\N8RO
 set PATH=C:\N8RO\bin;%PATH%
 ```
 
-**Both are measured preconditions, not preferences**, and both are worth naming on camera because
-each fails in a way that looks like something else:
+**Both are measured preconditions, not preferences**, and each fails as something else:
 
 - Without `N8RO_RELEASE`, the host resolves its plugin directory from the working directory,
   skips its plugin scan, never registers `componentPhysics`, and **refuses every 42-entity
@@ -63,10 +76,9 @@ each fails in a way that looks like something else:
 - Without `C:\N8RO\bin` on `PATH`, an SDK-linked binary exits `-1073741515` (`0xC0000135`,
   STATUS_DLL_NOT_FOUND) having printed nothing at all (F-8). It looks like a crash.
 
-**Terminal B deliberately does NOT get them**, and that is a demonstration rather than an
-oversight — see beat 5.
+One window is enough, because only `n8ro-campaign` needs either variable.
 
-### 0.4 Which binary needs what — verified, not assumed
+### 0.3 Which binary needs what — verified, not assumed
 
 | binary | needs `C:\N8RO\bin` on `PATH`? | needs `N8RO_RELEASE`? |
 |---|---|---|
@@ -75,50 +87,41 @@ oversight — see beat 5.
 | `n8ro-compare` | **No** | No |
 | `n8ro-capture` | **No** | No |
 
-The bottom three link nothing — not EXT-08, not the N8RO SDK — and that is checked on every
-build. Beat 5 shows it rather than says it.
+The bottom three link nothing — not EXT-08, not the N8RO SDK — and that is checked on every build.
+If you want the recording to *show* that rather than assert it, run steps 1, 2, 6, 7 and 8 in a
+second `cmd` window that never had `set PATH=C:\N8RO\bin;%PATH%` run in it. They work there;
+`n8ro-campaign` will not print its own help.
 
-### 0.5 A scratch directory, because N8RO binaries write into their working directory
-
-The campaign handles this itself (every child gets its own directory), so running from the repo
-root is safe **for these commands**. It is not safe in general: `n8ro-sim-local.exe` writes a
-per-entity JSONL dump into its working directory and `n8ro-sim-app.exe` creates `data\db\` and
-`logs\` there. It did that in this repo's root once, before the rule was known (F-6).
-
-### 0.6 Clear the demo directory so the launch is from nothing
-
-In **Terminal A**:
+### 0.4 Clear the demo directory, so the launch is from nothing
 
 ```cmd
 rmdir /s /q campaigns\demo 2>nul
 ```
 
-### 0.7 Have these open in an editor, not on screen yet
+### 0.5 Off camera, once, before the take
 
-`README.md` at the top, and at *Limits*. `docs/determinism-notes.md` at §5.
+```cmd
+tools\n8ro-campaign\build.cmd
+tools\n8ro-judge\build.cmd
+tools\n8ro-compare\build.cmd
+build\n8ro-campaign\n8ro-campaign.exe --help
+```
+
+The last line is the cheapest check that `PATH` is right in *this* window: it prints help, or it
+prints nothing and exits `-1073741515`. Then re-run 0.4 and start recording.
+
+**N8RO binaries write into their working directory** — `n8ro-sim-local.exe` drops a per-entity
+JSONL dump, `n8ro-sim-app.exe` creates `data\db\` and `logs\` (F-6). Running the commands in this
+file from the repo root is safe because the campaign gives every child its own directory; running
+an N8RO binary directly from here is not.
 
 ---
 
-## 1. `0:00 – 0:30` — What this is
-
-**Nothing typed. Show the top of `README.md`.**
-
-> "EXT-17 runs many simulation runs without a human, varies one input across them, decides
-> whether each one passed, and reports across the campaign. It is the downstream half of a pair —
-> EXT-08 records a run into a durable capture; this one runs the campaign.
->
-> One line before anything else, because it is the honest headline: **the determinism gate passes
-> on content, and that is this project's decision rather than the client's.** I'll come back to
-> what that costs."
-
----
-
-## 2. `0:30 – 1:10` — The condition file, and the check that costs ten seconds instead of twenty runs
-
-**Terminal B.**
+## 1. `0:00 – 0:25` — Validate the condition file
 
 ```cmd
 build\n8ro-judge\n8ro-judge.exe check --conditions examples\atacama-raid.conditions.json
+echo %errorlevel%
 ```
 
 ```
@@ -130,36 +133,31 @@ examples\atacama-raid.conditions.json: 7 condition(s), all valid
   command-centre-destroyed         terminal_state  expect not_met
   airfield-operational             terminal_state  expect met
   raid-leader-degraded             terminal_state  expect not_met
+0
 ```
 
-> "Conditions live in their own file, never in the source. This validates it **before any host
-> starts** — a duplicate id, an unrecognised kind, an unknown key, a key written twice are each a
-> distinct named error. A typo costs ten seconds, not twenty runs."
-
-**Then break it on camera**, because a refusal is more convincing than a pass:
+## 2. `0:25 – 0:45` — The same check, on a file with one character wrong
 
 ```cmd
 build\n8ro-judge\n8ro-judge.exe check --conditions docs\demo\typo.conditions.json
+echo %errorlevel%
 ```
 
 ```
 n8ro-judge: condition file refused - unknown_key [raid-leader-reaches-airfield]:
-  "within_meters" is not a key of a proximity condition. A condition file is ours and a person
-  wrote it, so an unrecognised key is refused rather than ignored - it is how "within_meters"
-  for "within_m" would otherwise become a threshold that silently did not apply. A key
-  beginning with '_' is a comment
+  "within_meters" is not a key of a proximity condition. A condition file is ours and a
+  person wrote it, so an unrecognised key is refused rather than ignored - it is how
+  "within_meters" for "within_m" would otherwise become a threshold that silently did not
+  apply. A key beginning with '_' is a comment
+2
 ```
 
-> "One character. The capture format's own rule says ignore an unrecognised key, and that rule is
-> right — for a capture, where a producer adds keys and an old reader has to survive them. A
-> person writes *this* file, so it gets the opposite rule. Without it that's a threshold which
-> silently didn't apply, and twenty confident passes."
+This is the check `n8ro-campaign` runs before any host starts, so a typo costs ten seconds instead
+of twenty runs. The message says the rest itself.
 
 ---
 
-## 3. `1:10 – 1:40` — Launch it. One command.
-
-**Terminal A.** This is the *"launch a campaign"* beat.
+## 3. `0:45 – 1:00` — Launch the campaign. One command.
 
 ```cmd
 build\n8ro-campaign\n8ro-campaign.exe repeat ^
@@ -172,24 +170,19 @@ build\n8ro-campaign\n8ro-campaign.exe repeat ^
   --inject-at-run 1
 ```
 
-> "One command. No keystroke per run, no prompt, no manual host start or teardown — that's the
-> brief's first acceptance criterion.
->
-> Two things I've done to make this fit in five minutes, and I want to be straight about both.
-> **The runs are 200 frames instead of 1200**, so a whole campaign finishes while we talk — about
-> ninety seconds. And I've asked it to **deliberately break the host on run 1**, so you can see
-> what an unattended campaign does at three in the morning when something goes wrong.
->
-> The real committed campaign is twenty runs at 1200 frames and takes twenty-five minutes. We'll
-> read *its* report, not this one's."
+No keystroke per run, no prompt, no manual host start or teardown — that is the brief's first
+acceptance criterion, and one command is the whole demonstration of it.
 
-**Leave it running.** It will not need attention again until beat 6.
+**Two deliberate deviations from the committed campaign, both visible in the output rather than
+hidden:** the runs are **200 frames instead of 1200** so the campaign finishes inside the
+recording, and **run 1's host is deliberately broken** so an unattended campaign's behaviour under
+failure is on camera. Both are written into that run's `run.json` and into the campaign summary, so
+a run under injection can never be mistaken for a clean one. The report read in step 5 is the
+*real* one — twenty runs at 1200 frames, ~25 minutes, committed.
 
----
+## 4. `1:00 – 2:30` — Watch it run. Nothing typed.
 
-## 4. `1:40 – 2:40` — The gate, while it runs
-
-**Nothing typed.** Point at Terminal A as the self-test scrolls past.
+The self-test runs first and prints the gate; then the three campaign runs.
 
 ```
   gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
@@ -199,72 +192,6 @@ build\n8ro-campaign\n8ro-campaign.exe repeat ^
   GATE                  PASS   on the content basis
                         This does NOT discharge [B]'s acceptance criterion 2 as written.
 ```
-
-> "Before any campaign run, it proves determinism: the same configuration twice, captured both
-> times, compared. The brief makes that a hard stop — *do not build further until it passes* — so
-> the campaign runs it itself rather than trusting anyone to remember. If it fails, no campaign
-> run is attempted at all.
->
-> Both comparisons always run and both are always reported. Two identical runs here agree on
-> every sample present in both — nine and a half million samples over a hundred and ninety pairs,
-> zero differing — and are **never byte-identical**, because about 0.2% of frames go unpublished,
-> differently every run, with every platform counter reading zero.
->
-> The brief asks for 'identical captures'. Whether that means content or bytes went to its
-> author and **was never answered**, across five milestones. It is **decided** rather than
-> answered — decided from the brief's own words, and the sentence it turns on isn't the one you'd
-> expect. It's the brief saying what the self-test is *for*: *if it ever fails, you have found
-> either a defect in your harness or something far more interesting, and you must be able to tell
-> which.* A byte gate fails a hundred and ninety times out of a hundred and ninety here,
-> identically whether the harness is clean or broken — so it tells you neither. This one passed
-> a hundred and ninety times clean and **has** failed on a real pair for a real reason, which is
-> exactly the case the brief describes.
->
-> So both readings are built as selectable gates: under `--gate-basis bytes` the gate correctly
-> fails and the campaign correctly stops. A ruling from the author would still change a default
-> and no code. Every report says both halves — decided, not answered — and I'd rather say that
-> out loud than let 'the gate is content' do the hiding."
-
----
-
-## 5. `2:40 – 3:20` — Re-judging, and the boundary you can see
-
-**Terminal B** — the window with **no N8RO on its `PATH`**. That is the point of this beat.
-
-```cmd
-build\n8ro-judge\n8ro-judge.exe campaign campaigns\m6-campaign ^
-  --conditions examples\atacama-raid.conditions.json ^
-  --verify verdicts.jsonl ^
-  --quiet
-```
-
-```
-re-judging campaigns\m6-campaign
-  7 condition(s) from examples\atacama-raid.conditions.json
-  no host is started and no bus subscription is made - this binary links nothing that could
-
-  000  fail   satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
-    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
-  ...
-  20 run(s) judged
-```
-
-> "A week after the campaign ran you think of a new question. This answers it against the stored
-> captures in seconds, with **no host started and no bus subscription made** — and this binary
-> couldn't make one. Look at the terminal: N8RO isn't on this window's PATH at all. The campaign
-> runner won't even print its own help without it. This runs fine, because it links nothing.
->
-> And `--verify` is checking something specific: that re-judging produces verdicts **byte-
-> identical** to the live run's. That holds by construction — there's one evaluator and one input,
-> a stored capture, and the live campaign judges through the same code over the same file. But a
-> structural argument nobody checked is how a structural argument stops being true, so it's
-> checked too. Twenty of twenty."
-
----
-
-## 6. `3:20 – 4:10` — Read the report
-
-**Terminal A first** — the demo campaign has finished by now. Scroll to its last lines.
 
 ```
 [campaign] run          run 000 -> fail
@@ -278,14 +205,19 @@ re-judging campaigns\m6-campaign
 [campaign] campaign       the four sum to 3, and no aggregate above merges two of them
 ```
 
-> "There's the injected fault. The host was pointed at a path that doesn't exist, run 1 is an
-> **infrastructure error** — not a failing scenario — and the campaign **carried on to run 2**.
-> That's the brief's rule: never let an infrastructure failure count as a test result.
->
-> And the two failures are real. At 200 frames the raid doesn't have time to reach the airfield,
-> so the conditions asking whether it did are violated. That's a result, not a defect."
+Everything worth saying here is printed: both comparisons ran and both are reported, the gate names
+its basis and says what it does not discharge, run 1 is an **infrastructure error** rather than a
+failing scenario, and the campaign **carried on to run 2**. The two failures are real — at 200
+frames the raid cannot reach the airfield, so the conditions asking whether it did are violated.
 
-**Now Terminal B** — the committed twenty-run campaign, which is the report worth reading:
+Elapsed here is **88.7 s** measured. If the gate refuses instead, see the trouble table: that is
+correct behaviour and not a retake.
+
+---
+
+## 5. `2:30 – 3:30` — Read the report
+
+The committed twenty-run sweep, re-rendered from its stored run records:
 
 ```cmd
 build\n8ro-campaign\n8ro-campaign.exe report ^
@@ -293,145 +225,171 @@ build\n8ro-campaign\n8ro-campaign.exe report ^
   --campaign examples\atacama-raid-speed-20.json
 ```
 
-> **Wait — this one needs `PATH`.** `n8ro-campaign` links the SDK, so Terminal B cannot run it.
-> Either run this in **Terminal A** (which has `PATH` set and is now idle), or `type
-> campaigns\m6-campaign\report.txt` in Terminal B. **Prefer `type` on camera** — it is the
-> committed artifact rather than a re-render, and it avoids explaining a DLL error mid-recording.
+Nothing is run, no host is started and no capture is read — it prints through the same printer the
+live campaign used, so a re-render cannot disagree with what the campaign printed. `--campaign`
+supplies the sweep's order, which the axis declares and which is not re-derivable from the run
+records: it is why `110` sorts after `27.5` rather than before it.
+
+Let it sit on screen. It is 79 lines and it carries its own captions:
+
+```
+[campaign] sweep          value  run   outcome                   adds     keys   samples
+[campaign] sweep          11     000   fail                        48       48     50534  ##
+...
+[campaign] sweep          150    010   infrastructure_error         -        -     49007  (no bar - this run did not complete)
+[campaign] sweep          170    011   pass                        65       65     48927  ########################################
+...
+[campaign] sweep          the bar is `adds` scaled between 47 and 65 - NOT from zero, ...
+```
+
+```
+[campaign] sweep          value  run   outcome               C1    C2    C3    C4    C5    C6
+[campaign] sweep          100    007   fail                  XX    OK    XX    OK    OK    OK
+[campaign] sweep          115    008   fail                  XX    OK    OK    OK    OK    OK
+[campaign] sweep          170    011   pass                  OK    OK    OK    OK    OK    OK
+...
+[campaign] campaign     20 run(s) attempted
+[campaign] campaign       pass                  8
+[campaign] campaign       fail                  10
+[campaign] campaign       timeout               0
+[campaign] campaign       infrastructure_error  2
+```
+
+The three thresholds (corridor from 100, depot ring from 115, airfield only from 170), the peak in
+`adds` around 170–190 followed by a **fall**, the four outcomes that sum and are never merged, and
+the condition that is constant across the sweep and is therefore listed below the table rather than
+given a column — all of it is legible without a word spoken.
+
+## 6. `3:30 – 4:05` — Re-judge the stored runs
 
 ```cmd
-type campaigns\m6-campaign\report.txt
+build\n8ro-judge\n8ro-judge.exe campaign campaigns\m6-campaign ^
+  --conditions examples\atacama-raid.conditions.json ^
+  --verify verdicts.jsonl ^
+  --quiet
 ```
 
-Point at the count table:
+```
+re-judging campaigns\m6-campaign
+  7 condition(s) from examples\atacama-raid.conditions.json
+  no host is started and no bus subscription is made - this binary links nothing that could
 
-> "Twenty runs, ordered by parameter value — not by spelling, which would put 110 before 27.5.
-> The bar is scaled between the minimum and maximum, not from zero, and the header says so: a
-> column running 47 to 65 drawn from zero is twenty identical bars.
->
-> And the shape is the interesting part. Engagement rises to a peak around 170–190 m/s and then
-> **falls**. A raid fast enough to overfly is engaged less, not more. A sweep that reported
-> 'higher is more' would be reporting a line that isn't there."
+  000  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  ...
+  010  infrastructure_error  satisfied 0  violated 0  indeterminate 7   (met 0, not met 0)
+    no segment classified running, so nothing in this capture can be judged: ...
+  ...
+  20 run(s) judged
+    pass                  8
+    fail                  10
+    timeout               0
+    infrastructure_error  2
+    (the four outcomes sum to 20, and no aggregate merges two of them)
+    indeterminate VERDICTS 32 - a verdict state, never a fifth run outcome
+```
 
-Then the verdict table:
+Stored runs re-judged in seconds against a condition file, with **no host started and no bus
+subscription made**. `--verify` byte-compares each re-judgement against the verdicts the live run
+wrote: twenty of twenty identical. The exit code here is **1**, because indeterminate verdicts
+exist — the `verify:` lines are what to read, not the exit code, so do not `echo %errorlevel%` on
+this one.
 
-> "This is what the sweep is for. One column per condition **whose outcome changes** — the ones
-> that don't are listed below as constant, because a column that never changes isn't a trend. You
-> can see three different thresholds: the corridor is entered from 100, the depot ring from 115,
-> the airfield only from 170. And the run outcome flips with them — fail up to 130, pass from 170.
->
-> Two runs are infrastructure errors, at 150 and 210. Their segment zero came out frozen, so
-> nothing in those captures can be judged. It's a known platform behaviour, it happens about one
-> run in nine, and there is deliberately **no retry** — a harness that re-rolls until it likes
-> the answer has no gate."
-
----
-
-## 7. `4:10 – 4:40` — The verdict that says it cannot say
-
-**Terminal B.**
+## 7. `4:05 – 4:35` — One run's verdicts, including the one that says it cannot say
 
 ```cmd
-type campaigns\m6-campaign\runs\000\verdicts.jsonl
+build\n8ro-judge\n8ro-judge.exe capture ^
+  campaigns\m6-campaign\runs\000\capture-atacama-air-defense-000.n8rocap.jsonl ^
+  --conditions examples\atacama-raid.conditions.json
 ```
 
-Find `raid-leader-degraded` — or show it from the report's per-verdict lines:
+```
+  capture  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    raid-leader-reaches-airfield       NOT MET <- VIOLATED   t=59.99999999999873 closest_approach_m=8693.1695 within_m=3000 [RedUAV_N_01@1 line 50580, BlueBase_Airfield@1 line 50551]
+      closest approach 8693.1695 m at sim_time_s 59.99999999999873, against a threshold of 3000 m.
+      The margin of 5693.17 m exceeds the 1.20 m they could have closed inside the largest
+      unobserved window (0.1000 s at a relative 11.0 m/s), so they did not reach it
+    raid-leader-destroyed              NOT MET (as asserted) removed_with=scenario_unload removal_reason=destroyed [RedUAV_N_01@1 line 50621]
+    airfield-operational               met                   t=0.05 phase=operational equals=operational [BlueBase_Airfield@1 line 69]
+    raid-leader-degraded               INDETERMINATE         health=nominal equals=degraded
+      no sample of RedUAV_N_01 carried health = "degraded" - the last value seen was "nominal".
+      A field's rate of change is not bounded by anything in the format, so the value could have
+      been taken and left between two samples. This form is never decidable in the negative
+```
+
+Every verdict names what decided it: the entities with their occupancies, the line in the capture,
+the deciding simulation time, the measured value, the threshold, and — for a not-met geometric
+verdict — the bound the conclusion rests on. The last verdict is the point of the whole project and
+it argues for itself on screen: a capture is a very high-fidelity **sample**, so *"no record says
+it happened"* is not *"it did not happen"*, and the verdict says it cannot decide instead of
+reporting a confident NOT MET.
+
+## 8. `4:35 – 5:00` — Change one input, and show exactly where the two runs diverged
+
+```cmd
+build\n8ro-compare\n8ro-compare.exe ^
+  campaigns\m6-campaign\runs\000\capture-atacama-air-defense-000.n8rocap.jsonl ^
+  campaigns\m6-campaign\runs\019\capture-atacama-air-defense-019.n8rocap.jsonl ^
+  --changed-input
+```
 
 ```
-raid-leader-degraded   INDETERMINATE   health=nominal equals=degraded
-  no sample of RedUAV_N_01 carried health = "degraded" ... A field's rate of change is not
-  bounded by anything in the format, so the value could have been taken and left between two
-  samples. This form is never decidable in the negative.
+    FIRST DIFFERENCE    segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.7000000000000001
+                          field "positionGeodetic": [-23.496501124623734, ...]   against   [-23.496492816664038, ...]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 586, capture-...-019.n8rocap.jsonl line 562
+
+  DIVERGED              at the point named above - segment, (entity, occupancy), sim_time_s
+                        and field. That is the brief's "exactly where", ...
+                        30066 of 44345 compared sample(s) differ. The count is context; the FIRST
+                        one is the finding, because everything after it is downstream of it.
 ```
 
-> "This one is the point of the whole project.
->
-> A capture is a very high-fidelity **sample** of what the run published — not a transcript — and
-> loss has been measured with every counter reading zero. So *'no record says it happened'* is not
-> the same claim as *'it didn't happen'*.
->
-> A naive referee reports this NOT MET, confidently, from a file that may simply be missing the
-> frame. This one says it cannot decide, and why. **Indeterminate is a verdict state and never a
-> fifth run outcome** — the brief fixes those at four, and keeping the two vocabularies apart is
-> what keeps that criterion exactly satisfied.
->
-> Every verdict also carries what decided it: the entities with their occupancies, the line in
-> the capture, the deciding simulation time, the measured value and the threshold. Enough to open
-> the file and check it by hand."
+`--changed-input` is a framing rather than a mode: two runs at **different** inputs, where a
+divergence is the answer and agreement would be the finding worth chasing. The byte comparison and
+result equality are deliberately not run here, and the output says why.
 
 ---
-
-## 8. `4:40 – 5:00` — The limits, which is where to stop
-
-**Open `README.md` at *Limits*.** Nothing typed.
-
-> "The last thing, and it's the part I'd want a reviewer to read first.
->
-> A pass here means every declared condition was satisfied — **not that the run was correct**. It
-> is a statement about the questions somebody thought to ask, over the data that reached the file.
->
-> The gate refuses about one pair in fourteen for a reason that is not a determinism failure, and
-> there's deliberately no retry. There's one condition the brief's own example implies that
-> **cannot be expressed here**, and it's named. The arithmetic every geometric verdict rests on is
-> this project's decision, because the vendored contract stopped one heading short of stating it —
-> that's raised upstream, and the decision doesn't wait on the answer.
->
-> All of that is in the README, in the limits section, not in a footnote. That's the difference
-> between a demonstration and evidence, which is what the brief opens with."
-
----
-
-## What to have ready but not show
-
-- `campaigns\m6-gate-refused\` — the execution where the gate correctly refused and **zero runs
-  were attempted**. Have it if anyone asks *"what happens when it fails?"*, because the answer is
-  not hypothetical.
-- `docs\determinism-notes.md` §5 — the five things that could not be explained.
-- `campaigns\m6-faults\` — all four ugly realities, injected and survived.
-- `campaigns\m6-campaign\changed-input-diff.txt` — the run-to-run diff, if there is time for the
-  brief's *"change one input and show exactly where the two runs diverged"*.
-
-## What not to say
-
-- **Do not say the brief's author ruled on the gate's basis.** They never replied. It is
-  **decided** - by the DRI on 2026-09-01, from the brief's own words - and *decided* is not
-  *answered*. Criterion 2 is discharged **under the content reading**, and that qualifier goes in
-  the same breath every time.
-- **Do not describe the twenty-run campaign as always succeeding.** It met R15 on its first
-  attempt: the gate refused and no run was attempted.
-- **Do not call an `indeterminate` verdict a failure of the tool.** It is the correct answer.
-- **The mentor DID confirm the whole invocation** - all six parts, on 2026-09-01. You may say
-  so. What you may **not** say is that the transport choice was prescribed: the answer to that
-  one was *"pick the one you prefer"*, so `SimEngineHost_SharedMemory` is **our** choice, made
-  on the reasoning in `docs/m7-oq2-oq3.md` §2.2 and now explicitly delegated rather than
-  inferred. Saying "the mentor told us to use SharedMemory" would be false.
-- **Do not say the mentor ruled on the gate basis.** They **concurred** with content, separately
-  and independently, which is worth saying. It is not a ruling: acceptance criterion 2 belongs to
-  the brief's author, who has still never replied. If you mention the concurrence at all, say
-  "still not answered by the brief's author" in the same breath - the reports do, and two tests
-  enforce it.
-
-**Four lines in this file have gone stale within hours of being written, twice on 2026-09-01** -
-first the sweep being unreviewed and criterion 2 unruled, then the invocation being confirmed in
-only four of six parts. All were true when written and all were overtaken the same day.
-Mentioned here because it is exactly the kind of staleness a script accumulates between writing
-and recording, and worth a re-read of this section before the camera goes on.
 
 ## If something goes wrong on camera
 
 | symptom | cause | fix |
 |---|---|---|
-| A binary prints nothing and exits `-1073741515` | `C:\N8RO\bin` not on `PATH` (F-8) | You are in Terminal B. Use Terminal A, or `type` the committed artifact |
+| A binary prints nothing and exits `-1073741515` | `C:\N8RO\bin` not on `PATH` (F-8) | Only `n8ro-campaign` needs it. `set PATH=C:\N8RO\bin;%PATH%` and re-run |
 | The campaign sits at "scenario loaded" and never starts | `N8RO_RELEASE` not set (F-5) | `set N8RO_RELEASE=C:\N8RO` and relaunch |
-| The campaign exits 3 having run nothing | The determinism gate refused — possibly R15 | **This is correct behaviour.** Say so, show the refusal naming its shape, and relaunch. Do not edit anything |
+| The campaign exits 3 having run nothing | The determinism gate refused — possibly R15 | **This is correct behaviour.** Let the refusal stand on screen naming which shape it found, then relaunch. Do not edit anything, and do not cut it out |
 | A command breaks at the first `^` | You are in PowerShell | Switch to `cmd`, or replace `^` with a backtick |
 | `n8ro-campaign` refuses to start a run | A host it did not create is already live (CR-EX-1) | Close the stray `n8ro-sim-app.exe` and relaunch |
+| Step 6 or 7 exits `1` | An indeterminate verdict, or a violated condition | Not an error, and not a retake. The verdict lines are the result |
 
 ## Timings, measured rather than estimated
 
 | | |
 |---|---:|
 | one 200-frame run | **14.6 s** |
-| the demo campaign in beat 3 — 2 self-test runs + 3 campaign runs, one injected | **88.7 s** |
+| the demo campaign in step 3 — 2 self-test runs + 3 campaign runs, one injected | **88.7 s** |
 | one 1200-frame run | ~70 s |
 | the committed twenty-run campaign | ~25 min |
 | `n8ro-judge campaign --verify` over 20 stored runs | a few seconds |
+| every other command in this file | under a second |
+
+## If you caption, title or describe the recording anywhere
+
+There is no narration, so the tools' own text carries every claim — which makes a caption the one
+place a claim could enter that the terminal does not support. Three that must not:
+
+- **The brief's author did not rule on the gate's basis.** They never replied. It is **decided**
+  — by the DRI on 2026-09-01, from the brief's own words — and *decided* is not *answered*.
+  Criterion 2 is discharged **under the content reading**, and that qualifier goes in the same
+  breath every time.
+- **The mentor did not rule on it either.** They **concurred**, separately and independently,
+  which is worth saying — but never alone: "still not answered by the brief's author" goes in the
+  same breath. The reports do exactly that, and two tests enforce it.
+- **An `indeterminate` verdict is not a failure of the tool**, and the twenty-run campaign is not
+  a campaign that always succeeds — it met R15 on its first attempt, where the gate refused and no
+  run was attempted (`campaigns\m6-gate-refused\`).
+
+**Four lines in this file have gone stale within hours of being written, twice on 2026-09-01** —
+first the sweep being unreviewed and criterion 2 unruled, then the invocation being confirmed in
+only four of six parts. All were true when written and all were overtaken the same day. Re-read
+this section before the camera goes on.

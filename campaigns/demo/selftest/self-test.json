@@ -1,0 +1,109 @@
+{
+  "schema": "ext17-self-test/1",
+  "requirement": "CR-DET-1",
+  "outcome": "passed",
+  "detail": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 27 sample(s) were present only in 000 and 83 only in 001, which is the publication schedule and not the simulation (§14).",
+  "gate": {
+    "basis": "content",
+    "basis_is_a_named_deviation": true,
+    "verdict": "pass",
+    "oq2_ruling": "decided",
+    "oq2_decided_by": "DRI, 2026-09-01",
+    "oq2_concurred_by": "mentor, 2026-09-01, independently",
+    "oq2_answered_by_brief_author": false,
+    "oq2_note": "DECIDED and CONCURRED with, not answered. The DRI authorised deciding it from the brief's own words on 2026-09-01, and the mentor reached the same answer independently that day. The brief's author has never replied; criterion 2 is theirs to discharge, so the concurrence strengthens the decision without closing the question, and a ruling from them would still be acted on. The deciding sentence is the brief's own statement of the self-test's purpose - if it ever fails, you have found either a defect in your harness or something far more interesting, and you must be able to tell which - which a byte gate cannot serve, because it fails 100% of the time on this platform and so distinguishes neither case. A pass here discharges the brief's acceptance criterion 2 under the CONTENT reading, which is now ruled rather than unruled. See docs/m7-oq2-oq3.md."
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "outcome": "completed",
+      "capture": "capture-atacama-air-defense-000.n8rocap.jsonl",
+      "capture_covers_whole_run": true,
+      "capture_conformant": true,
+      "samples": 8530
+    },
+    {
+      "run_id": "001",
+      "outcome": "completed",
+      "capture": "capture-atacama-air-defense-001.n8rocap.jsonl",
+      "capture_covers_whole_run": true,
+      "capture_conformant": true,
+      "samples": 8586
+    }
+  ],
+  "refused": null,
+  "content": {
+    "verdict": "pass",
+    "reason": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 27 sample(s) were present only in 000 and 83 only in 001, which is the publication schedule and not the simulation (§14).",
+    "compared_samples": 8503,
+    "agree": 8503,
+    "differ": 0,
+    "only_in_000": 27,
+    "only_in_001": 83,
+    "only_in_one_is_not_a_difference": true,
+    "coverage": 0.996835,
+    "coverage_floor": 0.990000,
+    "segments": [
+      {
+        "part": 0,
+        "segment": 0,
+        "clock_000": "running",
+        "clock_001": "running",
+        "compared": true,
+        "samples_000": 8530,
+        "samples_001": 8586,
+        "compared_samples": 8503,
+        "agree": 8503,
+        "differ": 0,
+        "only_in_000": 27,
+        "only_in_001": 83,
+        "duplicated_instants_000": 0,
+        "duplicated_instants_001": 0,
+        "duplicated_identical_000": 0,
+        "duplicated_identical_001": 0
+      },
+      {
+        "part": 0,
+        "segment": 1,
+        "clock_000": "indeterminate",
+        "clock_001": "indeterminate",
+        "compared": false,
+        "excluded_because": "clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs",
+        "samples_000": 0,
+        "samples_001": 0,
+        "compared_samples": 0,
+        "agree": 0,
+        "differ": 0,
+        "only_in_000": 0,
+        "only_in_001": 0,
+        "duplicated_instants_000": 0,
+        "duplicated_instants_001": 0,
+        "duplicated_identical_000": 0,
+        "duplicated_identical_001": 0
+      }
+    ],
+    "differences": []
+  },
+  "bytes": {
+    "identical": false,
+    "expected_to_fail": true,
+    "note": "Run and reported alongside the content comparison, never engineered to pass. The one exclusion is platform.model_path, which the format names as the single host-dependent field.",
+    "bytes_000": 4098831,
+    "bytes_001": 4124995,
+    "headers_identical": true,
+    "model_path_excluded": true,
+    "model_path_differed": false,
+    "first_differing_offset": 5034,
+    "first_differing_line": 45
+  },
+  "result_equality": {
+    "outcome_000": "completed",
+    "outcome_001": "completed",
+    "outcomes_agree": true,
+    "verdicts_000": 0,
+    "verdicts_001": 0,
+    "verdicts_agree": true,
+    "verdicts_vacuous": true,
+    "verdicts_note": "At M4 no conditions are declared, so both runs produce zero verdicts and this line is vacuous. It becomes substantive at M6 with CR-AS-3."
+  }
+}

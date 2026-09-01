@@ -3,19 +3,22 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
-**Status: milestone 7 of 7 — built, and one deliverable short.** One run, automated, with an
-explicit end and a bounded timeout; a conformant reader for the capture format that **links
-nothing at all**; a determinism self-test that runs at the start of every campaign and stops it
-if it does not pass; one parameterisation axis declared in a file and swept across a campaign;
-conditions declared outside the code and judged into three-valued verdicts; per-run records and a
-campaign summary, both machine-readable and both legible; a re-judge mode over stored captures; a
-run-to-run diff for both of the questions the brief asks of one; and the four ugly realities
-injected deliberately and survived.
+**Status: milestone 7 of 7 — complete. Every deliverable the brief names is in, and the demo
+recording is [published as one
+take](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing)**
+covering all three of its clauses — launch a campaign, watch it run, read the report. One run,
+automated, with an explicit end and a bounded timeout; a conformant reader for the capture format
+that **links nothing at all**; a determinism self-test that runs at the start of every campaign
+and stops it if it does not pass; one parameterisation axis declared in a file and swept across a
+campaign; conditions declared outside the code and judged into three-valued verdicts; per-run
+records and a campaign summary, both machine-readable and both legible; a re-judge mode over
+stored captures; a run-to-run diff for both of the questions the brief asks of one; and the four
+ugly realities injected deliberately and survived.
 
-> **One deliverable is outstanding: the 5-minute recording.** It needs a person, it is scripted
-> as a command runbook in `docs/recording-script.md`, and it is **not delivered**. Everything else the
-> brief asks for is here. See
-> [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
+> **The last outstanding deliverable, the 5-minute recording, is DELIVERED** — shot 2026-09-01
+> to the runbook in [`docs/recording-script.md`](docs/recording-script.md). What it shows and
+> what to know before watching it are in [The demo recording](#the-demo-recording); the full list
+> is [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
 >
 > **Two open questions were DECIDED on 2026-09-01, and neither was ANSWERED.** The DRI authorised
 > deciding OQ-2 (which comparison the gate reads) and OQ-3 (the host invocation) from the brief's
@@ -46,12 +49,13 @@ capture format EXT-17 consumes is vendored, read-only, in `contract/`.
 | *"the output format"* | **[The output format](#the-output-format--what-a-run-and-a-campaign-produce)** |
 | *"the limits"* | **[Limits](#limits--what-a-result-here-does-and-does-not-prove)** — the section to read first if you are reviewing a result |
 
-Three more that are not on that list and are worth the detour: [the stop
+Four more that are not on that list and are worth the detour: [the stop
 predicate](#the-stop-predicate--what-the-run-is-finished-means), because *"is it finished"* is
 harder than it sounds and the answer here is a decision rather than a default; [proving
 determinism](#proving-determinism--the-self-test-and-the-gate), because the campaign refuses to
-run a single run until it passes; and [the four outcomes](#the-four-outcomes), because two of
-them are not test results.
+run a single run until it passes; [the four outcomes](#the-four-outcomes), because two of them
+are not test results; and [the demo recording](#the-demo-recording), which is all of the above in
+4 minutes 10 of terminal.
 
 **And two documents beside this one.** `docs/determinism-notes.md` is the brief's fifth
 deliverable — what had to be done to make comparison meaningful, and **the things that could not
@@ -525,7 +529,7 @@ implement. `n8ro-capture --help` is the authority for the options.
 It reads a 24 MB, 50 573-line capture in 0.24 s and a twenty-run campaign in 4.7 s.
 
 `n8ro-campaign` also reads back each capture as it produces it, and writes what it found into
-`run.json` — see [What a run produces](#what-a-run-produces).
+`run.json` — see [The output format](#the-output-format--what-a-run-and-a-campaign-produce).
 
 ## The output format — what a run and a campaign produce
 
@@ -1086,6 +1090,7 @@ somebody's memory. The counts are the part a re-run can be compared against.
 | `campaigns/m6-campaign/` | **The committed twenty-run campaign.** 8 pass, 10 fail, 2 infrastructure error. `report.txt` is the readable report, `changed-input-diff.txt` the run-to-run diff, `rejudge-verify.txt` the byte-identity check |
 | `campaigns/m6-gate-refused/` | **Its first execution, kept.** The gate correctly refused and **zero runs were attempted** — the first time the content gate has failed on a real pair for a real reason |
 | `campaigns/m6-faults/` | The four ugly realities, each injected into run 001 of a three-run campaign, each survived |
+| `campaigns/demo/` | **The campaign the 5-minute recording launches on camera** — three runs at 200 frames, with a host-start failure injected into run 1. Kept committed so the take's numbers trace to run records rather than to a video frame |
 | `campaigns/m5-sweep/`, `m5-sweep-first/` | M5's sweep, both executions, both counted |
 | `campaigns/m4-gate/`, `m4-bytes/`, `m4-frozen/`, `m4-overload/` | The gate, the byte basis, a frozen segment, and a deliberately overloaded recorder |
 | `campaigns/m3-oq6/`, `m2-oq1/`, `m2-axis/` | Rotation probed rather than read about; the twenty runs the stop predicate was decided on; the axis feasibility spike |
@@ -1095,6 +1100,42 @@ is where F-24 was found; `m6-gate-refused` is a real gate failure; `m6-campaign/
 still carries F-35's defect while `report.txt` carries the same records after the fix. Keeping
 both is the point — re-running until the numbers are welcome is choosing evidence.
 
+### The demo recording
+
+**[One take, 4 min 10 s, on Google Drive](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing).** Shot 2026-09-01 to a prepared runbook,
+[`docs/recording-script.md`](docs/recording-script.md), which is kept as the record of what was
+filmed and how to reshoot any step. A command-by-command companion sits beside the video in the
+same folder. Every clause the brief names is on camera, in order:
+
+| What the brief asks for | Step | What proves it on screen |
+|---|---|---|
+| **Launch a campaign** | 3 | One command. No keystroke per run, no prompt, no manual host start or teardown |
+| **Watch it run** | 4 | ~90 s unattended: the determinism gate reporting both comparisons and naming its basis, then `run 000 -> fail`, `run 001 -> infrastructure_error`, `run 002 -> fail` |
+| **Read the report** | 5 | The committed twenty-run sweep, re-rendered: engagement peaking at 170–190 m/s and then falling, three conditions flipping at three thresholds, four outcomes summing to 20 and merging nothing |
+| A condition file, validated and then refused | 1–2 | Seven conditions valid and exit `0`; then one character wrong, refused by name as `unknown_key`, exit `2` |
+| Stored runs re-judged | 6 | 20 of 20 verdicts byte-identical to the live run's, with no host started and no bus subscription made |
+| A verdict that says it cannot say | 7 | `raid-leader-degraded INDETERMINATE`, with the reason it is never decidable in the negative |
+| Exactly where two runs diverged | 8 | `FIRST DIFFERENCE` naming segment, `(entity, occupancy)`, `sim_time_s`, field and both values |
+
+Three things to know before watching, all of which look like shortcuts and are not:
+
+- **It runs 4:10 against the brief's "5-minute", and that is stated rather than rounded up.**
+  There is **no narration and nothing is shown from an editor** — the recording is the terminal,
+  which is possible only because the tools caption themselves: the gate prints its own basis and
+  the OQ-2 wording, the report prints why its bar is not scaled from zero, and every verdict that
+  is not satisfied prints its reason. With nobody talking, the commands take less time than they
+  did when the script had someone talking over them.
+- **The campaign launched on camera is not the committed one, and the film says so as it starts.**
+  It is three runs at **200 frames instead of 1200**, so a whole campaign finishes inside the
+  recording, with a **host-start failure deliberately injected into run 1** so that what an
+  unattended campaign does when something breaks is on camera rather than described. Both are
+  written into the run records and the campaign summary, so a run under injection can never later
+  be mistaken for a clean one. The report read at step 5 is the real twenty-run campaign.
+- **The video is published beside this repository rather than in it.** At 110 MB it is excluded
+  for the same reason the captures are. What is committed is the runbook it was shot to and
+  `campaigns/demo/`, the campaign it launches on camera — so every number visible on screen can be
+  checked against a file here rather than paused on a video frame.
+
 ## The deliverables the brief asks for, and their status
 
 | | Status |
@@ -1102,7 +1143,7 @@ both is the point — re-running until the numbers are welcome is choosing evide
 | A git repository with the runner | Done |
 | A README with the four topics | Done — indexed at the top of this file |
 | A real campaign, committed as an example | Done, **with one named deviation**: the captures are not committed and a manifest stands in for them |
-| A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted as a command runbook in `docs/recording-script.md`, including what *not* to claim in a caption |
+| A 5-minute recording | **Done, 2026-09-01** — [one take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing). Launch, run and report, in that order, with no narration: the tools caption themselves. Shot to `docs/recording-script.md`, which is kept as the record of what was filmed. **4:10 against "5-minute", stated rather than rounded.** See [The demo recording](#the-demo-recording) |
 | A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
 
 **Every success metric is now met, including the one that was reported unmet twice.** The

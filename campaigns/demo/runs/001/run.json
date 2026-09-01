@@ -1,0 +1,100 @@
+{
+  "schema": "ext17-run-record/3",
+  "run_id": "001",
+  "outcome": "infrastructure_error",
+  "error": {
+    "stage": "host_start",
+    "detail": "CreateProcess failed for C:\\Projects\\EXT-17\\campaigns\\demo\\runs\\001\\no-such-host.exe: win32 error 2"
+  },
+  "scenario": {
+    "name": "Atacama Air Defense",
+    "model_name": "N8roSimSchema"
+  },
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 200.",
+    "frame_budget": 200,
+    "wall_clock_participates": false
+  },
+  "stop_evaluation": {
+    "satisfied": false,
+    "observed_frame": 0,
+    "observed_sim_time_s": 0.000000,
+    "observed_delta_s": 0.00000
+  },
+  "run_timeout": {
+    "timeout_ms": 600000,
+    "expired": false,
+    "role": "backstop; never the definition of the end"
+  },
+  "waits": [],
+  "processes": [
+    {
+      "role": "recorder",
+      "exe": "C:\\Projects\\EXT-08\\build\\x64\\Release\\n8ro-bridge.exe",
+      "pid": 29964,
+      "exit_code": 1,
+      "started_by_campaign": true,
+      "exited_on_its_own": false,
+      "graceful_stop_requested": false,
+      "terminated_by": "handle"
+    }
+  ],
+  "capture": {
+    "recorder_attached": true,
+    "path": "",
+    "bytes": null,
+    "parts": [],
+    "total_bytes": 0,
+    "capture_max_bytes": 12200000,
+    "on_size_limit": "stop",
+    "read_back": false
+  },
+  "environment": {
+    "host_exe": "C:\\N8RO\\bin\\n8ro-sim-app.exe",
+    "recorder_exe": "C:\\Projects\\EXT-08\\build\\x64\\Release\\n8ro-bridge.exe",
+    "sim_config_host": "SimEngineHost_SharedMemory",
+    "sim_config_client": "SimEngineClient_SharedMemory",
+    "model_path": "C:\\N8RO\\data\\db",
+    "schema_file": "N8roSimSchema",
+    "n8ro_release": "C:\\N8RO",
+    "path_prepend": "C:\\N8RO\\bin",
+    "host_logger_copy": "",
+    "host_logger_offset": 7146827,
+    "host_logger_bytes": null
+  },
+  "final_engine_state": {
+    "state": "",
+    "frame": 0,
+    "sim_time_s": 0.000000,
+    "delta_s": 0.00000,
+    "scenario_loaded": false
+  },
+  "injected_fault": "host_start_failure",
+  "judgement": {
+    "conditions_file": "examples\\atacama-raid.conditions.json",
+    "conditions_declared": 7,
+    "judged_this_run": false,
+    "not_judged_reason": "this run's outcome is infrastructure_error, and an infrastructure failure or a timeout is never a test result (CR-EX-5). No verdict is invented for it, so this run carries 0 verdicts against 7 declared conditions - which is what tells a reader the run was cut short rather than that it passed.",
+    "judgeable": false,
+    "not_judgeable_reason": null,
+    "verdicts": {
+      "met": 0,
+      "not_met": 0,
+      "indeterminate": 0,
+      "indeterminate_is_a_verdict_state_not_a_run_outcome": true
+    },
+    "assertions": {
+      "satisfied": 0,
+      "violated": 0,
+      "undetermined": 0,
+      "only_a_violation_makes_a_run_fail": true
+    },
+    "verdicts_file": "verdicts.jsonl",
+    "one_verdict_per_declared_condition": false
+  },
+  "diagnostics": {
+    "note": "Wall-clock measurements. Excluded from every comparison; no value here participates in any outcome or verdict.",
+    "wait_elapsed_ms": []
+  }
+}
