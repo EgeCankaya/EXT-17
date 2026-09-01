@@ -11,57 +11,68 @@ this file has a status column.
 
 **`decided` was added on 2026-09-01, and it is the one to read carefully.** It means *a person
 entitled to decide it did, on stated evidence, and the original recipient still has not spoken*.
-It is stronger than `sent` and **weaker than `answered`**. Two rows carry it — E-1 and E-2 — and
-in both the recipient has never replied and a reply would still be acted on. Reading `decided` as
-`answered` is precisely the failure this table exists to prevent, so both rows say which in the
+It is stronger than `sent` and **weaker than `answered`**. Reading `decided` as `answered` is
+precisely the failure this table exists to prevent, so every row carrying it says which in the
 same sentence, and so does every report the tools print.
+
+**As of 2026-09-01 one row is `decided` and one is partly answered.** E-2 (OQ-2) is decided and
+has never been answered by [B]'s author. E-1 (OQ-3) has **four of its six parts answered** by the
+mentor, and two — (a) and (c) — **were not covered in what was relayed**, so those two stay
+`decided` rather than answered. That distinction was preserved deliberately: an answer nobody
+gave is not recorded as one, and the rule applies to a mentor exactly as it applies to [B]'s
+author.
 
 Sections below are in the order they were last written, not in numerical order; the table is the
 index. `docs/findings.md` indexes these alongside every other issue this project has found.
 
 | # | Question | To | Raised | Status |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **DECIDED by the DRI, 2026-09-01 — and never SENT.** The DRI authorised deciding its six parts from [B]'s own words where [B] speaks, and from measurement where it does not (`docs/m7-oq2-oq3.md` §2). The invocation is unchanged and is now stated as this project's production invocation. **What [B] actually asked for — *"confirm the invocation with your mentor"* — did not happen**, and that stays a named limit in the README rather than a closed item |
+| E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **PARTLY ANSWERED, 2026-09-01.** The mentor confirmed **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, and **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Relayed by the DRI. **(a) and (c) were not covered and are NOT recorded as answered** - they remain `decided` on the reading in `m7-oq2-oq3.md` §2. Every confirmed answer matched what was already built, so **nothing changed**; (b) additionally produced **E-6** |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI, 2026-09-01 — content. Still NEVER ANSWERED.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the reading is `docs/m7-oq2-oq3.md` §1 and the deciding sentence is [B]'s statement of what the self-test is *for*. **No code changed** — content was already the default. A ruling from [B]'s author would still be acted on and would still change a default and no code |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **SENT** — [EXT-08 issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), 2026-08-31. Awaiting a reply. Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **SENT** — [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), 2026-09-01. Awaiting a reply. Verified by correspondence against `eedc228` and `main`, since F-19 means it cannot be verified by identity. **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants |
+| E-6 | **A third defect in `contract/`** - `PROVENANCE.md` finding 6 documents the headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **SENT** - [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4). Recorded as F-17 since M1 on this project's own measurement; **the mentor's confirmation on 2026-09-01 that the variable IS expected in production is what moved it from suspected to demonstrated**, and made it worth another project's time |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **SENT** — [EXT-08 issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), 2026-08-31. Awaiting a reply. Measured on 2 of 42 real captures. Not worked around: the test is implemented exactly as §5.1 states and both shapes are excluded; what M4 added is that the refusal names which shape it found |
 
 ---
 
 ## E-1 — OQ-3: confirm the headless invocation
 
-**Status: DECIDED BY THE DRI, 2026-09-01 — and never SENT.** Schedule became the binding
-constraint and the mentor was not reachable in time, so the DRI authorised deciding the six
-sub-questions below from [B]'s own words where [B] speaks, and from measurement where it does
-not. **The decision and its evidence are in `docs/m7-oq2-oq3.md` §2**, part by part.
+**Status: PARTLY ANSWERED, 2026-09-01 - four parts of six.** The mentor was asked and replied;
+the answers were relayed by the DRI on 2026-09-01 and are recorded here as **answers**, which is
+a stronger word than `decided` and is used deliberately.
 
-**Nothing about the invocation changed.** It is the one measured across roughly a hundred runs
-since M1. What changed is that it is now *stated* as this project's production invocation rather
-than carried as a candidate, and that six technical unknowns became one process step.
+| part | question | answer |
+|---|---|---|
+| **(b)** | Is `N8RO_RELEASE` expected to be set for production runs? | **Yes.** Confirmed |
+| **(d)** | Is the degraded terrain configuration expected on this install? | **Yes - leave it as it is.** Confirmed |
+| **(e)** | Is a console control event the intended way to end an unattended host, and is a non-zero exit from it expected? | **Yes to both.** Confirmed |
+| **(f)** | Is `C:\N8RO\bin` on `PATH` a second, separate precondition? | **Yes.** Confirmed |
+| **(a)** | Is the bus-publish route the intended control path? | **NOT COVERED in what was relayed.** Stays `decided`, on [B]'s own first-listed surface |
+| **(c)** | Is `SimEngineHost_SharedMemory` right, versus the seven other variants? | **NOT COVERED in what was relayed.** Stays `decided`, on *"campaign runs are for the closed configuration"* and *"determinism first"* |
 
-**That one process step is NOT discharged, and is not closed over.** [B] asks its reader to
-*"confirm the invocation with your mentor"*. That is an instruction to ask a person; no reading
-of [B] can satisfy it; it did not happen. It now lives as a **named limit in the README** rather
-than as an item in a queue — which is a change of where it is recorded, not a claim that it was
-done.
+**(a) and (c) are not recorded as answered, and that is not pedantry.** This project has kept
+`drafted` / `sent` / `decided` / `answered` apart since M1 precisely so that a row cannot quietly
+acquire an answer nobody gave. The rule applies to a mentor exactly as it applies to [B]'s
+author. Both remain decided on the reading in `docs/m7-oq2-oq3.md` s2, and **one short follow-up
+would close them**.
 
-**Its previous status, for the record: DEFERRED BY DECISION, 2026-09-01**, and before that
-**DRAFTED, NOT SENT** across four milestones since M1.
+**Nothing changed as a result of any answer.** Every confirmed part matched what was already
+built and measured across roughly a hundred runs since M1 - which is the useful thing about
+having asked: the answers cost nothing to receive, because the shape was already right.
 
-**Its previous status, for the record: STILL DRAFTED, NOT SENT — outstanding since M1, across
-four milestones.** There is no
-channel to a mentor from this repository, so delivering it is the DRI's action and nothing here
-can discharge it. E-3 and E-4 went to EXT-08 as issues because EXT-08 is a repository this project
-can reach; a mentor is not. [B]'s surface table asks its reader to confirm this
-directly — *"the host binary that runs an engine with no GUI. **Confirm the invocation with your
-mentor**"* — and EXT-08 closed its own copy of the question and passed it here, on the grounds
-that EXT-17 is the project that runs the host in production.
+**One answer had a consequence elsewhere.** (b) turns **F-17** from *suspected* to
+*demonstrated*: `PROVENANCE.md` finding 6 documents this invocation **without** `N8RO_RELEASE`,
+and following it exactly produces a host that refuses every 42-entity load while sitting idle
+rather than failing. Now that the variable is confirmed as expected in production, that omission
+is a defect worth another project's time - raised as **E-6**.
 
-It does not block. The invocation below is known to work: it ran one full scenario to a frame
-budget on 2026-08-31 (`docs/m1-lifecycle.md`). What is not established is that it is the
-**intended** shape, and the binary cannot settle it — `n8ro-sim-app.exe` has no `--help` and no
-usage text.
+**Its previous statuses, for the record:** `decided` by the DRI (2026-09-01, superseded by this
+reply); before that **DEFERRED BY DECISION**; and before that **DRAFTED, NOT SENT** across four
+milestones since M1. [B]'s surface table is what asked for this in the first place - *"the host
+binary that runs an engine with no GUI. **Confirm the invocation with your mentor**"* - and
+EXT-08 closed its own copy of the question and passed it here, on the grounds that EXT-17 is the
+project that runs the host in production.
 
 ### The question
 

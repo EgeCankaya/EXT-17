@@ -18,7 +18,8 @@ target disagree, the target wins and the row is wrong.
 | `open` | Understood and **not** fixed, because it is not this project's to fix. The row says whose |
 | `raised` | Sent to whoever owns it. A reply may or may not exist — `docs/escalations.md` tracks that separately |
 | `drafted` | Written up and **not** sent. **This is not the same as raised**, and conflating the two is how a project comes to believe it has told someone something it has not |
-| `decided` | **Added 2026-09-01.** A person entitled to decide it did, on stated evidence, and **the original recipient still has not spoken**. Stronger than `raised`, **weaker than `answered`**. Two items carry it, E-1 and E-2, and both say so in the same sentence they say what was decided. Reading it as `answered` is the failure this table exists to prevent |
+| `decided` | **Added 2026-09-01.** A person entitled to decide it did, on stated evidence, and **the original recipient still has not spoken**. Stronger than `raised`, **weaker than `answered`**. Reading it as `answered` is the failure this table exists to prevent, so every row carrying it says which in the same sentence it says what was decided |
+| `answered` | A reply exists, from the person the question was for. **As of 2026-09-01, four of E-1's six parts are answered by the mentor and two are not** - and the two that are not stayed `decided` rather than being rounded up, which is the whole point of having both words |
 
 ---
 
@@ -98,7 +99,7 @@ is wrong or insufficient, that is a defect in EXT-08's contract and it goes back
 |---|---|---|---|---|
 | F-15 | M3 | **§6.7 says a rotated run's totals are the sum across parts. For `segments` that is false** — a segment cut by a rotation is closed in one part and opened in the next, so the sum double-counts it. Measured: **5 summed for a 2-segment run** | **`raised`** — E-3, [EXT-08 issue](https://github.com/EgeCankaya/EXT-08/issues/1). Not worked around: the reader computes what §6.7 says, computes what is true beside it, and names the gap | `escalations.md` E-3, `m3-oq6.md`, `m3-capture-reader.md` §6 |
 | F-16 | M4 | **§5.1's frozen-clock test is said to detect a reset clock; it detects two phenomena.** A duplicated publication of identical values satisfies the same test, in a segment whose clock did not reset. See F-13 for the measurement | **`raised`** — E-4, [EXT-08 issue](https://github.com/EgeCankaya/EXT-08/issues/2). Not worked around: the test is implemented exactly as written and both shapes excluded; what was added is that the refusal names which shape it found | `escalations.md` E-4, `m4-determinism.md` §5 |
-| F-17 | M1 | **`PROVENANCE.md` finding 6 omits `N8RO_RELEASE`** from the headless invocation (see F-5). Following it exactly produces a host that refuses every scenario load while sitting idle | `open` — the contract's to correct. Folded into E-1(b) rather than filed separately, since the mentor's answer settles both | `CLAUDE.md`, `m1-lifecycle.md` §7(a) |
+| F-17 | M1 | **`PROVENANCE.md` finding 6 omits `N8RO_RELEASE`** from the headless invocation (see F-5). Following it exactly produces a host that refuses every scenario load **while sitting idle rather than failing** | **`raised` at M7** - E-6, [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4). Carried as an internal finding from M1 to M7 because until then this project could only say *we had to set it*, which is a report about one machine. **The mentor's confirmation on 2026-09-01 that the variable IS expected in production turned it from suspected into demonstrated**, and that is what made it worth another project's time | `CLAUDE.md`, `m1-lifecycle.md` §7(a), `escalations.md` E-6 |
 | F-18 | M4 | **The `contract/` pin string is stale and its content is not.** `PROVENANCE.md` says `78fd4ef`; EXT-08 `main` is at `eb13485`, two commits later, neither touching a vendored artifact. `PROVENANCE.md` justifies pinning the branch head *because* it makes "is this current?" one comparison — and that comparison now answers "no" while the truth is "yes" | `open` — a note, not a defect. Nothing a reader does depends on it | `m4-determinism.md` §10 |
 | F-19 | M4 | **`contract/condition-file-schema.md` does not exist under that name in EXT-08 at any commit.** It is a digest written for EXT-17, not a verbatim vendored file, though `PROVENANCE.md`'s table lists it beside two files that are — so a pin check cannot verify it and must not imply it did | **`closed` at M6 — and the answer is better than "cannot verify".** It *can* be checked by **correspondence**: the digest's own pin (`eedc228`) resolves, its cited README section exists there, its content is verbatim, and that section is byte-identical at `main`. What the check found instead is F-32 | `m4-determinism.md` §10, `m6-oq5.md` §5 |
 | F-32 | M6 | **The digest is verbatim and it stops one heading early.** EXT-08's `README.md` continues immediately into *"How distance is computed"* (ECEF on WGS-84, straight-line Euclidean, Haversine and Vincenty rejected) and *"Boundary semantics"* (`<=`, edge-inclusive polygons, no antimeridian support). Neither crossed into `contract/`, and both are required by CR-AS-2's *"a verdict's numbers are reproducible"*. From the digest alone `within_m` is a distance with **no stated metric**, so two projects could parse the same file and disagree about the same capture, invisibly | **`raised`** — E-5, [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3). **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants. Not drift either — both sections exist at the commit the digest names | `escalations.md` E-5, `m6-oq5.md` §5, `src/assert/Geodesy.h` |
@@ -122,13 +123,42 @@ not delivered is *recorded*, not *raised*.
 
 | # | Question | To | Delivery | Blocked on |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`decided` — DRI, 2026-09-01. Never sent.** | **Nothing.** All six parts decided from [B]'s own words or from measurement (`m7-oq2-oq3.md` §2); the invocation is unchanged and is now stated rather than proposed. **The mentor confirmation [B] asks for did not happen** and is a named limit in the README, not a queue item |
+| E-1 | **OQ-3** - is this the intended production invocation? Six parts, (a)-(f) | Mentor | **(b), (d), (e), (f) `answered` 2026-09-01. (a) and (c) `decided`, not answered.** | **Nothing.** Every confirmed answer matched what was already built, so nothing changed. (a) and (c) were not covered in what was relayed and are not recorded as answered - one short follow-up closes them. (b) produced **E-6** |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`decided` — DRI, 2026-09-01, content. Still never `answered`** | **The recipient, still.** Sent 2026-08-31 via EXT-08's E-1; re-checked at M4, M5 and M6; no reply. Decided from [B]'s own words because schedule became binding. **No code changed** — content was already the default |
 | E-3 | §6.7's summing rule (F-15) | EXT-08 | **`raised`** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1) | Nothing. Does not block |
 | E-4 | §5.1's frozen-clock test (F-16) | EXT-08 | **`raised`** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2) | Nothing. Does not block, and it is the one with a measured operational cost — **~1 pair in 14, and worse than that since M6**: F-29 found a fourth shape of the same mechanism that fails the gate and stops the *whole campaign* rather than costing one run |
 | E-5 | The vendored condition-file digest stops one heading early (F-32) | EXT-08 | **`raised`** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), sent 2026-09-01 | Nothing. Does not block: the geodesy is decided here and stated with its constants. It is the first `contract/` finding that could **not** be handled by implementing what the text says, because there is no text |
 
-### E-1 and E-2 are DECIDED by the DRI — and neither was ever ANSWERED
+### The mentor replied: four of E-1's six parts are ANSWERED, and two are not
+
+**2026-09-01, relayed by the DRI.** Confirmed: **(b)** `N8RO_RELEASE` is expected in production;
+**(d)** the degraded terrain configuration is expected and stays; **(e)** a console control event
+is the intended shutdown *and* its non-zero exit is expected; **(f)** `C:\N8RO\bin` on `PATH` is a
+known second precondition. **Every one confirms what was already built and measured — nothing
+changed.**
+
+**(a) and (c) were not covered in what was relayed, and are NOT recorded as answered.** They stay
+`decided`, on the reading in `docs/m7-oq2-oq3.md` §2. This is the rule this table has applied to
+[B]'s author for five milestones, now applied to a mentor: **a row does not quietly acquire an
+answer nobody gave.** One short follow-up closes them.
+
+**One answer had a consequence.** (b) turned **F-17** from suspected into demonstrated —
+`PROVENANCE.md` finding 6 documents this invocation *without* the variable, and following it
+exactly gives a host that refuses every 42-entity load while sitting idle rather than failing.
+Raised as **E-6**, [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4). It waited
+from M1 to M7 on purpose: until the mentor confirmed the variable is expected, this project could
+only say *"we had to set it"*, which is a report about one machine rather than a statement about
+the contract.
+
+**And the sweep-legibility metric is now MET, by its own named method.** The mentor reviewed the
+sweep report and confirmed it reads. It was reported **unmet** at PRD revs 7 and 8, on the
+grounds that the artifact exceeding its target was not a substitute for the method the metric
+named — so it is met now on the terms it was written on, rather than on relaxed ones. **F-36's
+first half closes; its second half, the recording, does not.**
+
+---
+
+### E-1 and E-2 were DECIDED by the DRI — and neither had been ANSWERED
 
 **Superseding the deferral below, on 2026-09-01.** Schedule became the binding constraint, and
 the DRI authorised deciding both from [B]'s own words rather than waiting for recipients who had
@@ -187,7 +217,13 @@ What it costs, stated rather than discovered later:
 campaign — which is a better package to put in front of a reviewer than any single milestone
 was, and is the one upside of having waited.
 
-**M7 has now closed, and the package is ready.** What was predicted here happened exactly:
+**M7 has now closed, and the package is ready.** What was predicted here happened exactly — and
+then, hours later on the same day, the mentor replied and superseded two of these bullets. **They
+are kept as written**, because a prediction that came true and was then overtaken is worth more
+on the record than one quietly edited to match the outcome. The section above carries the current
+state.
+
+What was predicted:
 
 - **The cost landed where this section said it would.** M7's validation line asks for *"every
   success metric"*, and **sweep legibility is reported UNMET** because its named method is mentor
@@ -195,7 +231,11 @@ was, and is the one upside of having waited.
   peaking at 170–190 m/s, three conditions whose verdicts flip at three thresholds — and that is
   not what the metric measures. **F-36**, PRD rev 7, `m7-evidence.md` §4.
 - **The 5-minute recording is also outstanding** for the same underlying reason, and is scripted
-  rather than substituted for.
+  rather than substituted for. **This one still stands.**
+
+**Superseded the same day:** the mentor reviewed the sweep report, so the first bullet's metric is
+**met by its own named method**, and four of E-1's six parts became **answered**. The recording is
+the only one of the two that survives.
 - **The package is now a whole project rather than a milestone**: a twenty-run judged campaign,
   a determinism gate that has both passed and refused on real pairs, five unexplained
   observations written up carefully, and three escalations sent upstream. That was the stated
@@ -216,7 +256,7 @@ found by re-reading the requirement against the thing rather than against the pl
 | # | Found | What | Status | Recorded in |
 |---|---|---|---|---|
 | F-33 | M6 | **CR-REP-4's changed-input half had no implementation and no test.** [B] asks for two diffing questions — *"run the same configuration twice and show that the results are identical; change one input and show exactly where the two runs diverged"* — and only the first was built. `n8ro-compare` would compare any two captures, but it framed every answer as a **gate**, which is wrong in both directions for the second question: a divergence between two configurations is not a failure, and agreement is not a pass | `closed` — `--changed-input`. Same machinery, different framing: no gate line, no pass/fail word, and **agreement is the outcome flagged loudly**, because it means the changed input did not take effect. Found by auditing the brief against the built thing at M6, not by a test failing | `m6-assertions.md` §1, `tests/determinism_test.cpp` |
-| F-36 | M7 | **Two of M7's own validation items cannot be produced by this project, and a project's last milestone is where that is most likely to be quietly rounded up.** Its validation line is *"CR-DOC-1, CR-DOC-2, and every success metric"*. The **5-minute recording** needs a person, and the **sweep-legibility** metric names *mentor review of the sweep report* as its measurement method | `open` **by decision, and reported as unmet rather than claimed.** The recording is scripted beat by beat so the remaining work is the recording alone, and is not substituted for — R10 exists because the upstream project did not deliver its equivalent, and the failure it names is substitution rather than lateness. The metric's artifact *exceeds* its target, and that is not what the metric measures. **Both were predicted in `findings.md` §E when E-1 was deferred**, in those words | `m7-evidence.md` §4, PRD rev 7, README |
+| F-36 | M7 | **Two of M7's own validation items could not be produced by this project, and a project's last milestone is where that is most likely to be quietly rounded up.** Its validation line is *"CR-DOC-1, CR-DOC-2, and every success metric"*. The **5-minute recording** needs a person, and the **sweep-legibility** metric names *mentor review of the sweep report* as its measurement method | **Half `closed`, half `open`.** The metric was reported UNMET at PRD revs 7 and 8 - the artifact exceeding its target was explicitly NOT accepted as a substitute for the named method - and the **mentor reviewed the sweep report on 2026-09-01 and confirmed it reads**, so it is now **met on the terms it was written on** rather than on relaxed ones. The recording is still **not delivered** and is scripted rather than substituted for | `m7-evidence.md` §4, PRD revs 7-9, `recording-script.md` |
 | F-34 | M6 | **A committed campaign's captures cannot be committed.** [B]'s third deliverable is *"a real campaign — its configuration, its captured runs and its report, committed as an example"*, and twenty runs of Atacama Air Defense are about **480 MB** of JSON Lines. `.gitignore` excluded captures from the repository's first commit, for that reason | `open` **by decision** — the configuration, the whole report and a **MANIFEST** of each capture's size, SHA-256 and read-back counts are committed; the raw captures are not. A re-run does not reproduce them byte-for-byte in any case, which is this project's central measurement rather than a limitation of the decision. Stated in the manifest rather than left for a reviewer to notice | `campaigns/m6-campaign/MANIFEST.md`, `decisions-m6-m7.md` B6, `.gitignore` |
 
 ---

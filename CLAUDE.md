@@ -262,8 +262,11 @@ says a run's totals are the sum across its parts, which is false for `segments`.
   `n8ro-sim-local`. Measured at M1: with it unset the host resolves its plugin directory from the
   current working directory, skips the plugin scan, never registers `componentPhysics` (from the
   stock `bin\plugins\sim\n8ro-physics.dll`), and **refuses every 42-entity scenario load** — while
-  sitting idle rather than failing. `contract/PROVENANCE.md` finding 6 omits it; that is the
-  contract's to correct, not ours. See `docs/m1-lifecycle.md` §7(a).
+  sitting idle rather than failing. **Confirmed by the mentor on 2026-09-01: it IS expected to be
+  set in production** (E-1 part (b)). `contract/PROVENANCE.md` finding 6 omits it — which that
+  confirmation turns from *suspected wrong* into *demonstrably wrong*, and it went to EXT-08 as
+  **E-6** ([issue #4](https://github.com/EgeCankaya/EXT-08/issues/4)). Still the contract's to
+  correct, not ours. See `docs/m1-lifecycle.md` §7(a).
 - **`C:\N8RO\bin` must be on `PATH`** for any binary of ours that links the SDK — it is where
   `n8ro-sim.dll` and `n8ro-core.dll` resolve from, and there is nowhere else. Measured at M2: a
   client launched from a scratch directory without it exits 53 having produced no output at all,
@@ -306,7 +309,9 @@ says a run's totals are the sum across its parts, which is false for `segments`.
   and is not evidence of a crash**. `TerminateProcess` leaves the marker behind and does cause
   the crash rename, so prefer the control event and keep termination-by-handle as the fallback.
 - The install ships **no geoid grid and no elevation service**, so every run floods with
-  `TerrainElevationServiceClient` / `GeoidGridModel` errors. **Do not fix this.** Every
+  `TerrainElevationServiceClient` / `GeoidGridModel` errors. **Do not fix this** — and since
+  2026-09-01 that is the **mentor's answer**, not this project's judgement call: the degraded
+  configuration is expected on this install and should be left as it is (E-1 part (d)). Every
   measurement inherited from EXT-08 was taken in this configuration; provisioning terrain would
   invalidate the comparability of all of it. Setting `N8RO_RELEASE` does not change it — there is
   no grid under `C:\N8RO\data\geoid` to find.

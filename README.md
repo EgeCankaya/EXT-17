@@ -12,11 +12,9 @@ campaign summary, both machine-readable and both legible; a re-judge mode over s
 run-to-run diff for both of the questions the brief asks of one; and the four ugly realities
 injected deliberately and survived.
 
-> **Two things are outstanding, and both need a person rather than more work.** The **5-minute
-> recording** is scripted beat by beat in `docs/recording-script.md` and is **not delivered**. And
-> the brief asks its reader to *"confirm the invocation with your mentor"* — **that confirmation
-> did not happen**, and no reading of the brief can discharge an instruction to ask someone. Both
-> are reported as outstanding rather than claimed. See
+> **One deliverable is outstanding: the 5-minute recording.** It needs a person, it is scripted
+> beat by beat in `docs/recording-script.md`, and it is **not delivered**. Everything else the
+> brief asks for is here. See
 > [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
 >
 > **Two open questions were DECIDED on 2026-09-01, and neither was ANSWERED.** The DRI authorised
@@ -891,15 +889,18 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   segment cut by a rotation is closed in one part and opened in the next. Measured: 5 summed for a
   2-segment run. It is raised with EXT-08 as E-3, and the reader reports both numbers and names
   the gap rather than picking one silently.
-- **The headless invocation is adopted, and the mentor confirmation the brief asks for did not
-  happen.** OQ-3 was **decided by the DRI on 2026-09-01** — from the brief's own words where the
-  brief speaks, and from measurement where it does not. The six parts are answered in
-  `docs/m7-oq2-oq3.md` §2, and the invocation itself is unchanged: it is the one measured across
-  roughly a hundred runs since M1. But the brief says *"confirm the invocation with your
-  mentor"*, which is an instruction to ask a person — **no reading of the brief can discharge it,
-  and it was not done.** If a mentor later corrects it, `src/control/EngineControl.cpp` is one
-  file and every campaign would need re-running: a few hours of machine time. That is
-  re-measurement rather than rework, and it has been the stated exposure since M1.
+- **The headless invocation is confirmed in four of its six parts, and decided in the other
+  two.** The brief says *"confirm the invocation with your mentor"*, and on 2026-09-01 the mentor
+  confirmed: `N8RO_RELEASE` **is** expected in production; the degraded terrain configuration
+  **is** expected and should be left as it is; a console control event **is** the intended way to
+  end an unattended host **and** its non-zero exit is expected; and `C:\N8RO\bin` on `PATH` **is**
+  a known second precondition. Every one confirms what was already built, so nothing changed.
+  **Two parts were not covered** — whether the bus-publish route is the intended control path,
+  and whether `SimEngineHost_SharedMemory` is right versus the seven other variants — and those
+  are **decided rather than answered**, on the reading in `docs/m7-oq2-oq3.md` §2. If either is
+  later corrected, `src/control/EngineControl.cpp` is one file and every campaign would need
+  re-running: a few hours of machine time. Re-measurement rather than rework, and the stated
+  exposure since M1.
 
 ### What a verdict does and does not prove
 
@@ -1016,17 +1017,16 @@ both is the point — re-running until the numbers are welcome is choosing evide
 | A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted beat by beat in `docs/recording-script.md`, including what *not* to say |
 | A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
 
-**One success metric is split, and both halves are reported.** The brief's own acceptance
-criterion 3 — *"a parameter sweep shows a result that varies with the parameter, presented so the
-trend is visible"* — **names no reviewer and no method, and it is met on measured evidence**: see
-the sweep section. The PRD's *internal* verification method for that metric was **mentor review
-of the sweep report**, and it **was not executed**, by DRI decision on 2026-09-01.
+**Every success metric is now met, including the one that was reported unmet twice.** The
+sweep-legibility metric names **mentor review of the sweep report** as its measurement method,
+and the mentor reviewed it on 2026-09-01 and confirmed it reads.
 
-**That method is this project's own invention, not the client's**, and it is recorded as not
-executed rather than quietly rewritten to one this project already passes — swapping a
-verification method for one you satisfy is what makes a metrics table worthless. A mentor review
-remains available and would add confidence; nothing in the brief requires it.
-`docs/m7-evidence.md` §4 and `docs/m7-oq2-oq3.md` §3 carry the reasoning.
+**It was reported UNMET at PRD revs 7 and 8** — the artifact exceeding its target was explicitly
+*not* accepted as a substitute for the method the metric named. So it is met now **on the terms
+it was written on rather than on relaxed ones**, and `docs/m7-evidence.md` §4 keeps both the
+earlier refusal and the answer, because the refusal is the part that makes the pass mean
+something. The brief's own acceptance criterion 3 names no reviewer and was already met on
+measured evidence; that remains a separate statement.
 
 ## Boundaries
 

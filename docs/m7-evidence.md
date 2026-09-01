@@ -86,12 +86,25 @@ that the remaining work is the recording alone.
 | Determinism self-test, bytes | expected to FAIL, recorded and explained | **Met as specified** — it fails, and is reported rather than used as the gate |
 | Comparison-path variability introduced by us | zero | **Met**, by a build search and a behavioural test for each hazard, each verified to reject |
 | Gate refusals that are not determinism failures | not zero, and measured | **Met.** ~1 pair in 14 ordinary; 11.4% parameterised; 2 of 20 on the committed campaign |
-| **Sweep legibility** | a result that varies with the parameter, presented so the trend is visible — **measured by mentor review of the sweep report** | **UNMET.** See below |
+| **Sweep legibility** | a result that varies with the parameter, presented so the trend is visible — **measured by mentor review of the sweep report** | **MET at 2026-09-01, by its own named method.** Reported UNMET at first; see below, which is kept |
 | Re-judgement without re-running | a stored campaign re-judged, no host started | **Met.** 20 of 20 byte-identical, 0 verify failures |
 | Diff precision | names the **first** point of divergence | **Met**, on two real runs: segment, `(entity, occupancy)`, `sim_time_s` and field |
 | Peak campaign disk footprint | bounded and stated | **Met.** 8 GiB ceiling, checked before run 1 and after every run |
 
-### Sweep legibility is UNMET, and the reason is not the sweep
+### Sweep legibility — reported UNMET, then met by its own named method
+
+**Resolved 2026-09-01: the mentor reviewed the sweep report and confirmed it reads.** The metric
+is met, and it is met *on the terms it was written on*.
+
+**The section below is kept exactly as written, because it is the part that makes the pass mean
+something.** It was the state of this metric for as long as the method had not been executed, and
+it records that the artifact exceeding its target was explicitly **not** accepted as a
+substitute. A metrics table whose rows can be satisfied by re-describing them is worth nothing;
+this row was held open until the thing it named actually happened.
+
+---
+
+#### As reported before the review — kept verbatim
 
 **The measurement method this metric names is *mentor review of the sweep report*. No mentor has
 reviewed it.** That is the whole of the failure.
@@ -113,29 +126,35 @@ outcome in those words: *"M7 must state that metric as unmet rather than claim i
 
 ## 5. What is still open at the end of the project
 
-Stated here in one place, because the last milestone is where an open item is most likely to
-quietly become a closed one.
+Stated in one place, because the last milestone is where an open item is most likely to quietly
+become a closed one. **Updated 2026-09-01, after the mentor replied.**
 
-| # | What | Whose | Does it block anything? |
-|---|---|---|---|
-| **OQ-2** | Is the determinism gate keyed on content or on bytes? | The owner of [B] | **No.** Both readings ship as selectable gates; a ruling changes a default and no code. **No document here claims [B]'s acceptance criterion 2 as discharged** |
-| **E-1 / OQ-3** | Is this the intended production invocation of the headless host? | The DRI, then the mentor | No. The invocation is measured working. Deferred by decision, with its cost recorded |
-| **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | No |
-| **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | No — and it is the one with a measured operational cost, now including a campaign-level one (R15) |
-| **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | No. The arithmetic is decided here and stated with its constants |
-| **The recording** | [B]'s deliverable 4 | Needs a person | It is the deliverable |
-| **Sweep legibility** | Needs mentor review | The DRI, then the mentor | It is the metric |
+| # | What | Whose | Status | Blocks anything? |
+|---|---|---|---|---|
+| **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted in `docs/recording-script.md`, including what *not* to say | **It is the deliverable.** Nothing else waits on it |
+| **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) — content. Never answered**, across five milestones | No. Both readings ship as selectable gates; a ruling changes a default and no code |
+| **OQ-3 (a) and (c)** | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **`decided`, not answered** — not covered in what was relayed on 2026-09-01. The other four parts **are answered** | No. One short follow-up closes them |
+| **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | Sent 2026-08-31, no reply | No |
+| **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | Sent 2026-08-31, no reply | No — and it is the one with a measured operational cost, now including a campaign-level one (R15) |
+| **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | Sent 2026-09-01, no reply | No. The arithmetic is decided here and stated with its constants |
+| **E-6** | `PROVENANCE.md` finding 6 omits `N8RO_RELEASE` | EXT-08 ([#4](https://github.com/EgeCankaya/EXT-08/issues/4)) | Sent 2026-09-01, no reply | No. **New at M7** — the mentor's answer turned F-17 from suspected into demonstrated |
 
-**Nothing in that table was discovered at M7.** Every row was open before this milestone began
-and is carried forward with its status unchanged, which is the only honest way to end.
+**What closed on 2026-09-01, and it is worth naming separately:** four of OQ-3's six parts moved
+from `decided` to **`answered`**, and the **sweep-legibility metric moved from UNMET to met by
+its own named method**. Neither changed a line of code — every confirmed answer matched what was
+already built and measured.
 
----
+**Nothing in that table was discovered at M7.** Every row was open before this milestone began,
+except E-6, which is a five-milestone-old finding that only became reportable when the mentor
+confirmed the thing it depends on.
 
 ## 6. What M7 did *not* do
 
 - **It did not close OQ-2**, and the implementer must not. Re-checked at M7: still unanswered.
-- **It did not deliver or re-raise E-1.** Deferred by DRI decision; M7's job was to carry its cost
-  correctly, which is §4's unmet metric.
+- **It did not re-raise E-1 while it was deferred.** M7's job was to carry its cost correctly,
+  which meant holding §4's metric at UNMET until its named method actually happened. When the
+  mentor did reply, four of six parts became answered and two did **not** — and the two that did
+  not were left `decided` rather than rounded up.
 - **It did not record the video**, and did not substitute anything for it.
 - **It did not re-run any campaign to improve an artifact.** `campaigns/m6-gate-refused/` and
   `campaigns/m5-sweep-first/` are both still there, both still counted.

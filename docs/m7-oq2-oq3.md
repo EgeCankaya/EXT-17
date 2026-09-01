@@ -108,7 +108,34 @@ still change a default and no code.
 
 ## 2. OQ-3 / E-1 — the headless invocation
 
-### 2.1 The one thing that cannot be decided from [B]
+### 2.0 UPDATE, 2026-09-01 — the mentor replied, and four of the six are now ANSWERED
+
+**This section was written before the mentor was reachable.** It stands as the reading that
+decided the six parts; this table records which of them stopped being decisions.
+
+| part | decided below as | the mentor's answer |
+|---|---|---|
+| **(b)** `N8RO_RELEASE` | required | **ANSWERED — yes, expected in production** |
+| **(d)** degraded terrain | leave it | **ANSWERED — yes, leave it as it is** |
+| **(e)** console control event; non-zero exit expected | both adopted | **ANSWERED — yes to both** |
+| **(f)** `C:\N8RO\bin` on `PATH` | a second, separate precondition | **ANSWERED — yes** |
+| **(a)** bus-publish route | yes, on [B]'s own ordering | **NOT COVERED.** Stays `decided` |
+| **(c)** `SimEngineHost_SharedMemory` | yes, on *"closed configuration"* + *"determinism first"* | **NOT COVERED.** Stays `decided` |
+
+**Every answer matched the decision, and nothing changed as a result** — which is the useful
+thing about having asked: four readings of [B] were confirmed correct by the person [B] told us
+to ask.
+
+**(a) and (c) are not recorded as answered**, because they were not covered in what was relayed.
+The rule this project has applied to [B]'s author for five milestones applies to a mentor too.
+
+**One answer had a consequence beyond confirming a reading.** (b) turned F-17 from *suspected*
+into *demonstrated* and produced **E-6**
+([EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4)): `PROVENANCE.md` finding 6
+documents this invocation **without** `N8RO_RELEASE`, and following it exactly gives a host that
+refuses every 42-entity load while sitting idle rather than failing.
+
+### 2.1 The one thing that could not be decided from [B]
 
 [B]'s surface table says, of `bin\n8ro-sim-app.exe`: *"the host binary that runs an engine with
 no GUI. **Confirm the invocation with your mentor.**"*
