@@ -884,11 +884,16 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   fixture at 0.5.0 — plus the mutants and micro-captures the conformance suite writes itself.
   Nothing here has met a capture from a second producer, and "conformant" means "agrees with
   `contract/capture-format-v1.md` as this project reads it".
-- **One imprecision in that specification has been found and not worked around.** §6.7 says a
-  rotated run's totals are the sum across its parts; for `segments` that is false, because a
-  segment cut by a rotation is closed in one part and opened in the next. Measured: 5 summed for a
-  2-segment run. It is raised with EXT-08 as E-3, and the reader reports both numbers and names
-  the gap rather than picking one silently.
+- **Four defects in `contract/` have been found, raised, and fixed upstream — none worked
+  around.** §6.7 said a rotated run's totals are the sum across its parts, which for `segments` is
+  false (measured: 5 summed for a 2-segment run); §5.1's frozen-clock test was read as "the clock
+  was reset" when three phenomena satisfy it; the condition digest stopped one heading before the
+  arithmetic every geometric verdict rests on; and EXT-08's README documented the headless
+  invocation without `N8RO_RELEASE`. All four were raised as E-3 to E-6, **all four were fixed by
+  EXT-08 on 2026-09-01**, and `contract/` is re-pinned at `ca5118c` — the fourth pin. **Nothing
+  here changed as a result**: every correction confirmed a behaviour already implemented and
+  stated beside the text it disagreed with. The reader still reports both segment numbers and
+  names which is which; it now agrees with the specification rather than reporting beside it.
 - **The headless invocation is confirmed in four of its six parts, and decided in the other
   two.** The brief says *"confirm the invocation with your mentor"*, and on 2026-09-01 the mentor
   confirmed: `N8RO_RELEASE` **is** expected in production; the degraded terrain configuration

@@ -306,6 +306,14 @@ sections exist at `eedc228`, the commit the digest itself names, sitting immedia
 last paragraph that crossed. Nothing was added upstream afterwards; the excerpt stopped one
 heading early.
 
+> **Resolved after this document was written.** EXT-08 fixed E-5 on 2026-09-01 — by creating
+> `docs/condition-file-schema.md` upstream with all four sections, rather than by vendoring two
+> more sections into a digest — and `contract/` is re-pinned at `ca5118c`. **Nothing below
+> changed**: the geodesy §6 decides is unchanged, still stated with its constants, and it agrees
+> with the newly vendored text exactly. The section is kept as written because it is the record
+> of what was knowable at M6, and because the decision it documents had to be made without the
+> text that now exists. See `docs/escalations.md` E-5 and `contract/PROVENANCE.md`.
+
 **This is a defect in `contract/`, and it is raised, not worked around** — **E-5**, in the class
 of E-3 and E-4. It has two parts: the digest omits material its own cited source carries at its
 own cited commit, and `PROVENANCE.md`'s table lists the digest beside two files that are verbatim
