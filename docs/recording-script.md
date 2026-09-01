@@ -399,13 +399,20 @@ raid-leader-degraded   INDETERMINATE   health=nominal equals=degraded
 - **Do not describe the twenty-run campaign as always succeeding.** It met R15 on its first
   attempt: the gate refused and no run was attempted.
 - **Do not call an `indeterminate` verdict a failure of the tool.** It is the correct answer.
-- **Do not say the mentor confirmed the whole invocation.** Four of six parts, on 2026-09-01:
-  `N8RO_RELEASE`, the terrain configuration, the shutdown method and its exit code, and the
-  `PATH` precondition. **The bus-publish route and the transport choice were not covered** and
-  remain decided rather than answered.
+- **The mentor DID confirm the whole invocation** - all six parts, on 2026-09-01. You may say
+  so. What you may **not** say is that the transport choice was prescribed: the answer to that
+  one was *"pick the one you prefer"*, so `SimEngineHost_SharedMemory` is **our** choice, made
+  on the reasoning in `docs/m7-oq2-oq3.md` §2.2 and now explicitly delegated rather than
+  inferred. Saying "the mentor told us to use SharedMemory" would be false.
+- **Do not say the mentor ruled on the gate basis.** They **concurred** with content, separately
+  and independently, which is worth saying. It is not a ruling: acceptance criterion 2 belongs to
+  the brief's author, who has still never replied. If you mention the concurrence at all, say
+  "still not answered by the brief's author" in the same breath - the reports do, and two tests
+  enforce it.
 
-**Two lines in this file were wrong for a few hours on 2026-09-01** - they said the sweep was
-unreviewed and criterion 2 unruled, both true when written and both overtaken the same day.
+**Four lines in this file have gone stale within hours of being written, twice on 2026-09-01** -
+first the sweep being unreviewed and criterion 2 unruled, then the invocation being confirmed in
+only four of six parts. All were true when written and all were overtaken the same day.
 Mentioned here because it is exactly the kind of staleness a script accumulates between writing
 and recording, and worth a re-read of this section before the camera goes on.
 

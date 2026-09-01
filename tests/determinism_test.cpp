@@ -791,6 +791,17 @@ void gateBasisIsSelectableAndBothAlwaysRun() {
        contains(report, "not") && contains(report, "answered by [B]'s author"));
     ok("…and does NOT claim it was answered",
        !contains(report, "ANSWERED by [B]'s author, who has replied"));
+    // Added 2026-09-01. The mentor independently reached the same answer, which is a THIRD
+    // state again — not the DRI's decision and not the recipient's ruling. It is worth
+    // reporting, and it is exactly the kind of thing that erodes into "so it's answered then".
+    // These two checks are a pair on purpose: the concurrence may only ever appear in a report
+    // that also says [B]'s author has not replied.
+    ok("…and records that the mentor CONCURRED, independently",
+       contains(report, "CONCURRED") && contains(report, "mentor"));
+    ok("…while never letting that concurrence stand in for a ruling from [B]'s author",
+       !contains(report, "CONCURRED") || contains(report, "answered by [B]'s author"));
+    ok("…and says whose criterion 2 is to discharge, so the two are not confused",
+       contains(report, "discharge"));
     ok("…and carries the sentence of [B]'s that decided it",
        contains(report, "defect in your harness"));
     ok("…that the byte comparison is expected to fail rather than defective",

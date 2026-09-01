@@ -966,16 +966,22 @@ std::string renderReport(const ComparisonResult& r) {
         row("gate basis", std::string(name(r.gateBasis))
                               + "   (ADR-1: the content basis is THIS PROJECT'S decision, not the "
                                 "client's)");
-        // OQ-2 is DECIDED and was never ANSWERED, and those are different words on purpose.
-        // The DRI authorised the implementer to decide it from [B]'s own words on 2026-09-01;
-        // [B]'s author never replied and a ruling from them would still be worth having. This
-        // line says both, because a report that said only "content" would be hiding which.
-        row("OQ-2", "DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words, NOT");
-        cont("answered by [B]'s author, who has not replied. The deciding sentence is");
-        cont("\"if it ever fails, you have found either a defect in your harness or");
-        cont("something far more interesting, and you must be able to tell which\" - a byte");
-        cont("gate fails 100% of the time here and so distinguishes neither. See");
-        cont("docs/m7-oq2-oq3.md. Both comparisons still run and are still reported below.");
+        // OQ-2 is DECIDED, is CONCURRED with by the mentor, and was never ANSWERED by the
+        // person it was addressed to. Those are three different words on purpose. The DRI
+        // authorised deciding it from [B]'s own words on 2026-09-01; the mentor independently
+        // reached the same answer on the same day; [B]'s author has still never replied, and
+        // only [B]'s author can discharge criterion 2. This line says all three, because a
+        // report saying only "content" would hide which, and one saying only "concurred"
+        // would let a second opinion pass for a ruling.
+        row("OQ-2", "DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words and");
+        cont("CONCURRED with by the mentor on the same day, independently. Still NOT");
+        cont("answered by [B]'s author, who has not replied - and criterion 2 is theirs to");
+        cont("discharge, so a second opinion strengthens the decision without closing the");
+        cont("question. The deciding sentence is \"if it ever fails, you have found either a");
+        cont("defect in your harness or something far more interesting, and you must be able");
+        cont("to tell which\" - a byte gate fails 100% of the time here and so distinguishes");
+        cont("neither. See docs/m7-oq2-oq3.md. Both comparisons still run and are still");
+        cont("reported below.");
         s += "\n";
     }
 

@@ -167,13 +167,24 @@ void SelfTestResult::writeMembers(json::Writer& w) const {
     // `decided` is a fourth state, deliberately distinct from `answered`. It means a person
     // entitled to decide it did, on stated evidence, and the original recipient still has not
     // spoken. A consumer reading this file must be able to tell those apart.
+    //
+    // `oq2_concurred_by` is a *third* thing again, added 2026-09-01: somebody other than the
+    // recipient, entitled to an opinion, independently reached the same answer. It raises
+    // confidence in the decision and does not convert it into a ruling, so it is a separate
+    // key rather than a change to the two beside it. `oq2_answered_by_brief_author` is the
+    // field a consumer should key on if it wants to know whether criterion 2 was discharged
+    // by the only person who can discharge it, and it is still false.
     w.member("oq2_ruling", std::string("decided"));
     w.member("oq2_decided_by", std::string("DRI, 2026-09-01"));
+    w.member("oq2_concurred_by", std::string("mentor, 2026-09-01, independently"));
     w.member("oq2_answered_by_brief_author", false);
     w.member("oq2_note",
-             std::string("DECIDED, not answered. The DRI authorised deciding it from the brief's "
-                         "own words on 2026-09-01; the brief's author has never replied and a "
-                         "ruling from them would still be acted on. The deciding sentence is the "
+             std::string("DECIDED and CONCURRED with, not answered. The DRI authorised deciding "
+                         "it from the brief's own words on 2026-09-01, and the mentor reached "
+                         "the same answer independently that day. The brief's author has never "
+                         "replied; criterion 2 is theirs to discharge, so the concurrence "
+                         "strengthens the decision without closing the question, and a ruling "
+                         "from them would still be acted on. The deciding sentence is the "
                          "brief's own statement of the self-test's purpose - if it ever fails, "
                          "you have found either a defect in your harness or something far more "
                          "interesting, and you must be able to tell which - which a byte gate "

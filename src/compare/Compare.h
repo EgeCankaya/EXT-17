@@ -263,9 +263,12 @@ struct CompareOptions {
     // the client's; Bytes is [B]'s strictest reading. **Both always run and both are always
     // reported** — the basis chooses which one the gate reads, and nothing else.
     //
-    // **OQ-2 is DECIDED and was never ANSWERED.** The DRI authorised deciding it from [B]'s own
-    // words on 2026-09-01 (`docs/m7-oq2-oq3.md`); [B]'s author never replied. The default did
-    // not move — it was already Content — so what the decision changed is what the reports are
+    // **OQ-2 is DECIDED, is CONCURRED with, and was never ANSWERED.** The DRI authorised
+    // deciding it from [B]'s own words on 2026-09-01 (`docs/m7-oq2-oq3.md`), and the mentor
+    // independently reached the same answer that day. **[B]'s author has still never replied,
+    // and criterion 2 is theirs to discharge** — a second opinion raises confidence and does
+    // not close the question, so the three words stay apart everywhere they appear. The default
+    // did not move — it was already Content — so what any of it changed is what the reports are
     // allowed to say, not what they compute.
     GateBasis gateBasis = GateBasis::Content;
 };

@@ -230,10 +230,12 @@ that nothing it ships changes with the answer, and passed the confirmation here:
 **EXT-17's OQ-3**, and this is the project that runs the host in production. `[B]` asks its own
 reader to confirm it, so the ask lands here by the brief's own instruction, not by delegation.
 
-**Four of OQ-3's six parts were answered by the mentor on 2026-09-01** — the environment
-variable, the degraded terrain configuration, the console control event and its non-zero exit,
-and `PATH`. Parts (a) and (c) were not covered by what was relayed and are **not** recorded as
-answered. See `docs/escalations.md` E-1.
+**All six of OQ-3's parts were answered by the mentor on 2026-09-01**, across two relays: the
+environment variable, the degraded terrain configuration, the console control event and its
+non-zero exit, and `PATH` first; then the bus-publish route (**yes**) and the choice of host
+variant (***"pick the one you prefer"*** — so no variant is prescribed, and
+`SimEngineHost_SharedMemory` stays as this project's own explicitly-delegated choice). **Every
+one confirmed what was already built.** See `docs/escalations.md` E-1.
 
 ### 8. The recorder can bound its own captures, and rotate them — as of producer 0.9.0
 
