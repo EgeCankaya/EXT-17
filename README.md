@@ -13,7 +13,7 @@ run-to-run diff for both of the questions the brief asks of one; and the four ug
 injected deliberately and survived.
 
 > **One deliverable is outstanding: the 5-minute recording.** It needs a person, it is scripted
-> beat by beat in `docs/recording-script.md`, and it is **not delivered**. Everything else the
+> as a command runbook in `docs/recording-script.md`, and it is **not delivered**. Everything else the
 > brief asks for is here. See
 > [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
 >
@@ -1102,7 +1102,7 @@ both is the point — re-running until the numbers are welcome is choosing evide
 | A git repository with the runner | Done |
 | A README with the four topics | Done — indexed at the top of this file |
 | A real campaign, committed as an example | Done, **with one named deviation**: the captures are not committed and a manifest stands in for them |
-| A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted beat by beat in `docs/recording-script.md`, including what *not* to say |
+| A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted as a command runbook in `docs/recording-script.md`, including what *not* to claim in a caption |
 | A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
 
 **Every success metric is now met, including the one that was reported unmet twice.** The

@@ -244,7 +244,7 @@ and no crash rename follows — where `TerminateProcess` does not. **The non-zer
 stopped it" from "it died" by asking the process itself rather than by reading its exit code.
 
 **(f) `C:\N8RO\bin` on `PATH`.** → **A second, separate precondition, and required.** Same
-reasoning as (b). Verified again at M7 and tabled in `docs/recording-script.md` §0.4: without it
+reasoning as (b). Verified again at M7 and tabled in `docs/recording-script.md` under *Which binary needs what*: without it
 `n8ro-campaign` exits `-1073741515` (`0xC0000135`, DLL not found) having printed nothing —
 `n8ro-judge`, `n8ro-compare` and `n8ro-capture` are unaffected, because they link nothing.
 

@@ -20,7 +20,7 @@ recording, and the notes on determinism
 | README | *"how to configure a campaign, how to write an assertion, the output format, and the limits"* | **Done.** Four sections, each named for the topic, indexed from the top |
 | A real campaign | *"its configuration, its captured runs and its report, committed as an example"* | **Done, with one named deviation** — the captures are not committed (F-34); a manifest of each one's size, SHA-256 and read-back counts is |
 | Determinism notes | *"what you had to do to make comparison meaningful, and anything you saw that you could not explain"* | **Done.** `docs/determinism-notes.md`, five unexplained observations |
-| The 5-minute recording | *"launch a campaign, watch it run, read the report"* | **NOT DELIVERED.** Scripted beat by beat in `docs/recording-script.md`; it needs a person |
+| The 5-minute recording | *"launch a campaign, watch it run, read the report"* | **NOT DELIVERED.** Scripted as a command runbook in `docs/recording-script.md`; it needs a person |
 
 ---
 
@@ -64,9 +64,14 @@ one machine.
 
 ### The recording — not delivered, and not substituted for
 
-`docs/recording-script.md` is the script: every command in order, what to say over each, what the
-screen will show, and — the part that matters — **what not to say**, because three claims are
-easy to overstate on camera and each has a named limit.
+`docs/recording-script.md` is the runbook: every command in order, what each one puts on screen,
+and how long it takes. **There is no narration and nothing is opened in an editor** — the
+recording is the terminal, which is possible only because the tools caption themselves: the gate
+prints its own basis and the OQ-2 wording, the report prints why its bar is not scaled from zero,
+and every verdict that is not satisfied prints its reason. A claim that would have to be spoken to
+be present is one the recording cannot evidence. What survives from the narrated version is the
+last section — **what not to claim in a caption or a title**, because three claims are easy to
+overstate and each has a named limit.
 
 **It is not the recording and it is not offered as one.** R10 exists because the equivalent
 deliverable was not delivered upstream, and the failure it names is not lateness — it is
@@ -133,7 +138,7 @@ survived all three, and both need somebody outside this project.
 
 | # | What | Whose | Status | Blocks anything? |
 |---|---|---|---|---|
-| **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted in `docs/recording-script.md`, including what *not* to say | **It is the deliverable.** Nothing else waits on it |
+| **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted as a command runbook in `docs/recording-script.md`, including what *not* to claim in a caption | **It is the deliverable.** Nothing else waits on it |
 | **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) and `concurred` (mentor, same day, independently) — content. Still never answered**, across five milestones. **The concurrence is a second opinion, not a ruling**: criterion 2 is [B]'s author's to discharge | No. Both readings ship as selectable gates; a ruling changes a default and no code |
 | ~~**OQ-3 (a) and (c)**~~ | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **CLOSED, 2026-09-01.** The follow-up ran: **(a) yes**; **(c) *"pick the one you prefer"***, so no variant is prescribed. **E-1 is answered in full** | No, and it never did. Nothing changed |
 | **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | **CLOSED — FIXED 2026-09-01**, option (a) taken, vendored back at the fourth pin | No, and it never did |
