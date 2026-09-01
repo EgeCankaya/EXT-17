@@ -56,16 +56,36 @@ so `diff` between two working trees reports a difference on every line while the
 is identical. From EXT-17:
 
 ```
+git -C ..\EXT-08 fetch origin
 git rev-parse HEAD:contract/capture-format-v1.md
-git -C ..\EXT-08 rev-parse ca5118c:docs/capture-format-v1.md
+git -C ..\EXT-08 rev-parse main:docs/capture-format-v1.md
 ```
 
-Equal hashes mean equal content. At this pin they are `a6974af…` for the format and `9d65ed0…`
-for the condition schema.
+**Compare against `main`, not against the pinned commit.** The pin above names a commit so that
+"what did we vendor" has an answer, but asking it back of EXT-08 only ever proves this directory
+still matches itself. The question worth asking is whether it matches the branch head, for the
+reason given above — and it is not hypothetical: at the time of writing EXT-08's `main` had moved
+past `bda3904` while all four artifacts still matched, which a check pinned to `bda3904` would
+have reported as current without being able to see the difference.
+
+Equal hashes mean equal content. All four artifacts, and where each one comes from:
+
+| This directory | EXT-08 `main` | Blob |
+|---|---|---|
+| `capture-format-v1.md` | `docs/capture-format-v1.md` | `86ecf8e…` |
+| `condition-file-schema.md` | `docs/condition-file-schema.md` | `9d65ed0…` |
+| `example.conditions.json` | `conditions/atacama.conditions.json` | `f5bc63b…` |
+| `capture-…-sample-0.9.0.n8rocap.jsonl` | `docs/sample-capture/capture-atacama-air-defense-sample.n8rocap.jsonl` | `a848759…` |
+
+**`capture-atacama-air-defense-sample.n8rocap.jsonl` — the producer-0.5.0 one — is NOT in that
+table and must not be added to it.** It is `a089d23…` here and nothing upstream carries it any
+more: EXT-08 regenerated that file at the fourth pin, which is the event the fourth pin exists to
+record. It is kept here as a fixture in its own right (F-49), so a pin check that expected it to
+match `main` would fail on the one file that is correct.
 
 **F-19 closes with this pin.** The condition digest could not be checked by identity, because no
 file of that name existed upstream to check it against. One does now, and this directory's copy
-is byte-identical to it — so a pin check is one comparison for all three vendored artifacts
+is byte-identical to it — so a pin check is one comparison for every vendored artifact
 rather than two comparisons and a judgement call about the third.
 
 ### The rule this pin adds

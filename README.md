@@ -1379,12 +1379,8 @@ measured evidence; that remains a separate statement.
 | `tools/n8ro-judge/` | The re-judge CLI, and its golden `--help`. Its build script proves the boundary, the hazards, **and** that the assertion path names no process, bus or control path |
 | `examples/` | The committed campaign configurations and the committed condition file — the twenty-run campaign this README reports, and M5's seven-value sweep |
 | `tools/spike-axis/`, `tools/spike-oq4/` | M2's and M5's feasibility spikes. Evidence, not product |
-| `tools/m2-checks/`, `m5-checks/`, `m6-checks/` | Analysis scripts behind the milestone documents' numbers. Evidence, not product |
+| `tools/m2-checks/`, `m5-checks/`, `m6-checks/` | Analysis scripts behind the milestone numbers. Evidence, not product — `m2-checks/oq1_table.py` is kept because it is the published reproduction command for OQ-1's table |
 | `campaigns/` | Every campaign this project has run, minus its captures. See "The evidence" |
-| `docs/` | The PRD, one document per milestone, the findings index, the escalations, the determinism notes, the recording script, and the decisions taken without asking |
-| `tools/spike-oq4/` | M5's OQ-4 **fidelity** spike — the criterion M2's deliberately did not measure. Evidence, not product |
-| `tools/m5-checks/` | The throwaway reader for that spike's captures |
-| `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for OQ-1's table |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind the host lifecycle findings |
 | `contract/` | Vendored from EXT-08. Read-only |
 | `docs/` | The client brief, the PRD it is written against, `escalations.md` (every question that went to somebody else and what came back), `determinism-notes.md` (the brief's fifth deliverable), and `clean-room.md` — the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included. The internal working documents were dropped at handover |

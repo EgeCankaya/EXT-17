@@ -720,7 +720,7 @@ The system SHALL ship, committed to the repository: a real campaign with its con
 
 ## Scope authority
 
-The FR sections above are the **contract** for this PRD. The design document (`docs/design.md`, to be added) realizes these FRs as components, sequences and milestone tasks.
+The FR sections above are the **contract** for this PRD. **There is no separate design document and none is planned** — the earlier promise of one (`docs/design.md`, "to be added") was never kept and is withdrawn here rather than left dangling. What realizes these FRs as components is the source layout itself, and what records the sequence and the reasoning is [`README.md`](../README.md): "Architecture at a Glance" and "Layout" name each component and what it is for, "Key Decisions & Trade-offs" carries the decisions taken along the way, and "Status, in full" is the milestone record. **Where the two paragraphs below say *the design*, that is what they mean.**
 
 **The design must not introduce surface area beyond this PRD's FR table without a corresponding PRD revision.** A new run outcome, a fourth condition kind, a second parameterisation axis, a network listener, or a new output file requires a PRD revision first.
 
