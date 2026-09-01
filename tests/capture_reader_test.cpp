@@ -41,6 +41,18 @@ namespace {
 int g_failures = 0;
 int g_checks = 0;
 
+// Tier 4 runs only where the untracked 569 MB of real 0.9.0 captures happen to sit, so the
+// number of checks this suite runs is a property of the MACHINE and not of the suite. That
+// broke tests\build.cmd's check-count golden the first time this repository was built
+// anywhere else: 475 on the development machine, 469 on a clean runner, zero failures both
+// times. F-41 added that golden to stop a total drifting silently, and a golden that only
+// holds on one machine is the same defect it was built to prevent.
+//
+// So the optional checks are counted separately and the golden pins the mandatory total.
+// They still RUN, and a failure in one still fails the suite through g_failures - it is only
+// the COUNT that is held apart.
+int g_optionalChecks = 0;
+
 void ok(const std::string& what, bool condition, const std::string& detail = {}) {
     ++g_checks;
     if (condition) {
@@ -839,9 +851,14 @@ int main(int argc, char** argv) {
     tier2Mutations(root, outDir);
     tier3Synthetic();
     tier3Rotation(outDir);
+    const int beforeTier4 = g_checks;
     tier4RealCaptures(root);
+    g_optionalChecks = g_checks - beforeTier4;
 
     std::printf("\n%d check(s), %d failure(s)\n", g_checks, g_failures);
+    // Read by tests\build.cmd, which subtracts it before comparing against the golden.
+    std::printf("%d optional check(s) - tier 4, which runs only where the untracked "
+                "0.9.0 captures are\n", g_optionalChecks);
     if (g_failures != 0) {
         std::printf("capture_reader_test: FAILED\n");
         return 1;

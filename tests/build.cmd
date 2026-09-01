@@ -134,12 +134,35 @@ set /a CHECKS=0
 for %%S in (json_writer_test capture_reader_test determinism_test parameter_test assertion_test) do (
   for /f "tokens=1" %%N in ('findstr /r /c:"^[0-9][0-9]* check(s)" "%OUT%\%%S.out"') do set /a CHECKS+=%%N
 )
+
+rem THE GOLDEN PINS THE MANDATORY TOTAL, NOT WHAT THIS MACHINE HAPPENED TO RUN.
+rem capture_reader_test's tier 4 reads the real producer-0.9.0 captures under
+rem campaigns\m2-oq1\runs, which are untracked and 569 MB, so it runs on the development
+rem machine and is skipped everywhere else. That made the check count a property of the machine:
+rem 475 here, 469 on a clean windows-latest runner, zero failures both times. F-41 added this
+rem golden to stop a total drifting silently, and a golden that only holds in one place is the
+rem same defect it was built to prevent - which is exactly what the first CI run reported.
+rem
+rem So the suite prints its optional count on its own line and it is subtracted here. Those
+rem checks still RUN wherever the captures are, and a failure in one still fails the suite; it
+rem is only the COUNT that is held apart, so that the number in the golden file is one every
+rem machine can reproduce.
+set /a OPTIONAL=0
+for /f "tokens=1" %%N in ('findstr /r /c:"^[0-9][0-9]* optional check(s)" "%OUT%\capture_reader_test.out"') do set /a OPTIONAL+=%%N
+set /a MANDATORY=!CHECKS!-!OPTIONAL!
+
 echo.
 echo tests: !CHECKS! check(s) across 5 suite(s), 0 failure(s).
-> "%OUT%\checks.actual.txt" echo !CHECKS!
+if not "!OPTIONAL!"=="0" (
+  echo        of which !OPTIONAL! are optional ^(tier 4 - the untracked 0.9.0 captures are present^);
+  echo        !MANDATORY! is the mandatory total, and the golden file pins that.
+) else (
+  echo        tier 4 was skipped ^(the untracked 0.9.0 captures are not present here^).
+)
+> "%OUT%\checks.actual.txt" echo !MANDATORY!
 fc /n "%~dp0checks.golden.txt" "%OUT%\checks.actual.txt" >nul
 if errorlevel 1 (
-  echo BUILD FAILED: the suite ran !CHECKS! check^(s^); tests\checks.golden.txt says otherwise.
+  echo BUILD FAILED: the suite ran !MANDATORY! mandatory check^(s^); tests\checks.golden.txt says otherwise.
   echo Update the golden file deliberately, in the commit that changed the suite, and
   echo update the figure in README.md's "Building" section in the same breath.
   exit /b 1

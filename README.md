@@ -263,7 +263,7 @@ tests\build.cmd                    ->  builds and runs the tests
 correctness is about our own output rather than about the platform; since M3 the capture reader,
 whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
 correctness is what every other result rests on; since M5 the axis; and since M6 the whole
-assertion surface. **78 + 105 + 126 + 166 = 475 checks** across five suites, of which the last
+assertion surface. **72 + 105 + 126 + 166 = 469 checks** across five suites, of which the last
 two are each run twice, the second time under a comma-decimal locale.
 
 **That number is not typed here on trust.** `tests\build.cmd` sums what the suites actually
@@ -272,6 +272,34 @@ as the four golden `--help` files, and for the same reason. It is here because t
 *did* rot: it read `466` for a milestone after the determinism suite grew from 96 checks to 105,
 which is the third counting-drift finding in this project's own log (F-41). Growing the suite
 means updating the golden file and this sentence in the commit that grew it.
+
+**469 is the MANDATORY total, and that distinction was itself a finding (F-44).** The capture
+reader's tier 4 reads the real producer-0.9.0 captures under `campaigns\m2-oq1\runs`, which are
+untracked and 569 MB — so it runs on the machine that has them and is skipped everywhere else,
+and it contributes **6 further checks** there. The count was therefore a property of the machine:
+475 on the development machine, 469 on a clean runner, zero failures both times. **A golden that
+only holds in one place is the same defect the golden was added to prevent**, and it was found
+the first time this repository was built anywhere else — by the CI job below, on its first run.
+The suite now prints its optional count separately and `tests\build.cmd` subtracts it, so the
+pinned number is one every machine reproduces. The optional checks still run wherever the
+captures are, and a failure in one still fails the suite; only the count is held apart.
+
+### CI — the same tier, on a machine nobody here owns
+
+`.github/workflows/zero-install-tier.yml` runs all of the above on a stock `windows-latest`
+runner: the 469 checks, the three SDK-free tool builds with their boundary searches and golden
+`--help` comparisons, and then a read of EXT-08's capture and a load of EXT-08's condition file
+with neither EXT-08 nor the SDK present. **Its first step asserts the runner has no `C:\N8RO` and
+no `N8RO_RELEASE`, and fails the job otherwise**, because none of the rest means anything on a
+machine that has the install.
+
+**This is the only claim here that is not self-certified.** Every other proof of the boundary is
+a search this project wrote, run over sources this project wrote, on the one machine that has the
+SDK — which can show that no forbidden name appears, and cannot show the install is unnecessary,
+because the install was always there. The four SDK-linked targets — `n8ro-campaign`, `m1-run` and
+the two spikes — cannot build there, and a recording run additionally needs EXT-08's recorder.
+That is half the build scripts, and the job runs the half it can rather than weakening the half
+it cannot.
 
 **Three of the four tools need no N8RO install to build or to run, and that is the point.** Look
 at the compile lines of `n8ro-capture`, `n8ro-compare` and `n8ro-judge`: no `/I`, no `/LIBPATH`,
