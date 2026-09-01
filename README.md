@@ -16,7 +16,7 @@ stored captures; a run-to-run diff for both of the questions the brief asks of o
 ugly realities injected deliberately and survived.
 
 > **The last outstanding deliverable, the 5-minute recording, is DELIVERED** — shot 2026-09-01
-> to the runbook in [`docs/recording-script.md`](docs/recording-script.md). What it shows and
+> to a prepared runbook. What it shows and
 > what to know before watching it are in [The demo recording](#the-demo-recording); the full list
 > is [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
 >
@@ -25,7 +25,8 @@ ugly realities injected deliberately and survived.
 > own words, because schedule became binding and neither recipient had replied in five
 > milestones. **`decided` is not `answered`** — this project keeps the two apart in every artifact
 > that carries them, down to `self-test.json`'s `oq2_answered_by_brief_author: false` — and
-> [`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md) is the reading. **Neither changed any code.**
+> the reading is in [Proving determinism](#proving-determinism--the-self-test-and-the-gate).
+> **Neither changed any code.**
 
 > **The determinism gate passes on content, and that is this project's decision rather than the
 > client's.** The brief asks for two identical runs to *"produce identical captures"*; measured
@@ -34,8 +35,7 @@ ugly realities injected deliberately and survived.
 > self-test, and which one *decides* was **decided by the DRI on 2026-09-01 from the brief's own
 > words — and was never answered by the brief's author, who has not replied** (OQ-2). Those are
 > different words and this project keeps them apart everywhere. See
-> [Proving determinism](#proving-determinism--the-self-test-and-the-gate) and
-> [`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md).
+> [Proving determinism](#proving-determinism--the-self-test-and-the-gate).
 
 The binding contract is `docs/prd.md`, which is itself written against the client brief. The
 capture format EXT-17 consumes is vendored, read-only, in `contract/`.
@@ -59,8 +59,8 @@ are not test results; and [the demo recording](#the-demo-recording), which is al
 
 **And two documents beside this one.** `docs/determinism-notes.md` is the brief's fifth
 deliverable — what had to be done to make comparison meaningful, and **the things that could not
-be explained**. `docs/decisions-m6-m7.md` records every decision taken without asking, with what
-each would cost to reverse.
+be explained**. `docs/escalations.md` carries every question that went to somebody else, what
+came back, and what was decided here when nothing did.
 
 ---
 
@@ -71,7 +71,7 @@ each would cost to reverse.
 > decision.
 
 This is the answer to OQ-1, decided at M2 against the four criteria the PRD fixed in rev 1 and
-measured over twenty runs. The evidence is in [`docs/m2-oq1.md`](docs/m2-oq1.md); the short form:
+measured over twenty runs. The short form:
 
 | OQ-1 criterion | Verdict |
 |---|---|
@@ -119,8 +119,8 @@ anyone has to remember.
 **Which of the two decides the gate is OQ-2, and it is DECIDED — content — and was never
 ANSWERED.**
 Decided by the DRI on 2026-09-01 from the brief's own words, because schedule became the binding
-constraint and the brief's author had not replied in five milestones. The reading is
-[`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md) §1, and **the sentence it turns on is not the one
+constraint and the brief's author had not replied in five milestones. **The sentence it turns
+on is not the one
 usually quoted** — it is the brief's statement of what the self-test is *for*:
 
 > *"If it ever fails, you have found either a defect in your harness or something far more
@@ -245,7 +245,7 @@ text* of `sim_time_s`, and values are digested from their original text. The for
 in shortest round-trip form (§8.3), so equal text and equal double are the same relation — which
 puts the locale hazard off the path that decides the gate rather than testing it back off.
 
-Detail, and every number, in [`docs/m4-determinism.md`](docs/m4-determinism.md).
+Every number above was measured on this machine, over M2's twenty runs.
 
 ---
 
@@ -277,7 +277,7 @@ tests\build.cmd                    ->  builds and runs the tests
 correctness is about our own output rather than about the platform; since M3 the capture reader,
 whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
 correctness is what every other result rests on; since M5 the axis; and since M6 the whole
-assertion surface. **87 + 105 + 126 + 166 = 484 checks** across five suites, of which the last
+assertion surface. **95 + 114 + 126 + 192 = 527 checks** across five suites, of which the last
 two are each run twice, the second time under a comma-decimal locale. (Four addends and five
 suites: `json_writer_test` prints no count line and contributes 0 to the sum, which
 `tests\build.cmd` says beside the code that sums them. A failure there still fails the build,
@@ -292,11 +292,11 @@ as the four golden `--help` files, and for the same reason. It is here because t
 which is the third counting-drift finding in this project's own log (F-41). Growing the suite
 means updating the golden file and this sentence in the commit that grew it.
 
-**484 is the MANDATORY total, and that distinction was itself a finding (F-44).** The capture
+**527 is the MANDATORY total, and that distinction was itself a finding (F-44).** The capture
 reader's tier 4 reads the real producer-0.9.0 captures under `campaigns\m2-oq1\runs`, which are
 untracked and 569 MB — so it runs on the machine that has them and is skipped everywhere else,
 and it contributes **6 further checks** there. The count was therefore a property of the machine:
-475 on the development machine, 469 on a clean runner, zero failures both times (490 and 484 since the fifth pin). **A golden that
+475 on the development machine, 469 on a clean runner, zero failures both times (533 and 527 since the docx review). **A golden that
 only holds in one place is the same defect the golden was added to prevent**, and it was found
 the first time this repository was built anywhere else — by the CI job below, on its first run.
 The suite now prints its optional count separately and `tests\build.cmd` subtracts it, so the
@@ -306,7 +306,7 @@ captures are, and a failure in one still fails the suite; only the count is held
 ### CI — the same tier, on a machine nobody here owns
 
 `.github/workflows/zero-install-tier.yml` runs all of the above on a stock `windows-latest`
-runner: the 484 checks, the three SDK-free tool builds with their boundary searches and golden
+runner: the 527 checks, the three SDK-free tool builds with their boundary searches and golden
 `--help` comparisons, and then a read of EXT-08's capture and a load of EXT-08's condition file
 with neither EXT-08 nor the SDK present. **Its first step asserts the runner has no `C:\N8RO` and
 no `N8RO_RELEASE`, and fails the job otherwise**, because none of the rest means anything on a
@@ -442,7 +442,7 @@ it against the frame budget for an unattended campaign.
 **One axis, declared in a file, and no rebuild to change it.** [B]: *"One axis done properly
 beats four done loosely."* Which axis was OQ-4, and it is decided — **initial positions and
 velocities**, as one declared scalar applied to named entities before `start`. The measurement
-that decided it, against all three of [B]'s candidates, is `docs/m5-oq4.md`.
+that decided it weighed all three of [B]'s candidates against 18 probe runs.
 
 `examples/atacama-raid-speed.json` is the committed example: the closing speed of the Red raid
 in `Atacama Air Defense`, swept from 11 to 220 m/s.
@@ -499,7 +499,7 @@ otherwise be a sweep that silently did not happen. A key beginning with `_` is a
 **The axis has a measured range, and the example stops inside it.** The platform honours an
 injected speed exactly up to **400 m/s** and clamps above it, walking the entity down at
 20 m/s². At 900 m/s a run spends 25 s — 42% of it — off parameter. So the sweep stops at 220,
-and `docs/m5-oq4.md` §3 carries the measurement.
+and the range above is the measurement.
 
 ### Where the trend is
 
@@ -528,7 +528,7 @@ as the scale's floor — which made every other bar in the table wrong as well.
 until M6, so no run here is a pass or a fail. `adds` is the column to read a trend from: M2
 measured the roster lifecycle agreeing *exactly* across twenty identical runs, so unlike
 `samples` it carries none of the platform's 0.38% publication-schedule spread. What the
-committed sweep shows it doing, and why, is `docs/m5-sweep.md`.
+committed sweep shows it doing, and why, is the sweep table this section describes.
 
 ## Reading a capture back
 
@@ -725,9 +725,20 @@ rather than merely run, and says so in `covers_whole_run`.
 conformantly. It works completely. It was not chosen because a rotated run's two segments become
 five `(part, segment)` keys, four of which are fragments of one segment that nothing in any file
 identifies as such — a cost every per-segment statistic downstream would pay on every run, whether
-or not any run ever rotates. The full comparison is in [`docs/m3-oq6.md`](docs/m3-oq6.md). **The
+or not any run ever rotates. **The
 reader supports rotation regardless**, because a capture rotated by somebody else still has to be
 readable here.
+
+**And so does the JUDGE, which it did not until the docx review (F-53).** `judgeCapture` read the
+file it was handed rather than the set that file belongs to, so a rotated run was judged on its
+first part while every other number in the run record — `covers_whole_run` included — was computed
+over the whole set. A two-part capture whose entity is destroyed in part 1 came back `not met` on
+part 0's samples: **a run that passed, reported as a failure, with no caveat anywhere.** [B]'s rule
+6 is *"a stored run should be re-assertable without re-running it"*, and a third of a stored run is
+not the stored run. It now reads the set. Where a rotation **cut** a segment, a not-met verdict
+becomes `indeterminate` and says why: positive evidence is a record that exists in some part, a
+negative is a conclusion drawn from absence, and the window a cut leaves is bounded by nothing any
+file states.
 
 ## The four outcomes
 
@@ -810,7 +821,7 @@ comparable *because* the test fired.
 untouched; five mutations and one positive one generated into the build tree — never into
 `contract/`, which is read-only; 17 synthetic micro-captures, one rule each; and all twenty of
 M2's real producer-0.9.0 captures, read with the same reader, skipped **with a printed message**
-when they are absent. Detail in [`docs/m3-capture-reader.md`](docs/m3-capture-reader.md).
+when they are absent.
 
 ## Writing an assertion — the condition file, and what a verdict is entitled to say
 
@@ -835,7 +846,7 @@ report all passed. Adding a fourth kind is a change to the requirements, which i
 
 **The file shape is EXT-08's**, adopted at M6 by writing this project's conditions in it and
 evaluating them against real captures rather than by reading it — the decision and its
-measurements are in [`docs/m6-oq5.md`](docs/m6-oq5.md). **Three rules around it differ, and one
+**Three rules around it differ, and one
 key is added**, each for a reason this project measured:
 
 | | |
@@ -941,7 +952,7 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   the committed example uses; another scenario's raiders may clamp elsewhere, and nothing here
   establishes where. **Nothing checks this at run time** — the campaign publishes the value it
   was given, and a sweep past the ceiling would plot a real result against a number that stopped
-  being true partway through each run. `docs/m5-oq4.md` §3 is the measurement; staying inside the
+  being true partway through each run. Staying inside the
   range is the campaign author's, not the tool's.
 - **The sweep's result columns are counts, not verdicts.** `adds`, `keys` and `samples` are read
   off each run's capture by this project's reader. They are not judgements — no condition exists
@@ -971,7 +982,7 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   schedule is not.** That asymmetry is the basis of the stop predicate above and of the M4 gate.
 - **A run's teardown segment is usually empty.** In 15 of 20 runs segment 1 is opened and closed
   with no sample in it. The format's frozen-clock test cannot classify an empty segment, and a
-  segment list built only from segments carrying samples loses it — see `docs/m2-oq1.md`.
+  segment list built only from segments carrying samples loses it.
 - **The install has no geoid grid and no elevation service**, so every run floods with
   `TerrainElevationServiceClient` / `GeoidGridModel` / `requestGoTo 'agl'` errors. This is
   deliberately not fixed: every measurement inherited from EXT-08 was taken in this
@@ -1006,7 +1017,7 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   bus-publish route **is** the intended control path, and on the choice of host variant the
   answer was *"pick the one you prefer"* — so **no `SimEngineHost_*` variant is prescribed**, and
   `SimEngineHost_SharedMemory` stays as this project's own explicitly-delegated choice rather
-  than an inference, on the reasoning in `docs/m7-oq2-oq3.md` §2.2. **Every one of the six
+  than an inference. **Every one of the six
   confirms what was already built, so nothing changed** — and the standing exposure carried since
   M1 is discharged rather than merely unrealised.
 
@@ -1126,9 +1137,7 @@ both is the point — re-running until the numbers are welcome is choosing evide
 ### The demo recording
 
 **[One take, 4 min 10 s, on Google Drive](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing).** Shot 2026-09-01 to a prepared runbook,
-[`docs/recording-script.md`](docs/recording-script.md), which is kept as the record of what was
-filmed and how to reshoot any step. A command-by-command companion sits beside the video in the
-same folder. Every clause the brief names is on camera, in order:
+and a command-by-command companion sits beside the video in the same folder. Every clause the brief names is on camera, in order:
 
 | What the brief asks for | Step | What proves it on screen |
 |---|---|---|
@@ -1155,9 +1164,10 @@ Three things to know before watching, all of which look like shortcuts and are n
   written into the run records and the campaign summary, so a run under injection can never later
   be mistaken for a clean one. The report read at step 5 is the real twenty-run campaign.
 - **The video is published beside this repository rather than in it.** At 110 MB it is excluded
-  for the same reason the captures are. What is committed is the runbook it was shot to and
-  `campaigns/demo/`, the campaign it launches on camera — so every number visible on screen can be
-  checked against a file here rather than paused on a video frame.
+  for the same reason the captures are. What is committed is `campaigns/demo/`, the campaign it
+  launches on camera — so every number visible on screen can be checked against a file here
+  rather than paused on a video frame. The runbook it was shot to was an internal working
+  document, dropped at handover with the rest of them.
 
 ## The deliverables the brief asks for, and their status
 
@@ -1166,7 +1176,7 @@ Three things to know before watching, all of which look like shortcuts and are n
 | A git repository with the runner | Done |
 | A README with the four topics | Done — indexed at the top of this file |
 | A real campaign, committed as an example | Done, **with one named deviation**: the captures are not committed and a manifest stands in for them |
-| A 5-minute recording | **Done, 2026-09-01** — [one take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing). Launch, run and report, in that order, with no narration: the tools caption themselves. Shot to `docs/recording-script.md`, which is kept as the record of what was filmed. **4:10 against "5-minute", stated rather than rounded.** See [The demo recording](#the-demo-recording) |
+| A 5-minute recording | **Done, 2026-09-01** — [one take, 4:10, published](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing). Launch, run and report, in that order, with no narration: the tools caption themselves. Shot to a prepared runbook. **4:10 against "5-minute", stated rather than rounded.** See [The demo recording](#the-demo-recording) |
 | A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
 
 **Every success metric is now met, including the one that was reported unmet twice.** The
@@ -1175,9 +1185,8 @@ and the mentor reviewed it on 2026-09-01 and confirmed it reads.
 
 **It was reported UNMET at PRD revs 7 and 8** — the artifact exceeding its target was explicitly
 *not* accepted as a substitute for the method the metric named. So it is met now **on the terms
-it was written on rather than on relaxed ones**, and `docs/m7-evidence.md` §4 keeps both the
-earlier refusal and the answer, because the refusal is the part that makes the pass mean
-something. The brief's own acceptance criterion 3 names no reviewer and was already met on
+it was written on rather than on relaxed ones**, and the earlier refusal is kept on the record
+beside the answer, because the refusal is the part that makes the pass mean something. The brief's own acceptance criterion 3 names no reviewer and was already met on
 measured evidence; that remains a separate statement.
 
 ## Boundaries
@@ -1213,14 +1222,14 @@ measured evidence; that remains a separate statement.
 | `tools/n8ro-capture/` | The reader CLI, and its golden `--help`. Its build script is the boundary's proof |
 | `tools/n8ro-compare/` | The comparison CLI, and its golden `--help`. Its build script proves the boundary **and** that none of CR-DET-2's four hazards is on the path |
 | `tools/n8ro-judge/` | The re-judge CLI, and its golden `--help`. Its build script proves the boundary, the hazards, **and** that the assertion path names no process, bus or control path |
-| `examples/` | The committed campaign configurations and the committed condition file — the twenty-run campaign `docs/m6-assertions.md` reports, and M5's seven-value sweep |
+| `examples/` | The committed campaign configurations and the committed condition file — the twenty-run campaign this README reports, and M5's seven-value sweep |
 | `tools/spike-axis/`, `tools/spike-oq4/` | M2's and M5's feasibility spikes. Evidence, not product |
 | `tools/m2-checks/`, `m5-checks/`, `m6-checks/` | Analysis scripts behind the milestone documents' numbers. Evidence, not product |
 | `campaigns/` | Every campaign this project has run, minus its captures. See "The evidence" |
 | `docs/` | The PRD, one document per milestone, the findings index, the escalations, the determinism notes, the recording script, and the decisions taken without asking |
 | `tools/spike-oq4/` | M5's OQ-4 **fidelity** spike — the criterion M2's deliberately did not measure. Evidence, not product |
 | `tools/m5-checks/` | The throwaway reader for that spike's captures |
-| `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |
-| `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind `docs/m1-lifecycle.md` |
+| `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for OQ-1's table |
+| `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind the host lifecycle findings |
 | `contract/` | Vendored from EXT-08. Read-only |
-| `docs/` | The PRD, the milestone records, the escalations, and `findings.md` — **one index over every issue this project has found**, and the place to start. `clean-room.md` is the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included |
+| `docs/` | The client brief, the PRD it is written against, `escalations.md` (every question that went to somebody else and what came back), `determinism-notes.md` (the brief's fifth deliverable), and `clean-room.md` — the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included. The internal working documents were dropped at handover |

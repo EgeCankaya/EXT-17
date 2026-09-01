@@ -97,7 +97,7 @@ and `trailer.continued_in`. Reject on the **version**; ignore unknown **keys**.
 default `content`, and that default is this project's decision (ADR-1), not the client's.**
 
 **OQ-2 is `decided`, is `concurred` with, and was never `answered`. Those three words must never
-be swapped.** Decided by the DRI on 2026-09-01 from [B]'s own words — `docs/m7-oq2-oq3.md` §1 —
+be swapped.** Decided by the DRI on 2026-09-01 from [B]'s own words —
 and **concurred with by the mentor the same day, independently, without having seen the
 reading**. That is a second opinion and **not a ruling**: OQ-2 asks whether [B]'s acceptance
 criterion 2 is discharged, [B]'s acceptance criteria belong to [B]'s author, and **[B]'s author
@@ -150,7 +150,7 @@ Four things about the comparison that are already right and are easy to break:
 
 **OQ-4 is decided: [B]'s first axis, *initial positions and velocities*, as one declared scalar
 applied to named entities before `start`.** Decided by exercising a range rather than by arguing
-from M2's feasibility result — `docs/m5-oq4.md`, 18 probe runs. It beat "which scenario from the
+from M2's feasibility result — 18 probe runs. It beat "which scenario from the
 catalogue" on **ordering** (the catalogue enumerates fine — 10 scenarios, 119 ms, asynchronous —
 but a name has no order, and CR-PAR-2 asks for a *trend*), and "which entities are present" on
 CR-AS-4.
@@ -206,7 +206,7 @@ would be this project asserting something about scenarios it has never loaded (R
 
 **OQ-5 is decided: adopt the vendored declaration shape, supersede three rules around it, add
 exactly one key.** Decided by writing M6's conditions in the shape and evaluating them against
-the seven committed captures — `docs/m6-oq5.md` — rather than by reading the schema. A file
+the seven committed captures rather than by reading the schema. A file
 written for EXT-08's referee parses here unmodified, and `tests/assertion_test.cpp` keeps that
 true against `contract/example.conditions.json` itself.
 
@@ -241,9 +241,15 @@ include-shaped, and the comments that tripped them say why they name no forbidde
    `(v_a + v_b)·Δt + ½·20·Δt²`. Every such verdict carries the margin, the bound and the gap, so
    the claim is checkable. The 20 m/s² is F-21's, measured on one entity profile — that is R16,
    the weakest link, and it is stated rather than buried.
-5. **There is one evaluator and one input: a stored capture.** The live campaign judges the
-   capture it just wrote, through the same code `n8ro-judge` re-judges with. CR-CAP-1's identity
-   is therefore structural — **do not add a "live" evaluation path**. `verdictJson` lives in
+5. **There is one evaluator and one input: a stored capture — and, since the docx review, the
+   whole SET that capture belongs to.** The live campaign judges the capture it just wrote,
+   through the same code `n8ro-judge` re-judges with. CR-CAP-1's identity is therefore
+   structural — **do not add a "live" evaluation path**. `judgeCapture` read only the file
+   it was handed until F-53, so a rotated run was judged on part 0 while `covers_whole_run` was
+   computed over the set, and **a run that passed came back `fail`**. It reads the set now, and
+   where a rotation **cut** a segment a not-met verdict becomes `indeterminate`: positive
+   evidence is a record that exists in some part, a negative is drawn from absence, and a cut
+   leaves a window no file bounds. `verdictJson` lives in
    `src/assert/Judge.cpp` and only there, and **the capture path is deliberately not a member of
    a verdict**, because a live judgement and a re-judgement are handed different paths and
    `--verify` compares byte for byte.
@@ -270,6 +276,31 @@ failing-gate evidence came from forcing `--gate-basis bytes`, which reports a by
 never gets there. **A code path only a real failure reaches needs a test that manufactures the
 failure** (R17, F-31).
 
+**And the same path had a second defect underneath it, found the same way (F-54).** Differences
+were appended in the order the walk FOUND them, which is alphabetical by entity name, so the
+block headed `FIRST DIFFERENCE` was not the first divergence in the run — measured, an entity
+diverging 89 simulation seconds later, with the real one pushed off the end by the cap of eight.
+[B]'s criterion 6 is *"the first point of divergence"*. The list is now ordered by the capture's
+own record order (part, then line), which §5.2 makes authoritative. Every existing check
+manufactured exactly ONE difference, and one difference is in order whatever the order is — which
+is why a second test had to manufacture two, at two instants, with the earlier one
+alphabetically last.
+
+## Never throw, and the one place it was reachable
+
+[B]'s rule 7 is absolute and nothing here throws: every failure is a return value plus a named
+error. **That was a habit and is now a property.** The reader used to accumulate a line until it
+met an LF, so a file with no LF was read whole into one string and the format's reject rule could
+not fire until it had been — measured, 1 008 MB of peak working set to reject a 512 MB file,
+which at the campaign's own 8 GiB ceiling is an allocation failure and therefore an exception.
+There was not one `try` or `catch` in `src/` or `tools/`, so it reached `std::terminate`
+mid-campaign. Three things changed and all three are cheap to keep: `ReadOptions::maxLineBytes`
+(16 MiB, about thirteen thousand times the longest line ever measured here, and settable so the
+tests exercise it on a few KB rather than on 16 MB); a catch around `runBody` so an escaped
+exception still tears down, still writes `run.json`, and is an `infrastructure_error` rather
+than a failing scenario; and a catch in each tool's `main` that exits **4**, documented in all
+four `--help` files. See F-55.
+
 ## Three things that will bite before anything else
 
 Full detail and numbers in `contract/PROVENANCE.md`. In short:
@@ -291,7 +322,7 @@ unrotated one. It was not chosen because **one run's two segments become five `(
 keys**, four of them fragments of one segment that nothing in any file identifies as such. Every
 run under `stop` is one file; `--capture-max-bytes` defaults to `61 000 × --frames`, three times
 the measured per-frame cost, so the bound exists and does not fire on a normal run. The campaign
-ceiling is `8 GiB` over the whole campaign directory. See `docs/m3-oq6.md`.
+ceiling is `8 GiB` over the whole campaign directory.
 
 **The reader supports rotation anyway**, because a capture rotated elsewhere still has to be
 readable here — and reading a rotated set found one imprecision in the frozen specification: §6.7
@@ -319,7 +350,7 @@ specification instead of reporting beside it.
   day** — EXT-08's README R8 block now carries both preconditions and both failure modes. The
   issue as first filed cited `contract/PROVENANCE.md` finding 6, which is **ours, not EXT-08's**
   (F-37); the citation was corrected by a comment, and finding 6 itself was corrected here at the
-  fourth pin. See `docs/m1-lifecycle.md` §7(a).
+  fourth pin.
 - **`C:\N8RO\bin` must be on `PATH`** for any binary of ours that links the SDK — it is where
   `n8ro-sim.dll` and `n8ro-core.dll` resolve from, and there is nowhere else. Measured at M2: a
   client launched from a scratch directory without it exits 53 having produced no output at all,
@@ -371,12 +402,13 @@ specification instead of reporting beside it.
 
 ## Where a finding goes
 
-**`docs/findings.md` is the index over every issue this project has found** — defects in our own
-code, platform behaviour we work around, imprecisions in `contract/`, and defects in the brief.
-It is an index, not a second home: each row points at the milestone document, escalation or
-README section that actually holds the finding, and if the two disagree the target wins.
+**Findings live where they are acted on** — defects in our own code beside the code, platform
+behaviour we work around in the README's limits section, imprecisions in `contract/` and defects
+in the brief in `docs/escalations.md`. There is no separate index: one was kept through M7 and
+dropped at handover with the other internal documents, because a second home for a finding is a
+second thing to keep true.
 
-A milestone that finds something adds a row there **and** records it where it belongs. The
+A milestone that finds something records it where it belongs. The
 reverse check is the useful one at a milestone close: every finding in that milestone's document
 should have a row, and every escalation still marked `drafted` should be re-examined for whether
 it can be delivered yet.
@@ -422,7 +454,7 @@ verdicts.
 even the run path, because an axis is a declaration and turning one into bus traffic is
 `n8ro-campaign`'s job. That is what puts the **whole** of CR-PAR-1's configuration surface into
 `tests/parameter_test.cpp`, which needs no install; the only part needing a simulator is whether
-the platform honours a swept value, and that is measured in `docs/m5-oq4.md` rather than
+the platform honours a swept value, and that is measured against real runs rather than
 asserted.
 
 `n8ro-campaign` links all three, which is the allowed direction. The requirement is that they link no

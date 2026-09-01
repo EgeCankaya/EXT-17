@@ -174,7 +174,7 @@ across two clean rooms.
 
 ## 4. What was found
 
-Seven findings, `docs/findings.md` F-46 to F-52. **Two block an evaluator, and both are in the
+Seven findings, F-46 to F-52. **Two block an evaluator, and both are in the
 seam rather than in either repository.**
 
 | # | | Where it hid |

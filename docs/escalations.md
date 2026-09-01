@@ -53,12 +53,12 @@ stated beside the text it disagreed with. What changed is that four inferences b
 sentences — see `contract/PROVENANCE.md`, "The fourth pin".
 
 Sections below are in the order they were last written, not in numerical order; the table is the
-index. `docs/findings.md` indexes these alongside every other issue this project has found.
+index.
 
 | # | Question | To / from | Raised | Status |
 |---|---|---|---|---|
 | E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **ANSWERED IN FULL and CLOSED, 2026-09-01**, across two relays. First: **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Then, on the follow-up: **(a) yes**, the bus-publish route is the intended control path; **(c) the mentor declined to prescribe** - *"pick the one you prefer"* - which is a real answer and not a non-answer. **Every one of the six matched what was already built, so nothing changed.** (b) additionally produced **E-6**, now fixed |
-| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI and CONCURRED with by the mentor, 2026-09-01 — content. Still NEVER ANSWERED by [B]'s author.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words (`docs/m7-oq2-oq3.md` §1); the mentor, asked separately, reached the same answer independently. **That is a second opinion, not a ruling** — criterion 2 is [B]'s author's to discharge — so the row stays `decided` and every report says all three things. **No code behaviour changed** — content was already the default; what changed is that the reports now carry the concurrence, guarded by two tests |
+| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI and CONCURRED with by the mentor, 2026-09-01 — content. Still NEVER ANSWERED by [B]'s author.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the mentor, asked separately, reached the same answer independently. **That is a second opinion, not a ruling** — criterion 2 is [B]'s author's to discharge — so the row stays `decided` and every report says all three things. **No code behaviour changed** — content was already the default; what changed is that the reports now carry the concurrence, guarded by two tests |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **FIXED, 2026-09-01** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), closed. EXT-08 took option (a): §6.7 rule 2 and §11 now say only four of the five counters sum, and how to correct `segments`. Vendored back at the **fourth pin**. **No code changed here** — the reader already computed both numbers and said which was which |
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **FIXED, 2026-09-01, and not by the fix that was asked for** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), closed. EXT-08 created `docs/condition-file-schema.md` carrying all four sections, rather than replying "take those two as well", and added a test that fails if it drifts from its README. So the digest is now **vendored by identity** — which closes **F-19** as well. The geodesy here is unchanged and still this project's own decision; it now agrees with a vendored sentence instead of with an inference |
 | E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **FIXED, 2026-09-01** - [issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), closed. EXT-08's R8 block now states both preconditions and both failure modes. Fixed against the **corrected** citation: the issue as first filed named `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37), and the correction went as a comment rather than a silent edit. `contract/PROVENANCE.md` finding 6 - **ours** - carried the same omission and is corrected at the fourth pin |
@@ -338,7 +338,7 @@ read *"raised with the brief's author 2026-08-31; awaiting a reply"* throughout.
 [B]'s author exists on either side, and none is claimed.**
 
 What changed on 2026-09-01 is that schedule became the binding constraint and the DRI authorised
-deciding it from [B]'s own words. **The reading is `docs/m7-oq2-oq3.md` §1**, and the sentence it
+deciding it from [B]'s own words, and the sentence it
 turns on is not the one usually quoted — it is [B]'s statement of what the self-test is *for*:
 
 > *"If it ever fails, you have found either a defect in your harness or something far more
@@ -543,8 +543,7 @@ text*: EXT-17 implements what the specification says and names the gap beside it
 worked around because there **is** text to implement. E-5 is a **hole**. There is no vendored
 sentence to implement and therefore nothing to defer to, so EXT-17 had to **decide** the
 computation and say so on the record. That is `src/assert/Geodesy.h`, which states the method and
-its constants so any verdict is reproducible with a calculator, and `docs/m6-oq5.md` §5, which
-records how the decision was reached.
+its constants so any verdict is reproducible with a calculator.
 
 ### What was found
 
