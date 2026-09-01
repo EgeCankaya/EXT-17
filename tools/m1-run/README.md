@@ -1,7 +1,8 @@
 # `m1-run` — the M1 by-hand run driver
 
 Not the campaign runner. This is the M1 exploration tool ([B] step 1), kept because it is the
-evidence behind `docs/m1-lifecycle.md` and because M2's control path starts from what it learned.
+evidence behind M1's lifecycle findings and because M2's control path starts from what it
+learned.
 
 ## Why it exists
 

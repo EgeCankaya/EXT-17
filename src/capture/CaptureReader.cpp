@@ -69,6 +69,18 @@ public:
 
     void finish();
 
+    // A line longer than the reader's bound, named through the same capped diagnostic path
+    // everything else uses. See kMaxLineBytes in readFile for why the bound exists.
+    void noteOverlongLine(std::size_t lineNo, std::size_t bound, long long dropped) {
+        note(Code::MalformedLine, lineNo,
+             "the line exceeds this reader's " + std::to_string(bound)
+                 + "-byte bound (at least "
+                 + std::to_string(bound + static_cast<std::size_t>(dropped))
+                 + " bytes before its terminator) and was not parsed. The longest record in "
+                   "any capture this project has measured is 1 227 bytes, so a line this long "
+                   "is a corrupt or non-capture file rather than a large record");
+    }
+
 private:
     void note(Code code, std::size_t lineNo, const std::string& detail) {
         const long long seen = ++r_.diagnosticCounts[code];
@@ -807,26 +819,53 @@ ReadResult readFile(const std::string& path, const ReadOptions& options, RecordS
     reader.result().bytes = std::ftell(f);
     std::fseek(f, 0, SEEK_SET);
 
+    // WHY THE LINE IS BOUNDED. Without a bound this loop accumulates until it meets an LF, so a
+    // file with no LF in it is read entirely into one std::string - and the format's reject rule
+    // (section 3 step 2, "reject the file with a named error and stop"), which this project
+    // treats as the whole of its compatibility mechanism, cannot fire until that has happened.
+    // Measured before this bound existed: rejecting a 512 MB file with no newline cost 1 008 MB
+    // of peak working set, twice the file, from geometric string growth. At the campaign's own
+    // 8 GiB directory ceiling that is an allocation failure, and an allocation failure is an
+    // exception - which [B]'s rule 7 forbids outright, and which would end an unattended
+    // campaign mid-flight and take criterion 1 ("twenty runs, start to finish") with it.
+    //
+    // The bound itself, and why 16 MiB, are in ReadOptions. Reaching it is reported as a
+    // malformed line, by name, on the line it happened - and the truncated prefix is still
+    // handed to the reader, so line 1 still produces the format's own not_a_capture rejection
+    // rather than a special case invented here.
+    const std::size_t kMaxLineBytes = options.maxLineBytes;
+
     std::string line;
     line.reserve(4096);
     std::size_t lineNo = 0;
+    long long dropped = 0;      // bytes of the current line discarded past the bound
+    bool overlong = false;
     char buf[65536];
     bool stopped = false;
     std::size_t got = 0;
     while (!stopped && (got = std::fread(buf, 1, sizeof buf, f)) > 0) {
         for (std::size_t i = 0; i < got; ++i) {
             if (buf[i] == '\n') {
+                if (overlong) { reader.noteOverlongLine(lineNo + 1, kMaxLineBytes, dropped); }
                 if (!reader.line(line, ++lineNo)) { stopped = true; break; }
                 line.clear();
-            } else {
+                dropped = 0;
+                overlong = false;
+            } else if (line.size() < kMaxLineBytes) {
                 line.push_back(buf[i]);
+            } else {
+                overlong = true;
+                ++dropped;
             }
         }
     }
     // §2: every record line, including the last, is LF-terminated. A tail with no terminator is
     // a record all the same — it is what a capture cut off by a full disk looks like — so it is
     // read rather than discarded, and the missing trailer is what reports the truncation.
-    if (!stopped && !line.empty()) reader.line(line, ++lineNo);
+    if (!stopped && !line.empty()) {
+        if (overlong) { reader.noteOverlongLine(lineNo + 1, kMaxLineBytes, dropped); }
+        reader.line(line, ++lineNo);
+    }
 
     std::fclose(f);
     reader.finish();

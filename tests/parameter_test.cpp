@@ -5,7 +5,7 @@
 // needs no N8RO install. That is the point of `src/param/Axis` being a declaration and a parser
 // with no bus in it — **the whole of CR-PAR-1's configuration surface is checkable here**, and
 // the only part that needs a simulator is whether the platform honours the value, which is
-// measured in `docs/m5-oq4.md` against real runs.
+// measured against real runs.
 //
 // Three groups of check, and the third is the one worth having.
 //
@@ -145,8 +145,8 @@ void testRefusals() {
     ok("an unimplemented kind is refused rather than ignored",
        !parseCampaignText(configWith("[\"1\"]", "", "", "which_entities_are_present"), a, err),
        err);
-    ok("...and the refusal names the kind that IS implemented",
-       contains(err, "velocity_ned_scaled") && contains(err, "m5-oq4"), err);
+    ok("...and the refusal names the kind that IS implemented, and why there is one",
+       contains(err, "velocity_ned_scaled") && contains(err, "one axis"), err);
 
     ok("an empty values array is refused - a sweep with no values is not a sweep",
        !parseCampaignText(configWith("[]"), a, err) && contains(err, "non-empty"), err);
@@ -323,7 +323,7 @@ void testVelocity() {
 
     // Position is untouched by construction: there is nowhere in this model to put one. The
     // committed axis varies velocity only, and the raid geometry stays the scenario's own
-    // (docs/m5-oq4.md §2).
+    // (measured at M5).
     ok("the axis carries no position, so the scenario's own geometry is what flies",
        sizeof(Target) == sizeof(std::string) + sizeof(std::array<double, 3>));
 }

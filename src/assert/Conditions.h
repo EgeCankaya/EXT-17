@@ -4,8 +4,8 @@
 // **OQ-5 is decided at M6: the declaration shape of `contract/condition-file-schema.md` is
 // adopted verbatim, and three rules around it are superseded.** The decision was taken by
 // writing M6's conditions in the vendored shape and evaluating them against the seven committed
-// captures rather than by reading the schema — `docs/m6-oq5.md` carries the measurement. A file
-// written for EXT-08's referee parses here.
+// captures rather than by reading the schema. A file written for EXT-08's referee parses
+// here.
 //
 // This file is the conditions' *model and their loader* and nothing else. It **links nothing** —
 // not EXT-08, not the N8RO SDK, not a third-party JSON library — the fourth component under that
@@ -50,8 +50,7 @@
 // ## The one key that is ADDED, and why the shape could not be adopted without it
 //
 // **`expect`, taking `met` (the default) or `not_met`.** This is the single addition to the
-// vendored declaration shape, and it was found by trying rather than by reading — see
-// `docs/m6-oq5.md` §3.5.
+// vendored declaration shape, and it was found by trying rather than by reading.
 //
 // The vendored schema is a **referee**: it reports whether each condition was satisfied, and
 // says nothing about whether being satisfied is good news. That is complete for EXT-08, which

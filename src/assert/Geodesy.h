@@ -4,8 +4,8 @@
 // **This file exists because `contract/` does not carry it.** The vendored
 // `condition-file-schema.md` documents `within_m` as a threshold "in metres" and stops there.
 // The sections that state *how* a distance is computed and *how* a boundary is decided are in
-// EXT-08's own documentation and were not excerpted into `contract/` — see `docs/m6-oq5.md` §5
-// and escalation **E-5**. A consumer working from the digest alone could reasonably compute a
+// EXT-08's own documentation and were not excerpted into `contract/` — see escalation
+// **E-5**. A consumer working from the digest alone could reasonably compute a
 // great-circle distance, or a two-dimensional horizontal separation, and produce verdicts that
 // disagree with the producer's on the same capture while parsing the same file. That is silent
 // divergence across the project boundary, and it is exactly what the `contract/` discipline

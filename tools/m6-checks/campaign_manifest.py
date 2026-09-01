@@ -19,7 +19,7 @@ configuration can compare their captures against these lines.
 byte-identical — nothing does, and that is this project's central measurement: two runs of one
 configuration are never byte-identical here, so a SHA-256 will not match on a re-run and is not
 meant to. What the manifest establishes is that these specific files existed, what was in them,
-and what was concluded from them — so a claim in `docs/m6-assertions.md` can be traced to a file
+and what was concluded from them — so a claim in this project's report can be traced to a file
 whose contents are pinned even though the file is not in the tree. The counts are the part a
 re-run can be compared against, because those are what the reports are computed from.
 
@@ -137,13 +137,13 @@ def oq2_wording_note(campaign_dir):
     print("That was true when this campaign ran and is not true now. **Later the same day —")
     print("2026-09-01 — OQ-2 was DECIDED by the DRI (content) and CONCURRED with by the mentor,")
     print("independently.** It has still never been ANSWERED by [B]'s author, and those three")
-    print("words stay apart: see `docs/m7-oq2-oq3.md` and `docs/escalations.md` E-2.")
+    print("words stay apart: see `docs/escalations.md` E-2.")
     print()
     print("**The artifacts were not rewritten, and that is the point.** They are evidence of an")
     print("execution, not documentation of a position. Re-running this campaign to refresh one")
     print("sentence would replace these measured numbers with different measured numbers, break")
-    print("every SHA-256 below, and invalidate the figures `docs/m6-assertions.md` and")
-    print("`docs/m7-oq2-oq3.md` quote from them - to correct wording that changed no behaviour.")
+    print("every SHA-256 below, and invalidate the figures the README quotes from them - to")
+    print("correct wording that changed no behaviour.")
     print("**No code changed when OQ-2 was decided**: `content` was already the default, and")
     print("this campaign's gate ran on it.")
     print()
@@ -178,7 +178,7 @@ def emit(campaign_dir):
     print("runs of one configuration are never byte-identical here, so a SHA-256 below will not")
     print("match a re-run and is not meant to. What it establishes is that these specific files")
     print("existed, what was in them, and what was concluded from them, so that a number in")
-    print("`docs/m6-assertions.md` can be traced to a file whose contents are pinned even though")
+    print("this project's own report can be traced to a file whose contents are pinned even though")
     print("the file is not in the tree. **The counts are the part a re-run can be compared**")
     print("**against**, because the reports are computed from those rather than from the bytes.")
     print()

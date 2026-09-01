@@ -226,7 +226,7 @@ bool parseCampaignText(const std::string& text, Axis& out, std::string& error) {
     } else {
         error = "\"axis.kind\" is \"" + kind + "\", which is not implemented. One kind is: "
                 "\"velocity_ned_scaled\". [B] settles the count at one axis and OQ-4 settles "
-                "which; see docs/m5-oq4.md";
+                "which";
         return false;
     }
 

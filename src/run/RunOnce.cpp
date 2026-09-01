@@ -7,6 +7,7 @@
 #include "../proc/Process.h"
 
 #include <cstdio>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
@@ -483,7 +484,31 @@ RunRecord executeRun(const RunConfig& cfg) {
                          + " ===");
 
     RunState st;
-    rec.outcome = runBody(cfg, rec, st);
+    // [B]'s rule 7 is "Never throw", and nothing in this project does: every failure below is a
+    // return value. This backstop is what makes that a PROPERTY rather than a habit. An
+    // exception escaping runBody - from a std::bad_alloc on a hostile file, from anything a
+    // future edit introduces - would otherwise unwind straight past the teardown below, leaving
+    // the host and the recorder running, no run.json on disk, and the campaign dead at run 7 of
+    // 20. Criterion 1 asks for twenty runs "unattended, start to finish"; criterion 8 asks that
+    // the campaign survive a fault and that "the report says what happened". Catching here, and
+    // only here, satisfies both: teardown still runs, the record is still written, the outcome
+    // is an infrastructure_error and not a failing scenario (rule 3), and the campaign carries
+    // on to the next run.
+    try {
+        rec.outcome = runBody(cfg, rec, st);
+    } catch (const std::exception& e) {
+        rec.outcome = fail(rec, "internal_error",
+                           std::string("an exception escaped the run body: ") + e.what()
+                               + ". This is a defect in the harness, never a result about the "
+                                 "scenario. The run is torn down and recorded as an "
+                                 "infrastructure error, and the campaign continues.");
+    } catch (...) {
+        rec.outcome = fail(rec, "internal_error",
+                           "a non-standard exception escaped the run body. This is a defect in "
+                           "the harness, never a result about the scenario. The run is torn "
+                           "down and recorded as an infrastructure error, and the campaign "
+                           "continues.");
+    }
 
     // ---- Teardown, on every path out ----------------------------------------------------
     if (st.control) {

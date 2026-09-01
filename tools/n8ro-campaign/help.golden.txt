@@ -62,7 +62,7 @@ the determinism self-test (CR-DET-1, and step 4 of the brief - a HARD GATE):
 
   A pass on the content basis therefore discharges the brief's acceptance criterion 2 under
   the CONTENT reading, which is now ruled rather than unruled. It does not discharge it
-  under a byte reading and nothing here claims it does. See docs/m7-oq2-oq3.md.
+  under a byte reading and nothing here claims it does.
   A campaign whose self-test does not pass executes no campaign run at all.
 
   --gate-basis <b>         content (default) or bytes. Selects which comparison decides.
@@ -90,8 +90,8 @@ the parameterisation axis (CR-PAR-1, and step 5 of the brief):
 
   [B]: "One axis done properly beats four done loosely." Which axis is OQ-4, and it
   is DECIDED - initial positions and velocities, as one declared scalar applied to
-  named entities before start. The measurement that decided it, including the axis
-  range's own fidelity ceiling, is in docs/m5-oq4.md.
+  named entities before start. It was decided by exercising a range rather than by
+  argument, and the axis has a measured fidelity ceiling - see --help's note on it.
 
   {
     "axis": {
@@ -173,7 +173,7 @@ conditions (CR-AS-1..4, and steps 6 and 7 of the brief):
   not - "did anything reach a terminal state it SHOULD NOT have" is an assertion of
   non-occurrence. The verdict still records the FACT (met / not met); whether it was the
   asserted one is separate (satisfied / violated / undetermined). Only a VIOLATION fails a
-  run. See docs/m6-oq5.md for how OQ-5 was decided, by trying rather than by reading.
+  run. OQ-5 was decided by trying the vendored shape rather than by reading it.
 
   A verdict is THREE-valued. An assertion never reads absence as evidence (CR-AS-4): a
   not-met verdict is reported only where it can be BOUNDED, and otherwise reports
@@ -282,3 +282,7 @@ exit codes:
      not be established at all - a self-test run that did not complete has established
      nothing about determinism and is not a determinism failure - is named in
      <out-dir>/selftest/self-test.json under "outcome"
+  4  an exception escaped, which nothing here should ever produce - rule 7 of the
+     brief is "Never throw". It is a defect in the harness, reported as one and
+     never as a result about anything this tool was asked to read
+

@@ -11,6 +11,7 @@
 #include "../../src/compare/Compare.h"
 
 #include <cstdio>
+#include <exception>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -44,8 +45,7 @@ void printHelp() {
         "Which of the two decides the gate is OQ-2. It is DECIDED - content - by the DRI on\n"
         "2026-09-01 from the brief's own words, and it was never ANSWERED by the brief's author,\n"
         "who has not replied. Those are different words on purpose. --gate-basis still selects\n"
-        "it; both comparisons always run and both are always reported. docs/m7-oq2-oq3.md\n"
-        "carries the reading that decided it.\n"
+        "it; both comparisons always run and both are always reported.\n"
         "\n"
         "options:\n"
         "  --gate-basis <b>       content (default, ADR-1, THIS PROJECT'S decision) or bytes\n"
@@ -82,7 +82,10 @@ void printHelp() {
         "     the two runs did NOT diverge, which for two different inputs means the input did\n"
         "     not take effect\n"
         "  2  usage error, or the comparison was refused - a precondition was not met and the\n"
-        "     refusal names which\n");
+        "     refusal names which\n"
+        "  4  an exception escaped, which nothing here should ever produce - rule 7 of\n"
+        "     the brief is \"Never throw\". It is a defect in the harness, reported as\n"
+        "     one and never as a result about anything this tool was asked to read\n");
 }
 
 bool wantsValue(int argc, char** argv, int& i, const char* flag, std::string& out) {
@@ -94,7 +97,7 @@ bool wantsValue(int argc, char** argv, int& i, const char* flag, std::string& ou
 
 }  // namespace
 
-int main(int argc, char** argv) {
+int runMain(int argc, char** argv) {
     std::vector<std::string> positional;
     ext17::compare::CompareOptions options;
     std::string outcomeA, outcomeB;
@@ -185,4 +188,27 @@ int main(int argc, char** argv) {
         return r.content.differ > 0 ? 0 : 1;
     }
     return r.passed() ? 0 : 1;
+}
+
+
+// --- [B]'s rule 7, enforced at the boundary --------------------------------------------------
+//
+// "Never throw." Nothing in this project throws: every failure is a return value plus a named
+// error. This wrapper is what turns that from a habit into a property. Without it any exception
+// the standard library can raise - std::bad_alloc on a hostile file, a filesystem_error from a
+// directory that changes underneath a scan - reaches std::terminate, which prints nothing an
+// operator can act on and returns an exit code nothing documents. Catching here converts the one
+// thing this project promised would never happen into a named error and a documented exit code,
+// so that even the unreachable case is reported rather than silent.
+int main(int argc, char** argv) {
+    try {
+        return runMain(argc, argv);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "n8ro-compare: an exception escaped - %s\n", e.what());
+    } catch (...) {
+        std::fprintf(stderr, "n8ro-compare: a non-standard exception escaped\n");
+    }
+    std::fprintf(stderr, "n8ro-compare: this is a defect in the harness, not a result about "
+                         "anything it was asked to read.\n");
+    return 4;
 }

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -65,7 +66,10 @@ const char* kHelp =
 "  0  every capture read is conformant\n"
 "  1  a capture was read and something was found wrong with it\n"
 "  2  a capture was rejected - unreadable, not a capture, or a format_version this\n"
-"     reader does not implement - or a usage error\n";
+"     reader does not implement - or a usage error\n"
+"  4  an exception escaped, which nothing here should ever produce - rule 7 of the\n"
+"     brief is \"Never throw\". It is a defect in the harness, reported as one and\n"
+"     never as a result about anything this tool was asked to read\n";
 
 struct Options {
     bool quiet = false;
@@ -297,7 +301,7 @@ int campaign(const std::string& dir, const Options& opt) {
 
 } // namespace
 
-int main(int argc, char** argv) {
+int runMain(int argc, char** argv) {
     if (argc < 2) {
         std::fprintf(stderr, "%s", kHelp);
         return 2;
@@ -341,4 +345,27 @@ int main(int argc, char** argv) {
 
     std::fprintf(stderr, "n8ro-capture: unrecognised command %s\n", command.c_str());
     return 2;
+}
+
+
+// --- [B]'s rule 7, enforced at the boundary --------------------------------------------------
+//
+// "Never throw." Nothing in this project throws: every failure is a return value plus a named
+// error. This wrapper is what turns that from a habit into a property. Without it any exception
+// the standard library can raise - std::bad_alloc on a hostile file, a filesystem_error from a
+// directory that changes underneath a scan - reaches std::terminate, which prints nothing an
+// operator can act on and returns an exit code nothing documents. Catching here converts the one
+// thing this project promised would never happen into a named error and a documented exit code,
+// so that even the unreachable case is reported rather than silent.
+int main(int argc, char** argv) {
+    try {
+        return runMain(argc, argv);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "%s: an exception escaped - %s%s", "n8ro-capture", e.what(), "\n");
+    } catch (...) {
+        std::fprintf(stderr, "%s: a non-standard exception escaped%s", "n8ro-capture", "\n");
+    }
+    std::fprintf(stderr, "%s: this is a defect in the harness, not a result about anything it "
+                         "was asked to read.%s", "n8ro-capture", "\n");
+    return 4;
 }

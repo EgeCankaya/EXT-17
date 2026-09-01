@@ -13,8 +13,7 @@
 //      enforcement: there is no clock in scope to read.
 //
 // The kind is a closed set of one at M2. That is deliberate — OQ-1 is decided against measured
-// evidence in docs/m2-oq1.md, and a second kind would be a decision made by having somewhere to
-// put it. Adding one is a documented change, not an implementation choice.
+// evidence, and a second kind would be a decision made by having somewhere to put it. Adding one is a documented change, not an implementation choice.
 #pragma once
 
 #include "../control/EngineControl.h"

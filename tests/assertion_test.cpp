@@ -30,6 +30,8 @@
 #include "../src/assert/Judge.h"
 
 #include <clocale>
+#include <filesystem>
+#include <fstream>
 #include <cmath>
 #include <cstdio>
 #include <string>
@@ -697,6 +699,148 @@ void testRejudgementIsIdentical() {
        fixed(0.0, 4) + " / " + fixed(-1.5, 1));
 }
 
+// [B]'s rule 6 - *"Store enough to re-judge. A stored run should be re-assertable without
+// re-running it"* - and criterion 7, over a run recorded with `--on-size-limit rotate`.
+//
+// THE FAILURE THIS MANUFACTURES. A rotated run is a SET of files, not a file (format 6.7):
+// every part is independently valid and segment ordinals restart in each one. `judgeCapture`
+// used to read only the file it was handed, so a run whose entity is destroyed in part 1 was
+// judged on part 0 alone and came back NOT MET - a run that passed, reported as a failure, with
+// confident verdicts and no caveat anywhere. `run.json` said `captureCoversWholeRun: true`
+// beside it, because that number IS computed over the set.
+//
+// It could not be seen from any existing check: OQ-6 chose `stop`, so nothing this project runs
+// rotates - but `--on-size-limit rotate` is an offered, validated option and `n8ro-judge
+// campaign` explicitly filters `.part` siblings out, so the case is reachable by anyone who
+// asks for it.
+void testARotatedRunIsJudgedWhole(const std::string& root) {
+    heading("A rotated run is judged as the SET it is, not as its first part (format 6.7)");
+
+    namespace fs = std::filesystem;
+    const fs::path dir = fs::path(root) / "build" / "tests" / "rotated";
+    std::error_code ec;
+    fs::create_directories(dir, ec);
+
+    const std::string schemas =
+        R"("schemas":[{"message_name":"m","topic":"t","schema_hash":7,"message_id":8,)"
+        R"("wire_version":1,"fields":[{"name":"phase","type":"string","size":1}]}])";
+
+    const auto header = [&](long long part, const std::string& continuesFrom) {
+        std::string h =
+            R"({"format_version":"n8ro-capture/1","type":"header",)"
+            R"("producer":{"name":"p","version":"0.9.0"},)"
+            R"("platform":{"engine_config":"e","model_path":"m","schema_file":"s",)"
+            R"("schema_version":"","runtime_version":"unknown"},"attached_mid_run":false,)";
+        h += R"("limits":{"max_bytes":4096,"max_samples":0,"on_size_limit":"rotate"},)";
+        h += R"("part":)" + std::to_string(part) + ",";
+        if (!continuesFrom.empty()) { h += R"("continues_from":")" + continuesFrom + "\","; }
+        h += R"("subscription":{"topic":"t","backpressure_policy":"FIFO_DROP","queue_size":8},)";
+        return h + schemas + "}";
+    };
+    const auto sample = [](const std::string& tm, const char* who, const char* phase) {
+        return R"({"type":"sample","sim_time_s":)" + tm + R"(,"segment":0,"entity":")" + who +
+               R"(","occupancy":1,"message":"m","fields":{"phase":")" + phase + "\"}}";
+    };
+    const auto trailer = [](const char* endReason, long long samples, long long adds,
+                            long long removes, const std::string& continuedIn) {
+        std::string s = R"({"type":"trailer","sim_time_s":0,"end_reason":")";
+        s += endReason;
+        s += R"(","counts":{"segments":1,"samples":)" + std::to_string(samples) +
+             R"(,"entities_added":)" + std::to_string(adds) + R"(,"entities_removed":)" +
+             std::to_string(removes) + R"(,"verdicts":0})";
+        s += R"(,"drops":{"samples_not_recorded":0,"events_not_recorded":0,"samples_orphaned":0,)"
+             R"("samples_unnamed":0,"samples_untimed":0})";
+        s += R"(,"bus_metrics":{"schema_hash_drops":0,"message_id_drops":0,"decode_failures":0,)"
+             R"("missing_schema_passthrough":0,"legacy_payload_passthrough":0})";
+        if (!continuedIn.empty()) { s += R"(,"continued_in":")" + continuedIn + "\""; }
+        return s + "}";
+    };
+    const auto write = [](const fs::path& to, const std::vector<std::string>& lines) {
+        std::ofstream o(to, std::ios::binary | std::ios::trunc);
+        for (const std::string& l : lines) { o << l << "\n"; }
+    };
+
+    // Part 0: the first half of the run. Ranger is alive and "pending" throughout it.
+    write(dir / "rot.n8rocap.jsonl", {
+        header(0, ""),
+        R"({"type":"segment_open","sim_time_s":0,"segment":0,"scenario":"S"})",
+        R"({"type":"entity_add","sim_time_s":0,"segment":0,"entity":"Ranger","occupancy":1})",
+        sample("0.0", "Ranger", "pending"),
+        sample("1.0", "Ranger", "pending"),
+        sample("2.0", "Ranger", "pending"),
+        R"({"type":"segment_close","sim_time_s":2,"segment":0,"scenario":"S","reason":"size_limit"})",
+        trailer("size_limit", 3, 1, 0, "rot.part001.n8rocap.jsonl"),
+    });
+    // Part 1: the REST of the run - the same segment, numbered 0 again. Everything the
+    // conditions below are about happens here.
+    write(dir / "rot.part001.n8rocap.jsonl", {
+        header(1, "rot.n8rocap.jsonl"),
+        R"({"type":"segment_open","sim_time_s":2,"segment":0,"scenario":"S"})",
+        sample("3.0", "Ranger", "operational"),
+        sample("4.0", "Ranger", "operational"),
+        R"({"type":"entity_remove","sim_time_s":4,"segment":0,"entity":"Ranger","occupancy":1,"reason":"destroyed"})",
+        R"({"type":"segment_close","sim_time_s":4,"segment":0,"scenario":"S","reason":"shutdown"})",
+        trailer("shutdown", 2, 0, 1, ""),
+    });
+
+    const char* text = R"({"conditions":[
+      {"id":"ranger-destroyed","kind":"terminal_state","entity":"Ranger","removal_reason":"destroyed"},
+      {"id":"ranger-operational","kind":"terminal_state","entity":"Ranger","field":"phase","equals":"operational"},
+      {"id":"ghost-destroyed","kind":"terminal_state","entity":"Ranger","removal_reason":"collision"}
+    ]})";
+    ConditionFile cf;
+    ParseError pe;
+    ok("the three conditions parse", parseConditionText(text, "rotated", cf, pe), pe.message());
+
+    JudgeResult r;
+    judgeCapture((dir / "rot.n8rocap.jsonl").string(), cf, r);
+
+    ok("handed the FIRST PART, the judge read both parts of the set",
+       r.parts == 2, std::to_string(r.parts));
+    ok("...and it saw the segment the rotation cut in two",
+       r.segmentsCutByRotation == 1, std::to_string(r.segmentsCutByRotation));
+    ok("the set is conformant, so this is a judgement and not an infrastructure error",
+       r.conformant && !r.rejected);
+    ok("there is one verdict per declared condition (CR-AS-2)",
+       r.verdicts.size() == cf.conditions.size(), std::to_string(r.verdicts.size()));
+
+    // The two facts that live in PART 1. Reading only part 0 made both of these not-met.
+    ok("the removal in part 1 is MET - reading only part 0 called this NOT MET, so a run that "
+       "passed was reported as a failure",
+       r.verdicts.size() > 0 && r.verdicts[0].state == State::Met &&
+           r.verdicts[0].because == Because::RemovalReasonMatched,
+       r.verdicts.empty() ? "(none)" : verdictLine(r.verdicts[0]));
+    ok("...and it names the deciding instant from part 1, not from part 0",
+       r.verdicts.size() > 0 && r.verdicts[0].decidingSimTimeText == "4");
+    ok("the field value reached in part 1 is MET too",
+       r.verdicts.size() > 1 && r.verdicts[1].state == State::Met &&
+           r.verdicts[1].because == Because::FieldValueMatched,
+       r.verdicts.size() > 1 ? verdictLine(r.verdicts[1]) : "(none)");
+    ok("no run outcome here is a failure: nothing was violated",
+       r.violated == 0 && r.satisfied == 2, std::to_string(r.violated));
+
+    // ...and the NEGATIVE is refused, because a rotation cut leaves a window no file describes.
+    ok("a condition that really is not met comes back INDETERMINATE over a rotated set, never "
+       "not-met: a negative is a conclusion from absence and the cut leaves an unobserved window",
+       r.verdicts.size() > 2 && r.verdicts[2].state == State::Indeterminate &&
+           r.verdicts[2].because == Because::RunCutByRotation,
+       r.verdicts.size() > 2 ? verdictLine(r.verdicts[2]) : "(none)");
+    ok("...and its outcome is undetermined, never folded into pass or fail (CR-AS-4)",
+       r.verdicts.size() > 2 && r.verdicts[2].outcome == Outcome::Undetermined);
+    ok("...and the reason says WHY, naming the rotation rather than the absence",
+       r.verdicts.size() > 2 && contains(r.verdicts[2].reason, "rotated set") &&
+           contains(r.verdicts[2].reason, "cut across a part boundary"),
+       r.verdicts.size() > 2 ? r.verdicts[2].reason : "(none)");
+
+    // An UNROTATED capture must be untouched by any of this - the overwhelmingly common case.
+    ok("an unrotated capture still reports one part and no cut",
+       [&] {
+           JudgeResult one;
+           judgeCapture((dir / "rot.part001.n8rocap.jsonl").string(), cf, one);
+           return one.parts == 1 && one.segmentsCutByRotation == 0;
+       }());
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -727,6 +871,7 @@ int main(int argc, char** argv) {
         testAbsenceIsNotEvidence();
         testExpectation();
         testRejudgementIsIdentical();
+        testARotatedRunIsJudgedWhole(root);
 
         if (pass == 1) {
             heading("The locale made no difference, which is the check");

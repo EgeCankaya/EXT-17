@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <exception>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -113,7 +114,10 @@ const char* kHelp =
 "  0  every capture was judged and every asserted condition was satisfied\n"
 "  1  a condition was violated, or a verdict was indeterminate, or a --verify comparison\n"
 "     differed\n"
-"  2  usage error, a condition file that would not load, or a capture that would not read\n";
+"  2  usage error, a condition file that would not load, or a capture that would not read\n"
+"  4  an exception escaped, which nothing here should ever produce - rule 7 of the\n"
+"     brief is \"Never throw\". It is a defect in the harness, reported as one and\n"
+"     never as a result about anything this tool was asked to read\n";
 
 struct Options {
     std::string conditionsPath;
@@ -323,7 +327,7 @@ int commandCampaign(const std::string& dir,
 
 } // namespace
 
-int main(int argc, char** argv) {
+int runMain(int argc, char** argv) {
     Options opt;
     std::string command;
     std::string target;
@@ -401,4 +405,27 @@ int main(int argc, char** argv) {
 
     std::fprintf(stderr, "n8ro-judge: unknown command %s\n", command.c_str());
     return 2;
+}
+
+
+// --- [B]'s rule 7, enforced at the boundary --------------------------------------------------
+//
+// "Never throw." Nothing in this project throws: every failure is a return value plus a named
+// error. This wrapper is what turns that from a habit into a property. Without it any exception
+// the standard library can raise - std::bad_alloc on a hostile file, a filesystem_error from a
+// directory that changes underneath a scan - reaches std::terminate, which prints nothing an
+// operator can act on and returns an exit code nothing documents. Catching here converts the one
+// thing this project promised would never happen into a named error and a documented exit code,
+// so that even the unreachable case is reported rather than silent.
+int main(int argc, char** argv) {
+    try {
+        return runMain(argc, argv);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "n8ro-judge: an exception escaped - %s\n", e.what());
+    } catch (...) {
+        std::fprintf(stderr, "n8ro-judge: a non-standard exception escaped\n");
+    }
+    std::fprintf(stderr, "n8ro-judge: this is a defect in the harness, not a result about "
+                         "anything it was asked to read.\n");
+    return 4;
 }

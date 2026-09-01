@@ -104,6 +104,12 @@ struct Difference {
     std::string simTimeText;      // verbatim, straight out of the file. Never reformatted
     std::size_t lineA = 0;        // 1-based line in each capture, so a reader can go and look
     std::size_t lineB = 0;
+    // Which part of each rotated set the line is in. Carried because the field and the two
+    // values are resolved in a SECOND PASS, after the list has been ordered - see
+    // `keepIfEarliest` in Compare.cpp - and by then the walk that found the difference is over.
+    long long partA = 0;
+    long long partB = 0;
+    bool resolved = false;        // the second pass has filled in `field`/`valueA`/`valueB`
     std::string field;            // the first field whose value differed, by name
     std::string valueA;           // and its two values, as text
     std::string valueB;
@@ -257,7 +263,10 @@ struct CompareOptions {
     // a guard against a collapsed intersection, not a tolerance on the platform's behaviour.
     double coverageFloor = 0.99;
 
-    // CR-DET-3 wants the first differing record, not all of them.
+    // CR-DET-3 and [B]'s criterion 6 want the FIRST differing record, not all of them - and
+    // "first" means first in the run, not first found. The walk visits entity keys in name
+    // order, so this list is kept ordered by the capture's own record order (part, then line in
+    // A) and the LATEST is dropped when it is full. The counts are never capped, only this list.
     std::size_t maxDifferences = 8;
 
     // Which comparison decides the gate. Content is ADR-1's decision and this project's, not
@@ -265,7 +274,7 @@ struct CompareOptions {
     // reported** — the basis chooses which one the gate reads, and nothing else.
     //
     // **OQ-2 is DECIDED, is CONCURRED with, and was never ANSWERED.** The DRI authorised
-    // deciding it from [B]'s own words on 2026-09-01 (`docs/m7-oq2-oq3.md`), and the mentor
+    // deciding it from [B]'s own words on 2026-09-01, and the mentor
     // independently reached the same answer that day. **[B]'s author has still never replied,
     // and criterion 2 is theirs to discharge** — a second opinion raises confidence and does
     // not close the question, so the three words stay apart everywhere they appear. The default

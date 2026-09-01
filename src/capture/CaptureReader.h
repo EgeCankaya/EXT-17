@@ -42,6 +42,19 @@ struct ReadOptions {
     // produce one entry per sample and a 50 000-line report nobody reads. The *counts* are
     // never capped: `diagnosticCounts` always states how many there really were.
     std::size_t maxDiagnosticsPerCode = 8;
+
+    // The longest line this reader will hold in memory. It exists because without it the reader
+    // accumulates until it meets an LF, so a file with no LF is read entirely into one string -
+    // and the format's reject rule (3 step 2) cannot fire until that has happened. Measured
+    // before the bound existed: rejecting a 512 MB file with no newline cost 1 008 MB of peak
+    // working set. That is an allocation failure waiting for a large enough file, and an
+    // allocation failure is an exception, which [B]'s rule 7 forbids outright.
+    //
+    // 16 MiB is about thirteen thousand times the longest line in any capture measured here
+    // (1 227 bytes, a header carrying 42 entities' schemas), so no real record can reach it.
+    // It is settable so that the tests can manufacture the case with a small file instead of a
+    // large one - a bound that can only be exercised by writing 16 MB is a bound nobody tests.
+    std::size_t maxLineBytes = 16u * 1024u * 1024u;
 };
 
 // Read one capture file. A rotated run is a set of files; see CaptureSet.h.

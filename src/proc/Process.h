@@ -28,7 +28,7 @@ struct StartSpec {
     // measured preconditions, not preferences:
     //   N8RO_RELEASE  - without it the host skips its plugin scan, never registers
     //                   componentPhysics, and refuses every 42-entity scenario load while
-    //                   sitting idle rather than failing (M1, docs/m1-lifecycle.md 7a).
+    //                   sitting idle rather than failing (measured at M1).
     //   PATH          - C:\N8RO\bin must be on it or an SDK-linked binary will not load at all
     //                   (M2 re-check; the DLLs resolve from PATH and from nowhere else).
     std::vector<std::pair<std::string, std::string>> environment;

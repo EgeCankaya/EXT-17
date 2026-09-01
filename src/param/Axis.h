@@ -3,7 +3,7 @@
 // [B]: *"Parameterisation — vary the run: initial positions and velocities, which entities are
 // present, which scenario from the catalogue. One axis done properly beats four done loosely."*
 // Which of the three is OQ-4, and it is **decided** at M5: initial positions and velocities,
-// realised as one declared scalar. `docs/m5-oq4.md` carries the measurement that decided it.
+// realised as one declared scalar, decided by exercising a range rather than by argument.
 //
 // This file is the axis's *model and its parser* and nothing else. It links no SDK: an axis is a
 // declaration, and turning a declaration into bus traffic is `n8ro-campaign`'s job through the

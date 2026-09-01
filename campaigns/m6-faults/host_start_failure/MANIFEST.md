@@ -14,7 +14,7 @@ byte-identical: nothing does, and that is this project's central measurement —
 runs of one configuration are never byte-identical here, so a SHA-256 below will not
 match a re-run and is not meant to. What it establishes is that these specific files
 existed, what was in them, and what was concluded from them, so that a number in
-`docs/m6-assertions.md` can be traced to a file whose contents are pinned even though
+this project's own report can be traced to a file whose contents are pinned even though
 the file is not in the tree. **The counts are the part a re-run can be compared**
 **against**, because the reports are computed from those rather than from the bytes.
 
@@ -30,13 +30,13 @@ python tools\m6-checks\campaign_manifest.py campaigns\m6-faults\host_start_failu
 That was true when this campaign ran and is not true now. **Later the same day —
 2026-09-01 — OQ-2 was DECIDED by the DRI (content) and CONCURRED with by the mentor,
 independently.** It has still never been ANSWERED by [B]'s author, and those three
-words stay apart: see `docs/m7-oq2-oq3.md` and `docs/escalations.md` E-2.
+words stay apart: see `docs/escalations.md` E-2.
 
 **The artifacts were not rewritten, and that is the point.** They are evidence of an
 execution, not documentation of a position. Re-running this campaign to refresh one
 sentence would replace these measured numbers with different measured numbers, break
-every SHA-256 below, and invalidate the figures `docs/m6-assertions.md` and
-`docs/m7-oq2-oq3.md` quote from them - to correct wording that changed no behaviour.
+every SHA-256 below, and invalidate the figures the README quotes from them - to
+correct wording that changed no behaviour.
 **No code changed when OQ-2 was decided**: `content` was already the default, and
 this campaign's gate ran on it.
 

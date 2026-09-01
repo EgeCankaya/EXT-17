@@ -931,6 +931,96 @@ void tier4RealCaptures(const fs::path& root) {
     std::printf("       %lld capture(s) read\n", n);
 }
 
+// [B]'s rule 7 is "Never throw", and this is the one place a *reachable* throw was found.
+//
+// THE FAILURE THIS MANUFACTURES. `readFile` accumulates bytes until it meets an LF, so a file
+// with no LF in it is read entirely into one std::string - and the format's reject rule (3 step
+// 2, "reject the file with a named error and stop"), which is the whole compatibility
+// mechanism, cannot fire until that has finished. Measured before the bound existed: rejecting
+// a 512 MB file with no newline cost 1 008 MB of peak working set, twice the file, from
+// geometric string growth. At the campaign's own 8 GiB directory ceiling that is an allocation
+// failure; an allocation failure is an exception; and there was no catch anywhere in the
+// project, so it reached std::terminate in the middle of an unattended twenty-run campaign -
+// taking criterion 1's "start to finish" with it.
+//
+// The bound is 16 MiB in production and settable so that this check needs a few KB rather than
+// 16 MB: a bound that can only be exercised by writing 16 MB is a bound nobody exercises.
+void tier3LineBound(const fs::path& outDir) {
+    std::printf("\ntier 3c - a line longer than the reader's bound is named, not accumulated\n");
+    std::error_code ec;
+    fs::create_directories(outDir, ec);
+
+    // 1 024, which is above this builder's 601-byte header and below the 2 000-byte line
+    // below. The production bound is 16 MiB; what is under test is the mechanism, not the
+    // number, and exercising it on a few KB rather than on 16 MB is the whole reason the bound
+    // is a ReadOptions field.
+    ReadOptions bounded;
+    bounded.maxLineBytes = 1024;
+
+    // (a) A file with NO newline at all, longer than the bound. This is the shape that cost
+    //     1 008 MB: the reject decision is per line, and there was no line.
+    {
+        const fs::path p = outDir / "no-newline.n8rocap.jsonl";
+        {
+            std::ofstream o(p, std::ios::binary | std::ios::trunc);
+            for (int i = 0; i < 4000; ++i) { o << 'A'; }
+        }
+        const ReadResult r = readFile(p.string(), bounded);
+        ok("(a) a 4 000-byte file with no newline is still REJECTED, and by name",
+           r.rejected && r.rejectCode == Code::NotACapture, codesIn(r));
+        ok("(a) ...and the over-long line is named as a malformed line on the line it happened",
+           r.diagnosticCounts.count(Code::MalformedLine) == 1);
+        ok("(a) ...and the diagnostic names the bound, so a reader knows it was not a parse error",
+           !r.diagnostics.empty() &&
+               r.diagnostics[0].detail.find("1024-byte bound") != std::string::npos,
+           r.diagnostics.empty() ? "(none)" : r.diagnostics[0].detail);
+    }
+
+    // (b) A valid capture with ONE over-long line in the middle of it. The prefix before it and
+    //     the records after it are still read - the format's own instruction, from the other
+    //     end: a defect is named and located and what is around it stays usable.
+    {
+        Cap c;
+        c.header();
+        c.open(0, 0.0);
+        c.sample(0, "0.05", "E", 1, fieldsAll());
+        std::string fat = R"({"type":"sample","sim_time_s":0.1,"segment":0,"entity":"E",)"
+                          R"("occupancy":1,"message":"m","fields":{"c":")";
+        fat.append(2000, 'x');
+        fat += R"("}})";
+        c.raw(fat);
+        c.sample(0, "0.15", "E", 1, fieldsAll());
+        c.close(0, 0.15);
+        c.trailer("shutdown", {}, -1, 3);
+
+        const fs::path p = outDir / "one-fat-line.n8rocap.jsonl";
+        writeAllLines(p, c.lines);
+        const ReadResult r = readFile(p.string(), bounded);
+        ok("(b) the file is NOT rejected - one over-long line is a defect, not a version problem",
+           !r.rejected, codesIn(r));
+        ok("(b) the over-long line is named", r.diagnosticCounts.count(Code::MalformedLine) == 1);
+        ok("(b) the two ordinary samples around it were still read",
+           r.tallies.samples == 2, std::to_string(r.tallies.samples));
+        ok("(b) the trailer after it was still read", r.hasTrailer);
+    }
+
+    // (c) The bound does not fire on anything real. The longest line in any capture measured
+    //     here is 1 227 bytes; the production bound is 16 MiB, thirteen thousand times that.
+    {
+        Cap c;
+        c.header();
+        c.open(0, 0.0);
+        c.sample(0, "0.05", "E", 1, fieldsAll());
+        c.close(0, 0.05);
+        c.trailer();
+        const fs::path p = outDir / "ordinary.n8rocap.jsonl";
+        writeAllLines(p, c.lines);
+        const ReadResult r = readFile(p.string());   // the DEFAULT bound
+        ok("(c) an ordinary capture reads conformantly under the default 16 MiB bound",
+           r.conformant(), codesIn(r));
+    }
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -945,6 +1035,7 @@ int main(int argc, char** argv) {
     tier2Mutations(root, outDir);
     tier3Synthetic();
     tier3Rotation(outDir);
+    tier3LineBound(outDir);
     const int beforeTier4 = g_checks;
     tier4RealCaptures(root);
     g_optionalChecks = g_checks - beforeTier4;

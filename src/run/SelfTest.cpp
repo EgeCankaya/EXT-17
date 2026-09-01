@@ -190,8 +190,8 @@ void SelfTestResult::writeMembers(json::Writer& w) const {
                          "interesting, and you must be able to tell which - which a byte gate "
                          "cannot serve, because it fails 100% of the time on this platform and "
                          "so distinguishes neither case. A pass here discharges the brief's "
-                         "acceptance criterion 2 under the CONTENT reading, which is now ruled "
-                         "rather than unruled. See docs/m7-oq2-oq3.md."));
+                         "acceptance criterion 2 under the CONTENT reading, which is now "
+                         "decided rather than open."));
     w.endObject();
 
     w.beginArray("runs");

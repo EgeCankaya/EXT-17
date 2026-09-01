@@ -34,6 +34,7 @@
 #include <array>
 #include <optional>
 #include <cstdio>
+#include <exception>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -109,7 +110,7 @@ void printHelp() {
 "\n"
 "  A pass on the content basis therefore discharges the brief's acceptance criterion 2 under\n"
 "  the CONTENT reading, which is now ruled rather than unruled. It does not discharge it\n"
-"  under a byte reading and nothing here claims it does. See docs/m7-oq2-oq3.md.\n"
+"  under a byte reading and nothing here claims it does.\n"
 "  A campaign whose self-test does not pass executes no campaign run at all.\n"
 "\n"
 "  --gate-basis <b>         content (default) or bytes. Selects which comparison decides.\n"
@@ -137,8 +138,8 @@ void printHelp() {
 "\n"
 "  [B]: \"One axis done properly beats four done loosely.\" Which axis is OQ-4, and it\n"
 "  is DECIDED - initial positions and velocities, as one declared scalar applied to\n"
-"  named entities before start. The measurement that decided it, including the axis\n"
-"  range's own fidelity ceiling, is in docs/m5-oq4.md.\n"
+"  named entities before start. It was decided by exercising a range rather than by\n"
+"  argument, and the axis has a measured fidelity ceiling - see --help's note on it.\n"
 "\n"
 "  {\n"
 "    \"axis\": {\n"
@@ -220,7 +221,7 @@ void printHelp() {
 "  not - \"did anything reach a terminal state it SHOULD NOT have\" is an assertion of\n"
 "  non-occurrence. The verdict still records the FACT (met / not met); whether it was the\n"
 "  asserted one is separate (satisfied / violated / undetermined). Only a VIOLATION fails a\n"
-"  run. See docs/m6-oq5.md for how OQ-5 was decided, by trying rather than by reading.\n"
+"  run. OQ-5 was decided by trying the vendored shape rather than by reading it.\n"
 "\n"
 "  A verdict is THREE-valued. An assertion never reads absence as evidence (CR-AS-4): a\n"
 "  not-met verdict is reported only where it can be BOUNDED, and otherwise reports\n"
@@ -328,7 +329,10 @@ void printHelp() {
 "     the brief: \"Do not build further until it passes.\" Whether the gate FAILED or could\n"
 "     not be established at all - a self-test run that did not complete has established\n"
 "     nothing about determinism and is not a determinism failure - is named in\n"
-"     <out-dir>/selftest/self-test.json under \"outcome\"");
+"     <out-dir>/selftest/self-test.json under \"outcome\"\n"
+"  4  an exception escaped, which nothing here should ever produce - rule 7 of the\n"
+"     brief is \"Never throw\". It is a defect in the harness, reported as one and\n"
+"     never as a result about anything this tool was asked to read\n");
 }
 
 struct Args {
@@ -485,7 +489,7 @@ bool parseArgs(int argc, char** argv, Args& a, std::string& error) {
 //
 // The hook fires after the scenario reports loaded and before `start` is published, which is
 // where an initial condition has to be set - measured at M2 (`p1`), and measured again at M5
-// across a swept range (`docs/m5-oq4.md` §3). What it publishes is not what it concludes from:
+// across a swept range (measured at M5). What it publishes is not what it concludes from:
 // `sendEntityUpdate` returning true means the message reached the bus, and whether an entity of
 // that name was there is answered by the capture, in RunOnce's read-back.
 void applyAxisValue(const ext17::param::Axis& axis, const ext17::param::Value& value,
@@ -804,6 +808,46 @@ void printSweep(const std::vector<ext17::run::RunRecord>& records,
     }
 
     line("sweep", "");
+
+    // [B]'s criterion 3 asks for "a result that varies with the parameter, presented so the
+    // trend is visible". The most consequential way for that to be false is for the axis to have
+    // named an entity that was never there: every run is then the baseline, the table is flat,
+    // and nothing above says why. `run.json` and `campaign.json` have carried
+    // `every_named_entity_present` since M5 and the campaign log names it per run - but the
+    // REPORT a person reads did not, so the one fact that explains a flat sweep was the one
+    // fact they had to go and look for.
+    int runsMissingEntities = 0;
+    std::vector<std::string> namesNeverSeen;
+    for (const auto* r : ordered) {
+        if (r->parameterEntitiesMissing.empty()) { continue; }
+        ++runsMissingEntities;
+        for (const std::string& e : r->parameterEntitiesMissing) {
+            bool already = false;
+            for (const std::string& k : namesNeverSeen) {
+                if (k == e) { already = true; break; }
+            }
+            if (!already) { namesNeverSeen.push_back(e); }
+        }
+    }
+    if (runsMissingEntities > 0) {
+        std::string names;
+        for (const std::string& e : namesNeverSeen) {
+            names += (names.empty() ? "" : ", ") + e;
+        }
+        line("sweep", "  THE AXIS DID NOT REACH EVERY ENTITY IT NAMED. "
+                          + std::to_string(runsMissingEntities) + " of "
+                          + std::to_string(ordered.size())
+                          + " run(s) carry a named entity that has no sample in their capture: "
+                          + names + ".");
+        line("sweep", "  Publishing an entity update returns true when the message reached the "
+                      "bus and says nothing about whether anything received it, so a mistyped "
+                      "name produces a sweep in which every run is the baseline. Read this "
+                      "BEFORE reading any trend above: a flat column here means the parameter "
+                      "was not applied, not that it made no difference. Each run's run.json "
+                      "carries every_named_entity_present and the names.");
+        line("sweep", "");
+    }
+
     if (unmeasured > 0) {
         line("sweep", "  " + std::to_string(unmeasured) + " run(s) that executed show `-` rather "
                       "than a number: their capture has no RUNNING segment, so nothing was "
@@ -1165,7 +1209,7 @@ void loadVerdicts(const std::string& path, ext17::run::RunRecord& out) {
     }
 }
 
-int main(int argc, char** argv) {
+int runMain(int argc, char** argv) {
     Args a;
     std::string error;
     if (!parseArgs(argc, argv, a, error)) {
@@ -1465,7 +1509,7 @@ int main(int argc, char** argv) {
                                "independently. It was still never ANSWERED by the brief's author, "
                                "who has not replied, and criterion 2 is theirs to discharge. Both "
                                "comparisons are run and both are reported; the basis chooses "
-                               "which one decides. See docs/m7-oq2-oq3.md.");
+                               "which one decides.");
         selfTest = ext17::run::runSelfTest(stc);
         selfTestRan = true;
 
@@ -1568,4 +1612,27 @@ int main(int argc, char** argv) {
     // declared that is `pass`; without them it is `completed`, because a run nothing judged is
     // not a pass and calling it one here would undo the whole distinction.
     return (passed + completed) == attempted ? 0 : 1;
+}
+
+
+// --- [B]'s rule 7, enforced at the boundary --------------------------------------------------
+//
+// "Never throw." Nothing in this project throws: every failure is a return value plus a named
+// error. This wrapper is what turns that from a habit into a property. Without it any exception
+// the standard library can raise - std::bad_alloc on a hostile file, a filesystem_error from a
+// directory that changes underneath a scan - reaches std::terminate, which prints nothing an
+// operator can act on and returns an exit code nothing documents. Catching here converts the one
+// thing this project promised would never happen into a named error and a documented exit code,
+// so that even the unreachable case is reported rather than silent.
+int main(int argc, char** argv) {
+    try {
+        return runMain(argc, argv);
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "%s: an exception escaped - %s%s", "n8ro-campaign", e.what(), "\n");
+    } catch (...) {
+        std::fprintf(stderr, "%s: a non-standard exception escaped%s", "n8ro-campaign", "\n");
+    }
+    std::fprintf(stderr, "%s: this is a defect in the harness, not a result about anything it "
+                         "was asked to read.%s", "n8ro-campaign", "\n");
+    return 4;
 }

@@ -1,8 +1,30 @@
 #include "Json.h"
 
+#include <clocale>
 #include <cstdio>
 
 namespace ext17::json {
+namespace {
+
+// The fixed-point formatters read the decimal separator from the ambient LC_NUMERIC. Under a
+// comma-decimal locale that turns `19.500000` into `19,500000`, which is not a JSON number: the
+// run record then does not parse, and [B]'s rule 6 - *"a stored run should be re-assertable
+// without re-running it"* - fails on a file this project wrote itself. Measured, not reasoned:
+// under German_Germany.1252 this project's own parser refuses its own run.json at column 50.
+//
+// So the conversion goes through the C locale explicitly, exactly as `JsonParse.cpp` already
+// does for the reading direction. That file is the only other place a number crosses between
+// text and double here, and the two now agree by construction rather than by luck.
+void formatFixedCLocale(char* buffer, std::size_t size, int decimals, double v) {
+#ifdef _MSC_VER
+    static const _locale_t c = _create_locale(LC_NUMERIC, "C");
+    _snprintf_s_l(buffer, size, _TRUNCATE, "%.*f", c, decimals, v);
+#else
+    std::snprintf(buffer, size, "%.*f", decimals, v);
+#endif
+}
+
+} // namespace
 
 std::string escape(const std::string& in) {
     std::string out;
@@ -118,10 +140,8 @@ void Writer::member(const char* key, std::int64_t v) {
 
 void Writer::member(const char* key, double v, int decimals) {
     prefix(key);
-    char fmt[16];
-    std::snprintf(fmt, sizeof fmt, "%%.%df", decimals);
-    char buf[64];
-    std::snprintf(buf, sizeof buf, fmt, v);
+    char buf[64] = {0};
+    formatFixedCLocale(buf, sizeof buf, decimals, v);
     out_ += buf;
 }
 

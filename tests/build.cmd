@@ -76,7 +76,7 @@ rem the JSON parser, so the WHOLE of the axis's configuration surface - what par
 rem refused and by what name, that a value's declared text survives, and that the sweep is
 rem ordered by value rather than by spelling - is checkable here. The only part that needs a
 rem simulator is whether the platform honours a swept value, and that is measured against real
-rem runs in docs\m5-oq4.md rather than asserted anywhere.
+rem runs rather than asserted anywhere.
 echo.
 cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\common\JsonParse.cpp" ^
@@ -99,13 +99,14 @@ rem parser, so the WHOLE assertion surface is checkable here - what parses and w
 rem what name, the geodesy contract/ did not carry (E-5), what a verdict says, and the four-row
 rem absence classification exercised from BOTH sides over captures written by hand in the test
 rem that asserts on them. The only thing needing a simulator is whether a real run produces the
-rem shapes these captures imitate, and that is measured in docs\m6-assertions.md.
+rem shapes these captures imitate, and that is measured against real runs.
 echo.
 cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\common\Json.cpp" ^
    "%ROOT%\src\common\JsonParse.cpp" ^
    "%ROOT%\src\capture\Capture.cpp" ^
    "%ROOT%\src\capture\CaptureReader.cpp" ^
+   "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\assert\Geodesy.cpp" ^
    "%ROOT%\src\assert\Conditions.cpp" ^
    "%ROOT%\src\assert\Judge.cpp" ^

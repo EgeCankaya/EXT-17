@@ -14,7 +14,7 @@ byte-identical: nothing does, and that is this project's central measurement —
 runs of one configuration are never byte-identical here, so a SHA-256 below will not
 match a re-run and is not meant to. What it establishes is that these specific files
 existed, what was in them, and what was concluded from them, so that a number in
-`docs/m6-assertions.md` can be traced to a file whose contents are pinned even though
+this project's own report can be traced to a file whose contents are pinned even though
 the file is not in the tree. **The counts are the part a re-run can be compared**
 **against**, because the reports are computed from those rather than from the bytes.
 

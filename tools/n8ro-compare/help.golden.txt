@@ -23,8 +23,7 @@ Compares two captures of the SAME configuration two ways and reports both:
 Which of the two decides the gate is OQ-2. It is DECIDED - content - by the DRI on
 2026-09-01 from the brief's own words, and it was never ANSWERED by the brief's author,
 who has not replied. Those are different words on purpose. --gate-basis still selects
-it; both comparisons always run and both are always reported. docs/m7-oq2-oq3.md
-carries the reading that decided it.
+it; both comparisons always run and both are always reported.
 
 options:
   --gate-basis <b>       content (default, ADR-1, THIS PROJECT'S decision) or bytes
@@ -62,3 +61,6 @@ exit codes:
      not take effect
   2  usage error, or the comparison was refused - a precondition was not met and the
      refusal names which
+  4  an exception escaped, which nothing here should ever produce - rule 7 of
+     the brief is "Never throw". It is a defect in the harness, reported as
+     one and never as a result about anything this tool was asked to read

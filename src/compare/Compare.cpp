@@ -273,7 +273,14 @@ void compareOnePair(const std::string& pathA, const std::string& pathB, ByteResu
 
     const bool rawHeadersEqual = (headA == headB);
     std::string maskedA = headA, maskedB = headB;
-    const bool maskedOk = maskModelPath(maskedA) && maskModelPath(maskedB);
+    // BOTH sides are masked, unconditionally. Written as `mask(A) && mask(B)` this short-
+    // circuits: where A carries the key and B does not, A is rewritten and B is not, so the two
+    // sides are then compared on different text and `firstDifferingOffset` is an offset into the
+    // replacement string rather than into either file. [B]'s criterion 6 asks for the first
+    // POINT of divergence, and a point that is in neither file is not one.
+    const bool maskedOkA = maskModelPath(maskedA);
+    const bool maskedOkB = maskModelPath(maskedB);
+    const bool maskedOk = maskedOkA && maskedOkB;
     r.modelPathExcluded = r.modelPathExcluded || maskedOk;
     if (partIndex == 0) { r.headersIdentical = rawHeadersEqual; }
     if (!rawHeadersEqual && maskedA == maskedB) { r.modelPathDiffered = true; }
@@ -462,6 +469,42 @@ void countDuplicatedInstants(const KeySamples& keys, long long& duplicated, long
             }
         }
     }
+}
+
+// --- CR-DET-3 and [B]'s criterion 6: keeping the EARLIEST divergence -------------------------
+//
+// The segment walk below visits (entity, occupancy) keys in EntityKey order, so the order in
+// which differences are *found* is alphabetical by entity name and has nothing to do with when
+// the two runs parted company. Appending them in that order and calling the first one the
+// "first difference" is wrong twice over: it names a divergence that may be minutes of
+// simulation later than the real one, and - because the list is capped - it can push the real
+// one off the end entirely. Measured before this was written: two entities, one diverging at
+// sim_time_s 1.0 and one at 90.0, reported the 90.0 one as FIRST DIFFERENCE and never printed
+// the other at all.
+//
+// [B] asks for "the first point of divergence, not just that they differ", so the list is kept
+// ordered by the capture's OWN RECORD ORDER, which format 5.2 makes authoritative: part first,
+// then the line number in A. That is an integer comparison over what the file itself says, so
+// it needs no clock, no locale and no numeric conversion - and it is a total order, because two
+// records cannot share a line in one part.
+//
+// Insertion is linear into a list bounded by maxDifferences, so this is not a sort of anything
+// (the comparison's build script fails the build on a global sort of a capture, and rightly:
+// reordering RECORDS would be a different act from ordering the handful of findings about them).
+bool earlierInTheRun(const Difference& a, const Difference& b) {
+    if (a.segment.part != b.segment.part) { return a.segment.part < b.segment.part; }
+    return a.lineA < b.lineA;
+}
+
+// Keep `d` if it belongs among the earliest `limit` differences found so far, dropping the
+// latest one when the list is full. The COUNTS are never capped - only this list is.
+void keepIfEarliest(std::vector<Difference>& kept, Difference&& d, std::size_t limit) {
+    if (limit == 0) { return; }
+    if (kept.size() >= limit && !earlierInTheRun(d, kept.back())) { return; }
+    std::size_t at = kept.size();
+    while (at > 0 && earlierInTheRun(d, kept[at - 1])) { --at; }
+    kept.insert(kept.begin() + static_cast<std::ptrdiff_t>(at), std::move(d));
+    if (kept.size() > limit) { kept.pop_back(); }
 }
 
 std::string percent(double v) {
@@ -793,18 +836,22 @@ ComparisonResult compareCaptures(const std::string& pathA,
                         ++sc.agree;
                     } else {
                         ++sc.differ;
-                        if (out.content.differences.size() < options.maxDifferences) {
+                        // The field and the two values are NOT resolved here. Doing so costs two
+                        // linear scans of a 24 MB file per difference, and a systematic
+                        // divergence produces tens of thousands of them (33 546 measured at M5).
+                        // Only the differences that survive into the final, run-ordered list are
+                        // resolved, in the second pass below.
+                        {
                             Difference d;
                             d.segment = key;
                             d.key = ia->first;
                             d.simTimeText = va[i].simText;
                             d.lineA = va[i].line;
                             d.lineB = vb[j].line;
-                            nameFirstDifferingField(
-                                lineAt(A.partPaths[static_cast<std::size_t>(va[i].part)], va[i].line),
-                                lineAt(B.partPaths[static_cast<std::size_t>(vb[j].part)], vb[j].line),
-                                d);
-                            out.content.differences.push_back(std::move(d));
+                            d.partA = va[i].part;
+                            d.partB = vb[j].part;
+                            keepIfEarliest(out.content.differences, std::move(d),
+                                           options.maxDifferences);
                         }
                     }
                     ++i;
@@ -821,17 +868,21 @@ ComparisonResult compareCaptures(const std::string& pathA,
                     // finding about the producer, not something to smooth over.
                     ++sc.comparedSamples;
                     ++sc.differ;
-                    if (out.content.differences.size() < options.maxDifferences) {
+                    {
                         Difference d;
                         d.segment = key;
                         d.key = ia->first;
                         d.simTimeText = va[i].simText;
                         d.lineA = va[i].line;
                         d.lineB = vb[j].line;
+                        d.partA = va[i].part;
+                        d.partB = vb[j].part;
                         d.field = "sim_time_s";
                         d.valueA = va[i].simText;
                         d.valueB = vb[j].simText;
-                        out.content.differences.push_back(std::move(d));
+                        d.resolved = true;   // this one is decided by the envelope, not a field
+                        keepIfEarliest(out.content.differences, std::move(d),
+                                       options.maxDifferences);
                     }
                     ++i;
                     ++j;
@@ -851,6 +902,29 @@ ComparisonResult compareCaptures(const std::string& pathA,
         out.content.comparableA += sc.samplesA;
         out.content.comparableB += sc.samplesB;
         out.content.segments.push_back(sc);
+    }
+
+    // --- Pass two: resolve the field and the values of the differences that were KEPT -----------
+    // Only now, and only for the handful the run-ordered list retained. Each costs two linear
+    // scans of a capture, so doing it during the walk would make a systematic divergence
+    // quadratic in the number of samples - and every one of those scans would be for a
+    // difference the report was never going to print.
+    for (Difference& d : out.content.differences) {
+        if (d.resolved) { continue; }
+        const std::size_t ia = static_cast<std::size_t>(d.partA);
+        const std::size_t ib = static_cast<std::size_t>(d.partB);
+        if (ia >= A.partPaths.size() || ib >= B.partPaths.size()) {
+            // Unreachable for a conformant set - `header.part` is checked against the set's own
+            // position and a mismatch is a PartLinkBroken diagnostic, which the conformance
+            // refusal above has already returned on. Bounded here anyway, because the cost of
+            // being wrong is an out-of-range read on the one path a real failure reaches.
+            d.field = "(part index out of range)";
+            d.resolved = true;
+            continue;
+        }
+        nameFirstDifferingField(lineAt(A.partPaths[ia], d.lineA),
+                                lineAt(B.partPaths[ib], d.lineB), d);
+        d.resolved = true;
     }
 
     // --- The byte comparison, always, whatever the content one said ---------------------------------
@@ -1006,8 +1080,7 @@ std::string renderReport(const ComparisonResult& r) {
         cont("question. The deciding sentence is \"if it ever fails, you have found either a");
         cont("defect in your harness or something far more interesting, and you must be able");
         cont("to tell which\" - a byte gate fails 100% of the time here and so distinguishes");
-        cont("neither. See docs/m7-oq2-oq3.md. Both comparisons still run and are still");
-        cont("reported below.");
+        cont("neither. Both comparisons still run and are still reported below.");
         s += "\n";
     }
 
@@ -1068,6 +1141,12 @@ std::string renderReport(const ComparisonResult& r) {
     // differ. A handful more are printed as context and are labelled as context — eight blocks
     // all headed FIRST DIFFERENCE reads as eight findings, when everything after the first is
     // downstream of it.
+    //
+    // "First" is first IN THE RUN, and that is not the order the walk finds them in: it visits
+    // entity keys in name order, so an entity called Alpha diverging at sim_time_s 90 is found
+    // before one called Zulu diverging at 1. The list has therefore been ordered by the
+    // capture's own record order before it gets here (see `keepIfEarliest`), which is what makes
+    // the word "downstream" above true rather than merely hopeful.
     bool firstDifference = true;
     for (const Difference& d : r.content.differences) {
         s += "\n";
@@ -1159,7 +1238,9 @@ std::string renderReport(const ComparisonResult& r) {
             cont("this diff exists to give.");
             cont(std::to_string(r.content.differ) + " of " + std::to_string(r.content.comparedSamples)
                  + " compared sample(s) differ. The count is context; the FIRST one is");
-            cont("the finding, because everything after it is downstream of it.");
+            cont("the finding, because everything after it is downstream of it. First is first");
+            cont("in the RUN - the differences are ordered by the capture's own record order,");
+            cont("not by the order the entity-key walk happened to find them in.");
         } else {
             row("DID NOT DIVERGE", "the two runs agree on every sample compared, which for two");
             cont("DIFFERENT inputs is the surprising outcome. Either the changed input");

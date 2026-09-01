@@ -129,6 +129,7 @@ enum class Because {
     TrackNotBounded,           // an unobserved window this evaluator cannot bound
     MarginWithinBound,         // it did not happen in what was recorded, and might have between
     FieldAbsenceNotBoundable,  // `field`+`equals`: never decidable in the negative
+    RunCutByRotation,          // the run is a rotated SET, and a negative needs continuity
     TooFewSamplesForGap,       // fewer than two samples, so no gap can be measured
 };
 
@@ -198,6 +199,15 @@ struct JudgeResult {
     bool judgeable = false;
     std::string notJudgeableReason;
 
+    // A rotated run is a SET of files, not a file (format 6.7). Both are read - see
+    // `judgeCapture` - and these say what was read, because a verdict drawn over a rotated set
+    // is not quite the same claim as one drawn over a single file. `segmentsCutByRotation` is
+    // the number of segments the rotation split in two, and where it is non-zero no NEGATIVE
+    // verdict is issued: positive evidence is a record that exists in some part, and a negative
+    // is a conclusion from absence, which needs continuity across the cut that no file states.
+    long long parts = 1;
+    long long segmentsCutByRotation = 0;
+
     std::vector<Verdict> verdicts;
 
     // The facts.
@@ -213,8 +223,16 @@ struct JudgeResult {
     [[nodiscard]] long long decided() const { return met + notMet; }
 };
 
-// Judge one stored capture. Reads it, evaluates every condition over it, and produces exactly
-// one verdict per condition — including for conditions naming entities the capture never
+// Judge one stored run. `capturePath` is the capture, or the FIRST PART of one: a run recorded
+// with `--on-size-limit rotate` is a numbered set of files whose segment ordinals restart in
+// every part (format 6.7), and this follows the part links and judges the whole set. Reading
+// only the first part would judge a fraction of the run and report it as the whole - [B]'s rule
+// 6 asks that "a stored run should be re-assertable without re-running it", and a third of a
+// stored run is not the stored run. Measured before this read the set: a two-part capture whose
+// entity is destroyed in part 1 judged `not met` on part 0 alone, so a run that passed was
+// reported as a failure.
+//
+// Evaluates every condition over it, and produces exactly one verdict per condition — including for conditions naming entities the capture never
 // mentions, which are `Indeterminate` with `EntityNeverSampled` rather than silently absent. A
 // reader seeing fewer verdicts than conditions is entitled to treat the run as cut short.
 bool judgeCapture(const std::string& capturePath,

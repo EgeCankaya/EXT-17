@@ -37,3 +37,6 @@ exit codes:
   1  a capture was read and something was found wrong with it
   2  a capture was rejected - unreadable, not a capture, or a format_version this
      reader does not implement - or a usage error
+  4  an exception escaped, which nothing here should ever produce - rule 7 of the
+     brief is "Never throw". It is a defect in the harness, reported as one and
+     never as a result about anything this tool was asked to read

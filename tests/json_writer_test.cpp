@@ -12,6 +12,7 @@
 
 #include "../src/common/Json.h"
 
+#include <clocale>
 #include <cstdio>
 #include <string>
 
@@ -125,6 +126,55 @@ void stability() {
     expect("two identical documents are byte-identical", build(), build());
 }
 
+// THE HAZARD THIS MANUFACTURES, and it is the reason this suite now sets a locale at all.
+//
+// The fixed-point formatters read the decimal separator from the ambient LC_NUMERIC, and this
+// writer's double member is the ONE number-formatting path in the project that was not guarded:
+// the comparison does its percentages by integer arithmetic, the verdict has its own locale-free
+// formatter, and the parser reads through an explicit C locale. Measured before the fix: under
+// German_Germany.1252 the run record came out carrying `"observed_sim_time_s": 19,500000`, which
+// is not JSON - this project's OWN parser refuses it at column 50. [B]'s rule 6 says a stored
+// run must be re-assertable without re-running it, and a run record that does not parse is not.
+//
+// Every other suite here runs its checks under both locales. This one is the suite covering the
+// writer that formats the doubles, and it was the one suite that never changed the locale.
+void localeIndependence() {
+    std::printf("doubles are formatted through the C locale, whatever the ambient one\n");
+
+    const auto build = []() {
+        ext17::json::Writer w(2);
+        w.beginObject();
+        w.member("observed_sim_time_s", 19.5, 6);
+        w.member("observed_delta_s", 0.05, 5);
+        w.member("coverage", 0.998513, 6);
+        w.endObject();
+        return w.str();
+    };
+
+    const std::string underC = build();
+    expect("under the C locale a double carries a decimal POINT", underC,
+           "{\n  \"observed_sim_time_s\": 19.500000,\n  \"observed_delta_s\": 0.05000,"
+           "\n  \"coverage\": 0.998513\n}");
+
+    // Two spellings, because the one Windows accepts is not the one POSIX does, and a check that
+    // silently found neither would be no check at all.
+    const char* applied = std::setlocale(LC_ALL, "German_Germany.1252");
+    if (applied == nullptr) { applied = std::setlocale(LC_ALL, "de_DE.UTF-8"); }
+    if (applied == nullptr) {
+        std::printf("  ..   the comma-decimal locale is unavailable here; this check was "
+                    "SKIPPED rather than reported as passing\n");
+        return;
+    }
+    const std::string underComma = build();
+    std::setlocale(LC_ALL, "C");
+
+    expect("under a comma-decimal locale the bytes are IDENTICAL", underComma, underC);
+    if (underComma.find(',') != std::string::npos &&
+        underComma.find("19.500000") == std::string::npos) {
+        std::printf("  FAIL a comma reached the output, so the run record is not JSON\n");
+    }
+}
+
 } // namespace
 
 int main() {
@@ -133,6 +183,7 @@ int main() {
     documentShape();
     numbers();
     stability();
+    localeIndependence();
     if (g_failures == 0) {
         std::printf("json_writer_test: all checks passed\n");
         return 0;

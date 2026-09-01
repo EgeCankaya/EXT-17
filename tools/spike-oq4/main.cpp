@@ -8,7 +8,7 @@
 //
 // Fidelity is one of OQ-4's two deciding criteria and it is the one nothing has measured. This
 // spike measures it, for the axis that would have to carry it, and is then evidence. It chooses
-// no axis by itself; `docs/m5-oq4.md` does that, against this and against M2's spike.
+// no axis by itself: it is evidence, weighed against this and against M2's spike.
 //
 // The sweep candidate under test: **the closing speed of the Red raid** in Atacama Air Defense.
 // Every Red UAV is authored at 55 m/s on a fixed heading — the north group flying south, the

@@ -411,6 +411,99 @@ void aDifferingValueFailsAndIsAttributed() {
 // where the two runs diverged."* The machinery is identical; what changes is what the answer
 // means, and getting that framing wrong would be wrong in both directions — a divergence between
 // two configurations is not a failure, and agreement between them is not a pass.
+// [B]'s acceptance criterion 6: *"A diff between two runs identifies the FIRST POINT OF
+// DIVERGENCE, not just that they differ."*
+//
+// THE FAILURE THIS MANUFACTURES. The comparison walks (entity, occupancy) keys in EntityKey
+// order, which is alphabetical by entity name, so the order differences are FOUND in has nothing
+// to do with when the two runs parted company. Before this test existed the list was appended in
+// that order and capped at eight, so a pair in which "alpha" diverges late and "zulu" diverges
+// early reported ALPHA as the first difference and - because alpha alone filled the cap - never
+// printed zulu at all. The report then said "everything after it is downstream of it", which is
+// exactly backwards.
+//
+// It survived three milestones because every other check here manufactures exactly ONE
+// difference, and one difference is in order whatever the order is. This one manufactures two,
+// at two instants, on two entities, with the earlier one alphabetically last.
+void theFirstDifferenceIsTheEarliestInTheRun() {
+    std::printf("\n[B] criterion 6: the FIRST difference is the earliest in the RUN, not the "
+                "first found\n");
+
+    // Twelve instants. "alpha" parts company at the tenth, "zulu" at the second.
+    const auto build = [](bool diverge) {
+        Cap c;
+        c.header();
+        c.open(0);
+        c.add(0, "alpha", 1);
+        c.add(0, "zulu", 1);
+        for (int k = 0; k < 12; ++k) {
+            const std::string tm = std::to_string(k) + ".0";
+            const bool alphaOff = diverge && k >= 10;
+            const bool zuluOff = diverge && k >= 1;
+            c.sample(0, tm, "alpha", 1, alphaOff ? "9.9" : "1.1", "1");
+            c.sample(0, tm, "zulu", 1, zuluOff ? "8.8" : "2.2", "2");
+        }
+        c.close(0);
+        c.trailer();
+        return c;
+    };
+
+    CompareOptions o;
+    o.maxDifferences = 4;   // small on purpose: the cap is half of what went wrong
+    const ComparisonResult r = compareTwo(build(false), build(true), o);
+
+    ok("the gate FAILS - both entities diverged", r.gate == Verdict::Fail, r.gateReason);
+    ok("13 samples differ in total, and the COUNT is never capped",
+       r.content.differ == 13, std::to_string(r.content.differ));
+    ok("the differences list is capped at the 4 asked for",
+       r.content.differences.size() == 4, std::to_string(r.content.differences.size()));
+
+    ok("the FIRST difference is zulu, which diverged at sim_time_s 1 - NOT alpha, which is "
+       "alphabetically first and diverged nine instants later",
+       !r.content.differences.empty() && r.content.differences[0].key.entity == "zulu" &&
+           r.content.differences[0].simTimeText == "1.0",
+       r.content.differences.empty()
+           ? "(none)"
+           : r.content.differences[0].key.entity + " at " + r.content.differences[0].simTimeText);
+
+    // ...and it is ordered throughout, not merely correct at the head.
+    bool ascending = true;
+    for (std::size_t i = 1; i < r.content.differences.size(); ++i) {
+        const Difference& prev = r.content.differences[i - 1];
+        const Difference& cur = r.content.differences[i];
+        if (cur.segment.part < prev.segment.part ||
+            (cur.segment.part == prev.segment.part && cur.lineA < prev.lineA)) {
+            ascending = false;
+        }
+    }
+    ok("...and the whole list is in the capture's own record order, so the ones printed as "
+       "context really are downstream of the first", ascending);
+
+    ok("the cap dropped the LATEST differences, not the earliest - alpha's are the ones missing",
+       [&] {
+           for (const Difference& d : r.content.differences) {
+               if (d.key.entity == "alpha") { return false; }
+           }
+           return true;
+       }());
+
+    // The values are still resolved, even though resolving them now happens in a second pass
+    // after the list has been ordered. F-31 was two EMPTY values; this is the check that the
+    // deferral did not reintroduce it.
+    ok("the first difference still names its field and BOTH values",
+       !r.content.differences.empty() && r.content.differences[0].field == "a" &&
+           r.content.differences[0].valueA == "2.2" && r.content.differences[0].valueB == "8.8",
+       r.content.differences.empty()
+           ? "(none)"
+           : r.content.differences[0].field + " " + r.content.differences[0].valueA + "/" +
+                 r.content.differences[0].valueB);
+
+    const std::string report = renderReport(r);
+    ok("the report heads zulu's block FIRST DIFFERENCE",
+       contains(report, "FIRST DIFFERENCE") && contains(report, "zulu@1"));
+    ok("...and rendering is still a pure function of the result", renderReport(r) == report);
+}
+
 void aChangedInputDiffIsNotAGate() {
     std::printf("\nCR-REP-4: the changed-input half - a divergence is the ANSWER, not a failure\n");
     Cap b = goodRun();
@@ -810,8 +903,8 @@ void gateBasisIsSelectableAndBothAlwaysRun() {
        contains(report, "CONTENT reading"));
     ok("…while still saying a byte reading is not discharged and is not claimed",
        contains(report, "does not discharge criterion 2 under a byte reading"));
-    ok("…and points at the document carrying the reading",
-       contains(report, "docs/m7-oq2-oq3.md"));
+    ok("…and names where the decision came from without citing an internal document",
+       contains(report, "DRI on") && !contains(report, "docs/m7"));
 }
 
 }  // namespace
@@ -833,6 +926,7 @@ int main(int argc, char** argv) {
     aFrozenSegmentNamesTheShapeOfItsFreeze();
     aDifferingValueFailsAndIsAttributed();
     aDifferingArrayFieldNamesBothValues();
+    theFirstDifferenceIsTheEarliestInTheRun();
     aChangedInputDiffIsNotAGate();
     anEntityInOneRunOnlyIsAFailure();
     occupancyIsPartOfTheIdentity();

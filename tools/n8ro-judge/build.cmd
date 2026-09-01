@@ -23,6 +23,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\common\JsonParse.cpp" ^
    "%ROOT%\src\capture\Capture.cpp" ^
    "%ROOT%\src\capture\CaptureReader.cpp" ^
+   "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\assert\Geodesy.cpp" ^
    "%ROOT%\src\assert\Conditions.cpp" ^
    "%ROOT%\src\assert\Judge.cpp" ^

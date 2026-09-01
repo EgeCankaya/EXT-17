@@ -2,6 +2,7 @@
 
 #include "Geodesy.h"
 #include "../capture/CaptureReader.h"
+#include "../capture/CaptureSet.h"
 #include "../common/Json.h"
 #include "../common/JsonParse.h"
 
@@ -292,6 +293,7 @@ const char* toString(Because b) {
         case Because::MarginWithinBound: return "margin_within_bound";
         case Because::FieldAbsenceNotBoundable: return "field_absence_not_boundable";
         case Because::TooFewSamplesForGap: return "too_few_samples_for_gap";
+        case Because::RunCutByRotation: return "run_cut_by_rotation";
     }
     return "unknown";
 }
@@ -868,18 +870,28 @@ std::string verdictJson(const Verdict& v) {
 
 namespace {
 
-bool judgeRead(const capture::ReadResult& read,
+// What the evaluator needs from a read, whether that read was one file or a rotated SET of
+// them. Taking the pieces rather than a `ReadResult` is what lets `judgeCapture` hand it a set
+// (format 6.7) and `judgeLines` hand it a capture already in memory, through one evaluator.
+struct JudgedRead {
+    bool conformant = false;
+    const std::vector<capture::SegmentStats>* segments = nullptr;
+    std::vector<std::string> diagnosticLines;
+    long long parts = 1;
+    long long segmentsCutByRotation = 0;
+};
+
+bool judgeRead(const JudgedRead& read,
                const std::map<TrackKey, Track>& tracks,
                const ConditionFile& conditions,
                JudgeResult& out) {
-    out.conformant = read.conformant();
-    for (const auto& diag : read.diagnostics) {
-        out.captureDiagnostics.push_back(std::string(capture::name(diag.code)) + " at line " +
-                                         std::to_string(diag.line) + ": " + diag.detail);
-    }
+    out.conformant = read.conformant;
+    out.parts = read.parts;
+    out.segmentsCutByRotation = read.segmentsCutByRotation;
+    for (const auto& line : read.diagnosticLines) { out.captureDiagnostics.push_back(line); }
 
     std::vector<capture::SegmentStats> running;
-    for (const auto& s : read.segments) {
+    for (const auto& s : *read.segments) {
         if (s.clock == capture::ClockClass::Running && s.hasSamples) { running.push_back(s); }
     }
     out.judgeable = !running.empty();
@@ -929,6 +941,26 @@ bool judgeRead(const capture::ReadResult& read,
     // quietly deciding an expectation it was never told about.
     for (std::size_t i = 0; i < out.verdicts.size(); ++i) {
         Verdict& v = out.verdicts[i];
+
+        // A rotation cuts one segment of the run into a close in one part and an open in the
+        // next, and nothing in any file states what happened in between. That does not weaken
+        // POSITIVE evidence - a record that exists in some part happened - but it does weaken
+        // every negative, because a negative here is a conclusion drawn from absence and this
+        // project's rule (CR-AS-4) is that absence is only evidence where a bound covers the
+        // window nothing observed. The window at a rotation cut is not covered by any bound
+        // this evaluator can measure, so a not-met verdict becomes indeterminate and says why.
+        // It is never folded into pass or fail - that is the whole point of the third state.
+        if (read.segmentsCutByRotation > 0 && v.state == State::NotMet) {
+            v.state = State::Indeterminate;
+            v.because = Because::RunCutByRotation;
+            v.reason = "not met in what was recorded, but this run's capture is a rotated set "
+                       "whose " + std::to_string(read.segmentsCutByRotation)
+                       + " segment(s) were cut across a part boundary. A negative conclusion "
+                         "needs continuity over the window the cut leaves unobserved, and no "
+                         "file states it. The positive evidence in the set stands; this "
+                         "absence does not. Original finding: " + v.reason;
+        }
+
         v.expect = conditions.conditions[i].expect;
         if (v.state == State::Indeterminate) {
             v.outcome = Outcome::Undetermined;
@@ -974,11 +1006,41 @@ bool judgeCapture(const std::string& capturePath,
     collectNames(conditions, entities, fields);
 
     Collector collector(entities, fields);
-    const capture::ReadResult read = capture::readFile(capturePath, {}, &collector);
-    if (read.rejected) {
+    // The SET, not the file. A run recorded with `--on-size-limit rotate` is a numbered set of
+    // parts; handed an unrotated capture this returns a one-part set, which is the correct
+    // answer and is why no caller has to know in advance which it has.
+    const capture::SetResult set = capture::readSet(capturePath, {}, &collector);
+    if (set.parts.empty()) {
         out.rejected = true;
-        out.rejectReason = std::string(capture::name(read.rejectCode)) + ": " + read.rejectDetail;
+        out.rejectReason = "file_unreadable: nothing could be read from " + capturePath;
         return false;
+    }
+    for (const capture::ReadResult& part : set.parts) {
+        if (part.rejected) {
+            out.rejected = true;
+            out.rejectReason = std::string(capture::name(part.rejectCode)) + ": "
+                               + part.rejectDetail;
+            return false;
+        }
+    }
+
+    JudgedRead read;
+    read.conformant = set.conformant();
+    read.segments = &set.segments;
+    read.parts = static_cast<long long>(set.parts.size());
+    read.segmentsCutByRotation = set.segmentsCutByRotation;
+    const bool rotated = set.parts.size() > 1;
+    for (const capture::ReadResult& part : set.parts) {
+        // The part is named only when there is more than one, so an ordinary capture's
+        // diagnostics read exactly as they did before this could read a set at all.
+        const std::string where = rotated ? (part.path + ": ") : std::string();
+        for (const auto& diag : part.diagnostics) {
+            read.diagnosticLines.push_back(where + capture::name(diag.code) + " at line "
+                                           + std::to_string(diag.line) + ": " + diag.detail);
+        }
+    }
+    for (const auto& diag : set.diagnostics) {
+        read.diagnosticLines.push_back(std::string(capture::name(diag.code)) + ": " + diag.detail);
     }
     return judgeRead(read, collector.tracks, conditions, out);
 }
@@ -995,11 +1057,20 @@ bool judgeLines(const std::vector<std::string>& lines,
     collectNames(conditions, entities, fields);
 
     Collector collector(entities, fields);
-    const capture::ReadResult read = capture::readLines(lines, label, {}, &collector);
-    if (read.rejected) {
+    const capture::ReadResult raw = capture::readLines(lines, label, {}, &collector);
+    if (raw.rejected) {
         out.rejected = true;
-        out.rejectReason = std::string(capture::name(read.rejectCode)) + ": " + read.rejectDetail;
+        out.rejectReason = std::string(capture::name(raw.rejectCode)) + ": " + raw.rejectDetail;
         return false;
+    }
+    // Lines already in memory are one capture by construction: a caller holding a rotated set
+    // would have to concatenate it first, and there is then nothing left to cut.
+    JudgedRead read;
+    read.conformant = raw.conformant();
+    read.segments = &raw.segments;
+    for (const auto& diag : raw.diagnostics) {
+        read.diagnosticLines.push_back(std::string(capture::name(diag.code)) + " at line "
+                                       + std::to_string(diag.line) + ": " + diag.detail);
     }
     return judgeRead(read, collector.tracks, conditions, out);
 }

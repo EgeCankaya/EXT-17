@@ -5,7 +5,7 @@
     "",
     "The shape is EXT-08's, adopted verbatim at M6 - OQ-5, decided by writing these seven",
     "conditions in the vendored shape and evaluating them against the seven committed",
-    "captures rather than by reading the schema. docs/m6-oq5.md carries the measurement.",
+    "captures rather than by reading the schema, which is how the one added key was found.",
     "",
     "THREE RULES DIFFER FROM THE VENDORED DOCUMENT, each for a reason this project measured:",
     "  1. An unknown key and a key written twice are REFUSED by name, not ignored. The",

@@ -85,3 +85,6 @@ exit codes:
   1  a condition was violated, or a verdict was indeterminate, or a --verify comparison
      differed
   2  usage error, a condition file that would not load, or a capture that would not read
+  4  an exception escaped, which nothing here should ever produce - rule 7 of the
+     brief is "Never throw". It is a defect in the harness, reported as one and
+     never as a result about anything this tool was asked to read
