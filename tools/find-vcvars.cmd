@@ -30,10 +30,16 @@ rem                               a class of bug this project should not be disc
 rem
 rem   call find-vcvars.cmd free   Accept 17.x or 18.x. Used by n8ro-capture, n8ro-compare,
 rem                               n8ro-judge and tests\build.cmd. They link nothing and need only
-rem                               a C++17 compiler, so there is no toolset to match. Widening this
-rem                               is what lets the zero-install tier build on a stock runner that
-rem                               has never had the SDK - which is what turns "links nothing" from
-rem                               a claim into evidence produced on a machine we do not own.
+rem                               a C++17 compiler, so there is no toolset to match. This is
+rem                               insurance rather than a requirement, and the distinction is
+rem                               worth keeping straight: the windows-latest image the CI job
+rem                               uses carries 18.x, so the job would pass without the widening.
+rem                               What it buys is every machine that has 17.x and not 18.x -
+rem                               an older runner image, or an evaluator on stock VS 2022, who
+rem                               would otherwise be told to install a second Visual Studio to
+rem                               build four targets that need no toolset in particular.
+rem                               VERIFIED, not assumed: EXT17_VCVARS pinned at VS 2022 17.14
+rem                               builds the free tier with cl 19.44.
 rem
 rem Set EXT17_VCVARS to a vcvars64.bat path to override the scan entirely. That is how the 17.x
 rem path was verified locally on a machine that also has 18.x, and how CI pins a toolchain.

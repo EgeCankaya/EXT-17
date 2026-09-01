@@ -293,6 +293,13 @@ with neither EXT-08 nor the SDK present. **Its first step asserts the runner has
 no `N8RO_RELEASE`, and fails the job otherwise**, because none of the rest means anything on a
 machine that has the install.
 
+**The toolchains this has actually been built with**, rather than the ones it is assumed to
+support: cl **19.51** on the CI runner and on the development machine, and cl **19.44** locally
+with `EXT17_VCVARS` pinned at Visual Studio 2022 17.14. So the free tier's acceptance of 17.x is
+verified, but it is *not* what makes CI pass — the current `windows-latest` image carries 18.x
+and the job would go green without it. It is there for an evaluator on stock VS 2022, and saying
+which of the two is measured and which is insurance is the whole point of writing it down.
+
 **This is the only claim here that is not self-certified.** Every other proof of the boundary is
 a search this project wrote, run over sources this project wrote, on the one machine that has the
 SDK — which can show that no forbidden name appears, and cannot show the install is unnecessary,
