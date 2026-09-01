@@ -24,7 +24,9 @@ rem The build ends by comparing the binary's own --help against help.golden.txt.
 rem is the mechanism the PRD names as keeping the CLI authority table true: the document does not
 rem enumerate the options, the golden file does, and a drift fails the build rather than an audit.
 setlocal
-call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat" >nul
+rem The toolchain is discovered, not hard-coded. See tools\find-vcvars.cmd for what
+rem "sdk" selects here, and why it does not simply call C:\N8RO\dev\setup-dev.cmd.
+call "%~dp0..\find-vcvars.cmd" sdk
 if errorlevel 1 exit /b 1
 
 set ROOT=%~dp0..\..
@@ -51,7 +53,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\run\RunOnce.cpp" ^
    "%ROOT%\src\run\SelfTest.cpp" ^
    "%~dp0main.cpp" ^
-   /Fe:"%OUT%\n8ro-campaign.exe" /Fo:"%OUT%\\" ^
+   /Fe:"%OUT%\n8ro-campaign.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\" ^
    /link /LIBPATH:"C:\N8RO\lib" n8ro-sim.lib n8ro-core.lib
 if errorlevel 1 exit /b 1
 

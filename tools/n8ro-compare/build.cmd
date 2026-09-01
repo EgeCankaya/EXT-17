@@ -9,7 +9,9 @@ rem argument about translation units.
 rem
 rem It needs no N8RO install to build and none to run.
 setlocal
-call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat" >nul
+rem The toolchain is discovered, not hard-coded. See tools\find-vcvars.cmd for what
+rem "free" selects here, and why it does not simply call C:\N8RO\dev\setup-dev.cmd.
+call "%~dp0..\find-vcvars.cmd" free
 if errorlevel 1 exit /b 1
 
 set ROOT=%~dp0..\..
@@ -23,7 +25,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\compare\Compare.cpp" ^
    "%~dp0main.cpp" ^
-   /Fe:"%OUT%\n8ro-compare.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\n8ro-compare.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 rem --- The boundary, checked rather than asserted ---------------------------------------------

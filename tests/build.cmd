@@ -4,7 +4,9 @@ rem Everything here links nothing: it tests the parts of the campaign runner who
 rem is about our own output rather than about the platform, and - since M3 - the capture reader,
 rem whose correctness is about somebody else's bytes and is the whole of CR-CAP-2.
 setlocal enabledelayedexpansion
-call "C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Auxiliary\Build\vcvars64.bat" >nul
+rem The toolchain is discovered, not hard-coded. See tools\find-vcvars.cmd for what
+rem "free" selects here, and why it does not simply call C:\N8RO\dev\setup-dev.cmd.
+call "%~dp0..\tools\find-vcvars.cmd" free
 if errorlevel 1 exit /b 1
 
 set ROOT=%~dp0..
@@ -14,7 +16,7 @@ if not exist "%OUT%" mkdir "%OUT%"
 cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\common\Json.cpp" ^
    "%~dp0json_writer_test.cpp" ^
-   /Fe:"%OUT%\json_writer_test.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\json_writer_test.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 "%OUT%\json_writer_test.exe" > "%OUT%\json_writer_test.out" 2>&1
@@ -32,7 +34,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\CaptureReader.cpp" ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%~dp0capture_reader_test.cpp" ^
-   /Fe:"%OUT%\capture_reader_test.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\capture_reader_test.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 rem The repo root is passed in so the suite can find contract/ and campaigns/ wherever it was
@@ -58,7 +60,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\capture\CaptureSet.cpp" ^
    "%ROOT%\src\compare\Compare.cpp" ^
    "%~dp0determinism_test.cpp" ^
-   /Fe:"%OUT%\determinism_test.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\determinism_test.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 "%OUT%\determinism_test.exe" "%ROOT%" > "%OUT%\determinism_test.out" 2>&1
@@ -80,7 +82,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\common\JsonParse.cpp" ^
    "%ROOT%\src\param\Axis.cpp" ^
    "%~dp0parameter_test.cpp" ^
-   /Fe:"%OUT%\parameter_test.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\parameter_test.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 "%OUT%\parameter_test.exe" > "%OUT%\parameter_test.out" 2>&1
@@ -108,7 +110,7 @@ cl /nologo /std:c++17 /EHsc /O2 /MD /W3 ^
    "%ROOT%\src\assert\Conditions.cpp" ^
    "%ROOT%\src\assert\Judge.cpp" ^
    "%~dp0assertion_test.cpp" ^
-   /Fe:"%OUT%\assertion_test.exe" /Fo:"%OUT%\\"
+   /Fe:"%OUT%\assertion_test.exe" /Fo:"%OUT%\\" /Fd:"%OUT%\\"
 if errorlevel 1 exit /b 1
 
 "%OUT%\assertion_test.exe" "%ROOT%" > "%OUT%\assertion_test.out" 2>&1
