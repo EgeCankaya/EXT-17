@@ -3,6 +3,161 @@
 Runs many unattended N8RO simulation runs, varies one input across them, judges each against
 conditions declared outside the code, and reports across the campaign.
 
+**Milestone 7 of 7 — complete.** Every deliverable the brief names is in, down to the demo
+recording. The binding contract is [`docs/prd.md`](docs/prd.md); the capture format this program
+consumes is vendored read-only in [`contract/`](contract/). One open question remains, and it is
+open because its recipient has never replied — see [Status, in full](#status-in-full).
+
+---
+
+## Quickstart
+
+**Three commands, and the third is the whole product.** Needs Visual Studio 18.x, the N8RO SDK at
+`C:\N8RO`, and EXT-08's recorder binary — which is *not built here* and is
+[explained below](#the-fourth-binary-is-not-in-this-repository----recorder).
+
+```cmd
+tools\n8ro-campaign\build.cmd
+set PATH=C:\N8RO\bin;%PATH%
+
+build\n8ro-campaign\n8ro-campaign.exe repeat ^
+    --out-dir     campaigns\demo ^
+    --campaign    examples\atacama-raid-speed.json ^
+    --conditions  examples\atacama-raid.conditions.json ^
+    --recorder    <path-to-EXT-08>\build\x64\Release\n8ro-bridge.exe ^
+    --frames      1200
+```
+
+That one invocation runs the determinism self-test and **stops the campaign if it does not
+pass**, then executes one run per declared parameter value — starting the host and the recorder,
+publishing load and start, waiting for frame N, tearing down, reading the capture back, and
+judging it against the declared conditions — and prints a campaign report over all of them. A run
+that *fails* does not stop the campaign; a run the *harness* broke is reported as
+`infrastructure_error` and is never judged.
+
+**Or with no N8RO install at all.** Three of the four tools link nothing — not the SDK, not
+EXT-08, not a third-party JSON library — so a reviewer with an empty machine can still read a
+real capture:
+
+```cmd
+tools\n8ro-capture\build.cmd
+build\n8ro-capture\n8ro-capture.exe read contract\capture-atacama-air-defense-sample-0.9.0.n8rocap.jsonl
+```
+
+## Running Tests
+
+```cmd
+tests\build.cmd
+```
+
+**527 checks across five suites, and no N8RO install is required** — the capture reader, the
+determinism comparison, the parameter axis, the whole assertion surface and the JSON writer. The
+last two suites run twice, the second time under a comma-decimal locale. Exit `0` if every check
+passes, `1` otherwise with each failure named.
+
+The total is not typed on trust: the script sums what the suites actually printed and fails if it
+disagrees with [`tests/checks.golden.txt`](tests/checks.golden.txt) — because this figure *did*
+rot once (F-41). [CI runs the same tier](#ci--the-same-tier-on-a-machine-nobody-here-owns) on a
+stock `windows-latest` runner whose first step **fails the job if `C:\N8RO` exists**, which makes
+it the only claim in this repository that is not self-certified.
+
+## Architecture at a Glance
+
+**EXT-08 records; EXT-17 runs the campaign.** The prerequisite component, [EXT-08 — Bus Telemetry
+Bridge](https://github.com/EgeCankaya/EXT-08), attaches to a running N8RO simulation over the
+message bus and streams what the engine publishes into a durable, versioned, self-describing
+`n8ro-capture/1` file. EXT-17 drives that headlessly: it starts the simulation host and EXT-08's
+recorder as child processes, publishes scenario load and engine start on the control path, waits
+for the engine's own frame counter to reach N, tears the run down, then **reads the capture back
+and works only from the file** — the determinism comparison, the sweep's result column and every
+verdict are computed from stored bytes, never from live bus traffic.
+
+**The two repositories share no source** — not a header, not a snippet, not a class name relied
+upon. What crosses the boundary is a process and a documented file format, vendored read-only in
+`contract/`; the reader here was written from that document alone, which is why a capture recorded
+by any conformant producer reads here just as well. EXT-17 never subscribes to entity state
+itself, because a second subscriber would perturb the publication schedule the determinism gate
+measures.
+
+## Key Decisions & Trade-offs
+
+- **The determinism gate decides on *content*, not bytes — and the cost is stated, not hidden.**
+  Measured here: two runs stopped at the same frame agree on **50 358 of 50 358** samples and are
+  **never** byte-identical (0 of 190 pairs), because ~0.2% of frames go unpublished, differently
+  each run. A byte gate fails identically on a clean harness and a broken one, so it distinguishes
+  neither — which is precisely what the brief says the self-test is *for*. Both comparisons always
+  run and are always reported; which one *decides* is `--gate-basis`. **Trade-off:** this is
+  weaker than the strictest reading of the brief's *"identical captures"*, so every claim of that
+  criterion carries "under the content reading" in the same breath, and four tests exist to stop
+  anyone later deleting the caveat.
+- **The intersection has a floor, and an emptied gate is a refusal rather than a pass.** 99% of
+  the smaller run's comparable samples, or the verdict is `indeterminate`; `frozen` and
+  `indeterminate` segments are excluded, which stops a campaign at its own gate roughly **1 pair
+  in 14** for a reason that is not a determinism failure. **No retry was added** — the refusal
+  names the shape it found. The first real opportunity to weaken the gate is committed as evidence
+  at `campaigns/m6-gate-refused/` rather than discarded in favour of the clean run.
+- **One parameterisation axis, chosen by measurement.** *"One axis done properly beats four done
+  loosely."* Which axis was decided by exercising all three candidates over 18 probe runs, not by
+  arguing from a feasibility result. It acts through exactly one seam, so there is no parameter
+  the run record does not know about. **Trade-off:** acting before `start` can land between two
+  roster publications and freeze segment 0 — measured **4 of 35** parameterised runs against 1 of
+  27 ordinary ones. A mitigation exists (apply at frame ≥ 1) and was **deliberately not taken**,
+  because the axis would then be "state at frame 1" rather than the one the brief names.
+- **The declared *text* of a value is authoritative and the double is derived.** `27.5` reaches
+  the run record and the report as `27.5`. Runs align on the verbatim text of `sim_time_s` and
+  values are digested from their original text, which puts the locale hazard *off* the deciding
+  path rather than testing it back off.
+- **A capture ignores unknown keys; a campaign file and a condition file refuse them.** The
+  inversion is deliberate and the reason is authorship: the format is somebody else's and must
+  survive a producer adding a field — it already has, twice, across three producer releases —
+  while a campaign file is written by a person, where `"value"` for `"values"` would otherwise be
+  a sweep that silently did not happen.
+- **`expect` is the one key added to the vendored condition schema, and it is kept apart from the
+  verdict.** The upstream schema is a *referee*: it reports whether a condition was satisfied and
+  says nothing about whether that is welcome, which cannot express *"did anything reach a terminal
+  state it should not have"*. The fact stays in the upstream vocabulary (`met` / `not_met`) and
+  the expectation is a separate field, so EXT-08's verdicts and a re-judgement here stay
+  comparable. **Absence is never read as evidence** unless the format's own invariant makes it
+  sound — classified per *form* rather than per kind, which is finer than the requirement asks.
+- **Four components link nothing, and the build proves it rather than promising it.** Each build
+  script searches its own sources and fails on a hit: for the SDK's and the producer's names, for
+  any global sort of a capture, for a clock read or a locale-dependent conversion, and for any
+  mention of a process, a bus or the control path on the assertion path. That last one turns the
+  brief's *"no host started and no bus subscription made"* into a property rather than a promise.
+- **Contract defects went upstream instead of being worked around.** Four imprecisions found in
+  the vendored format were raised as issues against EXT-08; **all four came back fixed, and
+  nothing here changed** — every correction confirmed behaviour already implemented and stated
+  beside the text it disagreed with. That is what raising them bought rather than patching around
+  them.
+- **Nothing throws, and that is now a property rather than a habit.** A capture with no line feed
+  once cost 1 008 MB of peak working set to *reject* a 512 MB file, which at the campaign's own
+  ceiling is an allocation failure — in a codebase that had no `try` anywhere. It is now a bounded
+  line reader, a catch that still tears down and still writes the run record, and a catch in each
+  `main` that exits `4`.
+
+## Documentation
+
+**[`docs/prd.md`](docs/prd.md) is the deep dive and the binding contract** — the full requirements
+document, written against the client brief and revised twelve times as measurement contradicted
+it. Read it for the requirement-by-requirement traceability (Appendix A), the user acceptance
+criteria (Appendix B), the architecture decision records (Appendix C), and the risks and open
+decisions.
+
+Three documents sit beside it, and each is the record of something this README only summarises:
+
+| | |
+|---|---|
+| [`contract/PROVENANCE.md`](contract/PROVENANCE.md) | **Read this first if you are reviewing the boundary.** What crossed from EXT-08, what did not, and the measured findings that bind what this repository was allowed to build |
+| [`docs/determinism-notes.md`](docs/determinism-notes.md) | What had to be done to make run-to-run comparison meaningful — **and the things that could not be explained** |
+| [`docs/escalations.md`](docs/escalations.md) | Every question that went to somebody else, what came back, and what was decided here when nothing did. `drafted` is not `sent`, and `sent` is not `fixed` |
+
+The rest of this README is the reference manual: everything below is detail behind one of the
+five sections above.
+
+---
+
+## Status, in full
+
 **Status: milestone 7 of 7 — complete. Every deliverable the brief names is in, and the demo
 recording is [published as one
 take](https://drive.google.com/drive/folders/16cR82ynxrcmrzJofwHKdpReNlPj1C--M?usp=sharing)**
