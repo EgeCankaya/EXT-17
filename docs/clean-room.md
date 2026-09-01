@@ -302,6 +302,20 @@ rather than letting a clean second half stand in for more than it covers.
 - It ran on a machine that **has** `C:\N8RO`. The zero-install claim is covered by the CI job on
   `windows-latest`, which asserts the runner has no install and fails otherwise, and that remains
   the only claim here that is not self-certified.
+- **It ran on a machine that has BOTH toolchains, so it silently used 18.x for everything — and
+  the pair does not build without it.** Measured afterwards, forcing stock VS 2022 (cl **19.44**)
+  with no VS 18 in scope: EXT-17's free tier builds and passes **469 checks, 0 failures**, so the
+  17.x widening F-43 added is verified a second time. **EXT-08 does not build at all** —
+  `error MSB8020: The build tools for v145 (Platform Toolset = 'v145') cannot be found`. `v145` is
+  defined only inside VS 18's `v180` directory; VS 2022 ships MSVC 14.44 and the SDK at `C:\N8RO`
+  was built with 14.51. So an evaluator on stock VS 2022 gets EXT-17's three SDK-free tools and
+  its whole test suite, and **cannot build the recorder** — which means no capture, no judgement
+  and no campaign. **This is a precondition to state rather than a defect to fix**: pinning `v145`
+  is the same reasoning EXT-17's own `sdk` tier uses, and mixing toolsets across an import library
+  is a bug class neither project should be discovering at 2am. Both repositories require **VS 18.x
+  for their SDK-linked halves, for the same good reason**; EXT-08's README says so under
+  Requirements and EXT-17's now does too. It is the one thing a green pair test can hide, because
+  the machine that runs it is the machine least likely to be missing a toolchain.
 - **It was run once, in each order.** F-29 says the gate can refuse a whole campaign about 1 pair
   in 14; it did not refuse here, and one pass is not evidence that it will not.
 - It cannot find what neither README claims. F-51 was findable only because the README *did* claim

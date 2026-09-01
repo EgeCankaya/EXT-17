@@ -255,6 +255,16 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`. A run that
 additionally needs EXT-08's recorder binary, which is **not built here** — see *"The fourth
 binary is not in this repository"* below, after the build scripts.
 
+**Which Visual Studio, precisely, because it splits.** The four SDK-linked targets —
+`n8ro-campaign`, `m1-run` and the two spikes — need **18.x**, to match the toolset `C:\N8RO`
+2.1.328 was built with; `tools\find-vcvars.cmd` requires it and says so by name rather than
+failing at the link. The other four — `n8ro-capture`, `n8ro-compare`, `n8ro-judge` and
+`tests\build.cmd` — link nothing and accept **17.x or 18.x**. **The pair as a whole needs 18.x**,
+because EXT-08's recorder pins toolset `v145` for the same reason this project's `sdk` tier does:
+measured on stock VS 2022, EXT-17's free tier builds and passes its whole suite while EXT-08 stops
+at `error MSB8020: The build tools for v145 … cannot be found`. So a reader on VS 2022 can run
+every test here and cannot record a capture. `docs/clean-room.md` §7 has the measurement.
+
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
 tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
