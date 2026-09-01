@@ -1,0 +1,75 @@
+# EXT-17 — line endings, declared rather than inherited.
+#
+# WHY THIS FILE EXISTS (F-42). Git for Windows defaults to `core.autocrlf=true`, and until this
+# file was added there was nothing to override it, so what a clone contained depended on the
+# cloner's git configuration. Measured on a cold clone of `master`:
+#
+#     contract/capture-atacama-air-defense-sample.n8rocap.jsonl   0 CR here, 7180 CR in a clone
+#     contract/example.conditions.json                            0 CR here,   78 CR in a clone
+#
+# It was invisible from the working directory. Those files were written LF by the vendoring and
+# never checked out again, so the working copy stayed correct while every clone did not. Only a
+# clone reads what ships.
+#
+# WHAT IT BROKE, PRECISELY — because it is narrower than it looks. Not the tests:
+# `CaptureReader.cpp` strips a stray CR rather than making it fatal (format §2) and
+# `JsonParse.cpp` treats one as whitespace, so both files still parse and all 475 checks still
+# pass on a fresh clone. What it broke is the thing `contract/` exists to be. E-5 was resolved by
+# EXT-08 creating a real upstream file that this project vendors **by identity**, and CLAUDE.md
+# says so in those words. A checkout entitled to rewrite 7180 of its bytes means the identity
+# held on one machine and nowhere else. A pin that only pins locally is not a pin.
+#
+# ORDERING MATTERS AND IS THE EASY MISTAKE. In a `.gitattributes` the LAST matching line wins,
+# so the general defaults come first and the specific pins come last. Written the other way
+# round — pins first, `*.json text` last — `*.json` would silently un-pin
+# `contract/example.conditions.json` and this file would look right while doing nothing.
+
+# --- Defaults ---------------------------------------------------------------------------------
+# Sources and documents are ordinary text: normalised to LF in the repository, checked out in
+# whatever the platform wants. Nothing compares any of them byte for byte.
+*.cpp   text
+*.h     text
+*.md    text
+*.json  text
+*.jsonl text
+*.py    text
+*.txt   text
+*.log   text
+*.yml   text
+
+# cmd.exe is documented to want CRLF and misparses some constructs without it. Declared rather
+# than left to autocrlf, so a clone on a machine configured `core.autocrlf=false` — or on Linux,
+# where this repository is browsed even though nothing here runs — still gets batch files that
+# work when copied to a Windows box.
+*.cmd   text eol=crlf
+
+# --- CRLF pins: artifacts a Windows tool wrote and a Windows tool compares ----------------------
+# These are stored LF in the repository (they always have been) and checked out CRLF EVERYWHERE,
+# rather than only on a machine whose autocrlf happens to be `true`. That is the point: the
+# goldens are compared with `fc` against what the binaries actually print, and a Windows console
+# program prints CRLF. A reviewer cloning with `core.autocrlf=false` — a common setting — would
+# otherwise get LF goldens, and the build would fail on a difference nobody introduced.
+help.golden.txt         text eol=crlf
+tests/checks.golden.txt text eol=crlf
+
+# `n8ro-judge --verify` byte-compares a re-judgement against the live run's verdicts, so the
+# committed verdicts must check out as the tool will write them.
+verdicts*.jsonl         text eol=crlf
+
+# Every campaign's run records, report, run-to-run diff and transcript: the artifacts a number in
+# a milestone document traces to. All were written by a Windows tool; all check out as written.
+campaigns/**            text eol=crlf
+
+# --- Byte-exact pins: LAST, because the last matching line wins ---------------------------------
+# `-text` means git stores and restores these bytes exactly and converts nothing, in either
+# direction, on any platform. These two lines are at the bottom of the file deliberately: a
+# capture may live under `campaigns/`, and the CRLF pin above must not be allowed to reach it.
+
+# All of `contract/`, not only the data files. The two specifications are vendored by identity
+# too, and a drift check is worth nothing if checkout may edit its input.
+contract/**     -text
+
+# Any capture, anywhere — including one produced by a run into a campaign directory. The format's
+# §2 is "LF. Never CRLF, on any platform". This is that sentence enforced against the one process
+# in the pipeline that was ignoring it.
+*.n8rocap.jsonl -text
