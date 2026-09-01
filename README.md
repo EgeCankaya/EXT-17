@@ -6,7 +6,18 @@ conditions declared outside the code, and reports across the campaign.
 **Milestone 7 of 7 — complete.** Every deliverable the brief names is in, down to the demo
 recording. The binding contract is [`docs/prd.md`](docs/prd.md); the capture format this program
 consumes is vendored read-only in [`contract/`](contract/). One open question remains, and it is
-open because its recipient has never replied — see [Status, in full](#status-in-full).
+open because its recipient has never replied.
+
+**The determinism gate is keyed on content rather than on bytes, and that is this project's
+decision (ADR-1) rather than the client's.** It is taken from the brief's own account of what the
+self-test is *for*: a byte gate fails 190 of 190 pairs here **identically on a clean harness and
+on a broken one**, so it tells the two apart in neither case, while the content gate passed 190 of
+190 clean and refused a real pair for a real reason at M6. Both comparisons always run and both
+are always reported; only which one *decides* is the deviation. So the brief's acceptance
+criterion 2 is met **under the content reading** — decided by the DRI, concurred with
+independently by the mentor, and **never answered by the brief's author, who has not replied**.
+See [Status, in full](#status-in-full) and
+[Proving determinism](#proving-determinism--the-self-test-and-the-gate).
 
 ---
 
