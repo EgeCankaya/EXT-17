@@ -19,9 +19,13 @@ commands:
                            with it, one run per declared parameter value.
   report                   re-render a STORED campaign's report from the run records it
                            already wrote. Starts nothing, reads no capture, and needs no
-                           N8RO install - a reviewer re-reading last week's campaign has no
-                           host and needs none, and a twenty-run campaign takes about 25
-                           minutes to produce. Pass --campaign to order the sweep tables:
+                           host, scenario or recorder - a reviewer re-reading last week's
+                           campaign has none of those and needs none, and a twenty-run
+                           campaign takes about 25 minutes to produce. It DOES still need
+                           C:\N8RO\bin on PATH, because it is a command of this binary and
+                           this binary links the SDK; without it you get 0xC0000135 and no
+                           output. n8ro-judge and n8ro-capture link nothing and need no
+                           install at all (F-52). Pass --campaign to order the sweep tables:
                            the axis declares that order and it is not re-derivable from the
                            run records. It prints through the SAME printer the live campaign
                            uses, so a re-rendered report cannot disagree with the one the
@@ -39,9 +43,11 @@ the determinism self-test (CR-DET-1, and step 4 of the brief - a HARD GATE):
               segments only. A sample present in one run and absent from the other is NOT
               a difference: this platform publishes a slightly different subset of frames
               every run. It is counted and reported.
-    bytes     byte for byte, with platform.model_path excluded - the one field the capture
-              format names as legitimately host-dependent. EXPECTED TO FAIL here, and never
-              engineered to pass.
+    bytes     byte for byte, with platform.model_path excluded, and that is the only
+              exclusion made. s14's host-dependent list widened to three at the fifth pin;
+              the other two are keys only a ROTATED capture carries, which this runner never
+              produces (OQ-6 decided stop). See n8ro-compare --help and F-50.
+              EXPECTED TO FAIL here, and never engineered to pass.
 
   Which of the two decides is OQ-2, and it is DECIDED: content, by the DRI on 2026-09-01,
   from the brief's own words - and CONCURRED with by the mentor the same day, who reached

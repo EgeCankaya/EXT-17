@@ -114,7 +114,7 @@ anyone has to remember.
 | | |
 |---|---|
 | **content** | per `(entity, occupancy)` value sequences aligned on `sim_time_s`, **running segments only**. Values are compared as the verbatim text the capture carried, never as reformatted numbers |
-| **bytes** | byte for byte, with `platform.model_path` excluded — the one field the format names as legitimately host-dependent (§14), and the only exclusion there will ever be. **Expected to fail here, and never engineered to pass** |
+| **bytes** | byte for byte, with `platform.model_path` excluded — **and that is the only exclusion made.** §14's host-dependent list widened from one field to three at the fifth pin (E-7); the other two, `header.continues_from` and `trailer.continued_in`, exist only in a **rotated** capture, which this project never produces because OQ-6 decided `stop`. The gap is real, bounded and recorded as **F-50** rather than papered over. **Expected to fail here, and never engineered to pass** |
 
 **Which of the two decides the gate is OQ-2, and it is DECIDED — content — and was never
 ANSWERED.**
@@ -255,6 +255,16 @@ Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`. A run that
 additionally needs EXT-08's recorder binary, which is **not built here** — see *"The fourth
 binary is not in this repository"* below, after the build scripts.
 
+**Which Visual Studio, precisely, because it splits.** The four SDK-linked targets —
+`n8ro-campaign`, `m1-run` and the two spikes — need **18.x**, to match the toolset `C:\N8RO`
+2.1.328 was built with; `tools\find-vcvars.cmd` requires it and says so by name rather than
+failing at the link. The other four — `n8ro-capture`, `n8ro-compare`, `n8ro-judge` and
+`tests\build.cmd` — link nothing and accept **17.x or 18.x**. **The pair as a whole needs 18.x**,
+because EXT-08's recorder pins toolset `v145` for the same reason this project's `sdk` tier does:
+measured on stock VS 2022, EXT-17's free tier builds and passes its whole suite while EXT-08 stops
+at `error MSB8020: The build tools for v145 … cannot be found`. So a reader on VS 2022 can run
+every test here and cannot record a capture. `docs/clean-room.md` §7 has the measurement.
+
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
 tools\n8ro-capture\build.cmd       ->  build\n8ro-capture\n8ro-capture.exe
@@ -267,8 +277,13 @@ tests\build.cmd                    ->  builds and runs the tests
 correctness is about our own output rather than about the platform; since M3 the capture reader,
 whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
 correctness is what every other result rests on; since M5 the axis; and since M6 the whole
-assertion surface. **72 + 105 + 126 + 166 = 469 checks** across five suites, of which the last
-two are each run twice, the second time under a comma-decimal locale.
+assertion surface. **87 + 105 + 126 + 166 = 484 checks** across five suites, of which the last
+two are each run twice, the second time under a comma-decimal locale. (Four addends and five
+suites: `json_writer_test` prints no count line and contributes 0 to the sum, which
+`tests\build.cmd` says beside the code that sums them. A failure there still fails the build,
+through its exit code rather than through its count.) It was 469 until the fifth pin, when the
+capture reader gained **tier 1b** — fifteen checks over a committed producer-**0.9.0** fixture,
+because until then nothing on a fresh clone had read one (F-49).
 
 **That number is not typed here on trust.** `tests\build.cmd` sums what the suites actually
 printed and fails if the total is not the one in `tests\checks.golden.txt` — the same mechanism
@@ -277,11 +292,11 @@ as the four golden `--help` files, and for the same reason. It is here because t
 which is the third counting-drift finding in this project's own log (F-41). Growing the suite
 means updating the golden file and this sentence in the commit that grew it.
 
-**469 is the MANDATORY total, and that distinction was itself a finding (F-44).** The capture
+**484 is the MANDATORY total, and that distinction was itself a finding (F-44).** The capture
 reader's tier 4 reads the real producer-0.9.0 captures under `campaigns\m2-oq1\runs`, which are
 untracked and 569 MB — so it runs on the machine that has them and is skipped everywhere else,
 and it contributes **6 further checks** there. The count was therefore a property of the machine:
-475 on the development machine, 469 on a clean runner, zero failures both times. **A golden that
+475 on the development machine, 469 on a clean runner, zero failures both times (490 and 484 since the fifth pin). **A golden that
 only holds in one place is the same defect the golden was added to prevent**, and it was found
 the first time this repository was built anywhere else — by the CI job below, on its first run.
 The suite now prints its optional count separately and `tests\build.cmd` subtracts it, so the
@@ -291,7 +306,7 @@ captures are, and a failure in one still fails the suite; only the count is held
 ### CI — the same tier, on a machine nobody here owns
 
 `.github/workflows/zero-install-tier.yml` runs all of the above on a stock `windows-latest`
-runner: the 469 checks, the three SDK-free tool builds with their boundary searches and golden
+runner: the 484 checks, the three SDK-free tool builds with their boundary searches and golden
 `--help` comparisons, and then a read of EXT-08's capture and a load of EXT-08's condition file
 with neither EXT-08 nor the SDK present. **Its first step asserts the runner has no `C:\N8RO` and
 no `N8RO_RELEASE`, and fails the job otherwise**, because none of the rest means anything on a
@@ -345,9 +360,9 @@ source, which is the rule this project is organised around.
 
 | | |
 |---|---|
-| What it is | EXT-08's capture recorder, built from that repository — typically `…\EXT-08\build\x64\Release\n8ro-bridge.exe`. The committed campaigns record the exact path they used in each run's `run.json` under `environment.recorder_exe` |
+| What it is | EXT-08's capture recorder, built from that repository — **[github.com/EgeCankaya/EXT-08](https://github.com/EgeCankaya/EXT-08)**. Clone it, follow its README's Build section (`call C:\N8RO\setup.cmd`, `call C:\N8RO\dev\setup-dev.cmd`, `msbuild n8ro-bridge.sln /p:Configuration=Release /p:Platform=x64`), and the binary lands at `build\x64\Release\n8ro-bridge.exe` — typically `…\EXT-08\build\x64\Release\n8ro-bridge.exe`. The committed campaigns record the exact path they used in each run's `run.json` under `environment.recorder_exe`. **This line names the repository because until the clean-room pair test nothing here did (F-51)**: a reader arriving at EXT-17 first was told a binary from another repository was required and never told which one or where |
 | What it does here | It holds the bus subscription and writes the `n8ro-capture/1` file. **EXT-17 never subscribes to entity state itself** — that is why `src/control/` publishes on the control path only, and why resolving an entity glob is refused: a second subscriber would perturb the publication schedule the determinism gate measures |
-| Which commands need it | `run-once`, `repeat` and `self-test`. **`report` and every `n8ro-judge` command do not** — they read stored files, start nothing, and need no N8RO install either |
+| Which commands need it | `run-once`, `repeat` and `self-test`. **`report` and every `n8ro-judge` command do not** — they read stored files and start nothing. **But only `n8ro-judge` and `n8ro-capture` need no N8RO INSTALL; `report` does (F-52).** It is a command of `n8ro-campaign`, which links the SDK, so the binary will not load without `C:\N8RO\bin` on `PATH` however little that command uses it — measured on a cold clone: exit `0xC0000135`, no output, no diagnostic. What `report` genuinely needs nothing of is a **host, a scenario and a recorder** |
 | If you do not have it | `--no-recorder` still executes and still writes `run.json`; there is simply no capture, so nothing can be judged, compared or swept |
 
 **What crosses the boundary is a process and a documented file format, never a symbol.** The
@@ -399,7 +414,8 @@ n8ro-campaign repeat ^
     --conditions examples\atacama-raid.conditions.json ^
     --recorder <...>
 
-rem Re-read a stored campaign's report. Starts nothing; needs no N8RO install.
+rem Re-read a stored campaign's report. Starts no host and reads no capture. It still needs
+rem C:\N8RO\bin on PATH: it is a command of the SDK-linked binary (F-52).
 n8ro-campaign report --out-dir campaigns\m6-campaign ^
     --campaign examples\atacama-raid-speed-20.json
 
@@ -1095,6 +1111,13 @@ somebody's memory. The counts are the part a re-run can be compared against.
 | `campaigns/m4-gate/`, `m4-bytes/`, `m4-frozen/`, `m4-overload/` | The gate, the byte basis, a frozen segment, and a deliberately overloaded recorder |
 | `campaigns/m3-oq6/`, `m2-oq1/`, `m2-axis/` | Rotation probed rather than read about; the twenty runs the stop predicate was decided on; the axis feasibility spike |
 
+**The cross-repo pair test is in [`docs/clean-room.md`](docs/clean-room.md), and it is written the
+same way.** Both repositories cloned cold from GitHub, both READMEs followed literally, from zero
+to a recorded-and-judged run, **in both orders** — because the order decides what you can see. It
+found seven things (F-46 to F-52), two of which block an evaluator and neither of which is visible
+from either working directory or from either repository read alone. The document records what
+happened rather than that it passed.
+
 **A refused or defective execution is never deleted in favour of a clean one.** `m5-sweep-first`
 is where F-24 was found; `m6-gate-refused` is a real gate failure; `m6-campaign/campaign.log`
 still carries F-35's defect while `report.txt` carries the same records after the fix. Keeping
@@ -1200,4 +1223,4 @@ measured evidence; that remains a separate statement.
 | `tools/m2-checks/` | Throwaway analysis scripts, superseded by `n8ro-capture` at M3. Kept only because `oq1_table.py` is the published reproduction command for `docs/m2-oq1.md`'s table |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind `docs/m1-lifecycle.md` |
 | `contract/` | Vendored from EXT-08. Read-only |
-| `docs/` | The PRD, the milestone records, the escalations, and `findings.md` — **one index over every issue this project has found**, and the place to start |
+| `docs/` | The PRD, the milestone records, the escalations, and `findings.md` — **one index over every issue this project has found**, and the place to start. `clean-room.md` is the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included |

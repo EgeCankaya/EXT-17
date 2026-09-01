@@ -3,24 +3,32 @@
 // This is the artifact CR-CAP-2 is checked against, and it links nothing: not EXT-08, not the
 // N8RO SDK. `tests\build.cmd` builds and runs it, and it needs no N8RO install to pass.
 //
-// Four tiers, and the reason for four rather than one is that the vendored fixture cannot
-// exercise everything the specification requires:
+// Five tiers, and the reason for five rather than one is that no single fixture can exercise
+// everything the specification requires:
 //
-//   1. **The vendored fixture, untouched.** `contract/` is read-only, so nothing here writes
-//      into it. This tier is also the `contract/` drift check the PRD asks be re-run at the
-//      start of every milestone (R4).
+//   1. **The vendored 0.5.0 fixture, untouched.** `contract/` is read-only, so nothing here
+//      writes into it. This tier is also the `contract/` drift check the PRD asks be re-run at
+//      the start of every milestone (R4). It is the fixture that predates `sample_form`,
+//      `limits` and `part`, and three of its checks assert those keys are reported ABSENT
+//      rather than defaulted (§6.3a, §6.6) — which is why it was not replaced at the fifth pin.
+//   1b. **The vendored 0.9.0 fixture**, added at the fifth pin. The same scenario, written by
+//      the producer release the pin actually names, so the three keys above are exercised
+//      PRESENT. Before it existed, that path ran only in tier 4 and therefore only on the
+//      development machine: on a fresh clone nothing read a real 0.9.0 capture at all. Found by
+//      the clean-room pair test (F-49), not by anything here.
 //   2. **Mutations, generated at test time into `build/tests/mutations/`.** Copies, edited in
 //      the build tree. Nothing mutated is committed, so no mutant can go stale against a
 //      re-pinned fixture.
-//   3. **Synthetic micro-captures**, written inline. Each isolates one rule the fixture cannot
+//   3. **Synthetic micro-captures**, written inline. Each isolates one rule no fixture can
 //      reach — an empty segment, a rotated set, a non-finite double, a name re-used at a higher
 //      occupancy. A capture small enough to read in the test that asserts on it is worth more
 //      than one hidden in a file.
 //   4. **The real 0.9.0 captures** under `campaigns/m2-oq1/`, when they are present. R4's own
 //      mitigation says so in as many words: *"test against a capture written by the pinned
-//      producer, not only against the vendored fixture"* — the fixture is producer 0.5.0 and
-//      carries none of `sample_form`, `limits` or `part`. Skipped **with a printed message**
-//      when the directory is absent, never silently.
+//      producer, not only against the vendored fixture"*. Tier 1b now covers that claim on
+//      every machine; tier 4 remains what covers it across TWENTY runs rather than one, which
+//      is where the roster-lifecycle invariants live. Skipped **with a printed message** when
+//      the directory is absent, never silently.
 //
 // Never throws, like everything else here: a failure is a printed line and a non-zero exit.
 #include "../src/capture/CaptureReader.h"
@@ -242,6 +250,91 @@ void tier1Fixture(const fs::path& root) {
     // §8.2 and §6.5. The declaration order is normative; `activeAnimation` is declared and, on
     // runtime 2.1.328, published by nobody. A reader that defaulted it would invent data.
     ok("one message type declared, with twelve fields in declaration order",
+       r.header.schemas.size() == 1 && r.header.schemas[0].fields.size() == 12
+           && r.header.schemas[0].fields.front().name == "simulationTime"
+           && r.header.schemas[0].fields.back().name == "activeAnimation",
+       std::to_string(r.header.schemas.size()) + " schema(s)");
+}
+
+// --- Tier 1b -------------------------------------------------------------------------------
+//
+// The SECOND vendored fixture, producer 0.9.0, added at the fifth pin (F-49).
+//
+// WHY A SECOND FIXTURE RATHER THAN A REPLACED ONE. Tier 1's fixture is producer 0.5.0 and
+// three of its checks assert that `sample_form`, `limits` and `part` are *absent* and are
+// reported as absent rather than defaulted - §6.3a and §6.6's rule that an absent key means
+// unknown. Swapping the fixture for a 0.9.0 one would delete that coverage to buy this, which
+// is a trade and not a fix. Both files are real captures of the same scenario written by two
+// real producer releases, so the pair is exactly the compatibility question the format's §13
+// exists for: the same reader, the same version, one file that predates three keys and one
+// that carries them.
+//
+// WHAT IT CLOSES. Until the fifth pin the 0.9.0 keys were exercised only by tier 4, which
+// reads the untracked 569 MB under campaigns/m2-oq1 and is skipped everywhere else - so on a
+// FRESH CLONE nothing read a real 0.9.0 capture at all, and the suite said so in its own
+// skip line. Found by the clean-room pair test, not by any check here. These are mandatory
+// checks: they run on every machine, because their input is committed.
+void tier1bFixture090(const fs::path& root) {
+    std::printf("\ntier 1b - the vendored 0.9.0 fixture (the fifth pin; tier 1 is 0.5.0)\n");
+    const fs::path path =
+        root / "contract" / "capture-atacama-air-defense-sample-0.9.0.n8rocap.jsonl";
+    const ReadResult r = readFile(path.string());
+
+    ok("the 0.9.0 fixture parses completely and conformantly", r.conformant(), codesIn(r));
+    ok("format_version is n8ro-capture/1 - a producer release is NOT a version change",
+       r.header.formatVersion == kFormatVersion, r.header.formatVersion);
+    ok("producer is 0.9.0", r.header.producerVersion == "0.9.0", r.header.producerVersion);
+    ok("11150 lines read", r.tallies.lines == 11150, std::to_string(r.tallies.lines));
+    ok("our tally agrees with trailer.counts",
+       r.tallies.samples == r.trailer.counts.samples
+           && r.tallies.entityAdds == r.trailer.counts.entitiesAdded
+           && r.tallies.entityRemoves == r.trailer.counts.entitiesRemoved
+           && r.tallies.verdicts == r.trailer.counts.verdicts
+           && r.tallies.segmentsOpened == r.trailer.counts.segments,
+       "ours " + std::to_string(r.tallies.samples) + "/" + std::to_string(r.tallies.entityAdds)
+           + "/" + std::to_string(r.tallies.entityRemoves));
+    ok("10915 samples, 132 adds, 90 removes, 7 verdicts, 2 segments",
+       r.tallies.samples == 10915 && r.tallies.entityAdds == 132 && r.tallies.entityRemoves == 90
+           && r.tallies.verdicts == 7 && r.tallies.segmentsOpened == 2,
+       codesIn(r));
+
+    // The three keys tier 1's fixture predates, here PRESENT and read - which is the whole
+    // reason this fixture is committed. §6.3a: `published` and not `predicted`, stated by the
+    // file rather than inferred by us.
+    ok("sample_form is present and reads \"published\"",
+       r.header.hasSampleForm && r.header.sampleForm == "published", r.header.sampleForm);
+    ok("limits is present and reads as unbounded-with-stop, not as absent",
+       r.header.hasLimits && r.header.maxBytes == 0 && r.header.maxSamples == 0
+           && r.header.onSizeLimit == "stop",
+       std::to_string(r.header.maxBytes) + "|" + std::to_string(r.header.maxSamples) + "|"
+           + r.header.onSizeLimit);
+    ok("part is present and reads 0", r.header.part == 0, std::to_string(r.header.part));
+
+    // §14's host-dependent list, widened at this pin (E-7). An UNROTATED capture omits both
+    // keys entirely, which is what makes `platform.model_path` the only exclusion that can
+    // ever bite a capture this project produces - OQ-6 decided `stop`.
+    ok("an unrotated capture carries neither continues_from nor continued_in",
+       r.header.continuesFrom.empty() && r.trailer.continuedIn.empty(),
+       "\"" + r.header.continuesFrom + "\" / \"" + r.trailer.continuedIn + "\"");
+
+    // CR-CAP-4 again, on a different file: the two-segment shape is the platform's, not the
+    // fixture's, and it survived a producer release and a regeneration.
+    const SegmentStats* s0 = segment(r, 0, 0);
+    const SegmentStats* s1 = segment(r, 0, 1);
+    ok("two segments, both keyed on (part, segment)", s0 != nullptr && s1 != nullptr,
+       std::to_string(r.segments.size()) + " segment(s)");
+    if (s0 && s1) {
+        ok("segment 0 is running by the format's exact test",
+           s0->clock == ClockClass::Running && s0->maxSamplesPerEntityPerSimTime == 1,
+           std::string(name(s0->clock)) + ", max "
+               + std::to_string(s0->maxSamplesPerEntityPerSimTime));
+        ok("segment 1 is not running, and is excluded either way",
+           s1->clock != ClockClass::Running, name(s1->clock));
+        ok("segment 0's extent comes from its samples, not its boundary records",
+           s0->hasSamples && s0->lastSampleTimeS > 100.0,
+           std::to_string(s0->firstSampleTimeS) + " .. " + std::to_string(s0->lastSampleTimeS));
+    }
+    ok("the same twelve fields in the same declaration order as the 0.5.0 fixture",
        r.header.schemas.size() == 1 && r.header.schemas[0].fields.size() == 12
            && r.header.schemas[0].fields.front().name == "simulationTime"
            && r.header.schemas[0].fields.back().name == "activeAnimation",
@@ -848,6 +941,7 @@ int main(int argc, char** argv) {
     std::printf("repo root: %s\n", root.string().c_str());
 
     tier1Fixture(root);
+    tier1bFixture090(root);
     tier2Mutations(root, outDir);
     tier3Synthetic();
     tier3Rotation(outDir);

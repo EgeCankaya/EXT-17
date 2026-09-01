@@ -179,7 +179,8 @@ struct ContentResult {
 // --- The byte comparison ---------------------------------------------------------------------
 
 // Run and reported on every self-test, and **never engineered to pass** (ADR-1). The one
-// exclusion is the one §14 names — `platform.model_path`, "the one host-dependent field" — and
+// exclusion made is `platform.model_path`, and it is the only one made here — see F-50 and
+// `maskModelPath` in Compare.cpp for what §14 widened to at the fifth pin and why this did not —
 // the result says both that it was excluded and whether excluding it changed anything. Nothing
 // else is normalised, filtered or masked: a comparison made to pass by construction measures
 // nothing, and that is the rabbit hole this project's PRD names by name.

@@ -1,8 +1,18 @@
 # Escalations and questions out
 
-One row per question that leaves this project. A question is only ever marked **Answered** when
-a reply exists; "asked" and "answered" are separate things because conflating them is how a
-project ends up believing it has a ruling it never received.
+One row per question that leaves this project — **and, since the fifth pin, every question that
+arrives at it.** A question is only ever marked **Answered** when a reply exists; "asked" and
+"answered" are separate things because conflating them is how a project ends up believing it has
+a ruling it never received.
+
+**The file used to hold only outbound questions, and that was a gap rather than a scope.** E-7,
+E-8 and E-9 were raised by EXT-08 **against this project** as the consumer of `n8ro-capture/1`;
+EXT-17's author settled all three; EXT-08 wrote the answers into the frozen specification and
+closed them. None of it was recorded here, so for three weeks this project had ruled on three
+questions about the format it vendors and was reading a `contract/` copy that predated its own
+rulings. **An escalation this project ANSWERS makes `contract/` stale exactly as one it raises
+does** — F-38's mirror image, and the reason the fifth pin exists. Inbound rows carry `in` in the
+direction column and are as much this file's business as outbound ones.
 
 **Four states, not two.** `drafted` means written and **not delivered** — nobody has been told.
 `sent` means delivered and awaiting a reply. `answered` means a reply exists. A finding that is
@@ -45,7 +55,7 @@ sentences — see `contract/PROVENANCE.md`, "The fourth pin".
 Sections below are in the order they were last written, not in numerical order; the table is the
 index. `docs/findings.md` indexes these alongside every other issue this project has found.
 
-| # | Question | To | Raised | Status |
+| # | Question | To / from | Raised | Status |
 |---|---|---|---|---|
 | E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **ANSWERED IN FULL and CLOSED, 2026-09-01**, across two relays. First: **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Then, on the follow-up: **(a) yes**, the bus-publish route is the intended control path; **(c) the mentor declined to prescribe** - *"pick the one you prefer"* - which is a real answer and not a non-answer. **Every one of the six matched what was already built, so nothing changed.** (b) additionally produced **E-6**, now fixed |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI and CONCURRED with by the mentor, 2026-09-01 — content. Still NEVER ANSWERED by [B]'s author.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words (`docs/m7-oq2-oq3.md` §1); the mentor, asked separately, reached the same answer independently. **That is a second opinion, not a ruling** — criterion 2 is [B]'s author's to discharge — so the row stays `decided` and every report says all three things. **No code behaviour changed** — content was already the default; what changed is that the reports now carry the concurrence, guarded by two tests |
@@ -53,6 +63,9 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **FIXED, 2026-09-01, and not by the fix that was asked for** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), closed. EXT-08 created `docs/condition-file-schema.md` carrying all four sections, rather than replying "take those two as well", and added a test that fails if it drifts from its README. So the digest is now **vendored by identity** — which closes **F-19** as well. The geodesy here is unchanged and still this project's own decision; it now agrees with a vendored sentence instead of with an inference |
 | E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **FIXED, 2026-09-01** - [issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), closed. EXT-08's R8 block now states both preconditions and both failure modes. Fixed against the **corrected** citation: the issue as first filed named `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37), and the correction went as a comment rather than a silent edit. `contract/PROVENANCE.md` finding 6 - **ours** - carried the same omission and is corrected at the fourth pin |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **FIXED, 2026-09-01, and wider than it was raised** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), closed. EXT-08 took option (a) and folded in the **third** shape M5 found afterwards, which the issue never carried: §5.1 now states what a positive result establishes and lists all three. §14 gained the consequence this project pays — an emptied self-test is a **refusal, not a pass**, and retrying would make it a silent one. **No code changed here**; R12 and R14 are now upstream text |
+| E-7 **(in)** | **From EXT-08.** §14's host-dependent exclusion list named `platform.model_path` alone. `header.continues_from` and `trailer.continued_in` are host-dependent the same way — both embed the run label, which defaults to an ordinal derived from `--out-dir` | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17, and the answer is now specification.** EXT-17 took EXT-08's recommended option: name all three in §14, documentation-only, no version bump. Landed at EXT-08 `dd13a5f`; **vendored here at the fifth pin, three weeks late, because nothing recorded that the question had ever been asked.** It is the one of the three that did **not** confirm existing behaviour — `src/compare/` masks one field and still masks one — and that gap is **F-50**, open by decision with its bound stated |
+| E-8 **(in)** | **From EXT-08.** BTB-BP-4 AC3 asked for per-topic drop counts; the producer counts per **kind**, with the two event topics merged under one number | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17: make the requirement say what the producer does, and DECLINE per-topic keys rather than defer them** — they would be keys nobody reads, and the data-versus-structure split is the distinction a reader acts on. §16 now states the merge in writing. Landed at `dd13a5f`, vendored at the fifth pin. **Nothing here changed**: the reader reads `trailer.drops.samples_not_recorded` and the merge changes no obligation |
+| E-9 **(in)** | **From EXT-08.** §10 governs a not-met verdict's `segment` anchor, which in a **rotated** set may name a segment in an *earlier part* — and §7 said segment-carrying records fall inside an open segment of their own part, flatly | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17: §10 governs, and say so in both places** — including why the producer does not restamp, which is that a replay can reach only that anchor and restamping would make a live run and a replay of its own capture disagree. Landed at `dd13a5f`, vendored at the fifth pin. **Nothing here changed**: `SegmentKey` has been `(part, segment)` since M3 and `src/capture/CaptureSet.h` already said a per-segment statistic must key on it, in those words |
 
 ---
 

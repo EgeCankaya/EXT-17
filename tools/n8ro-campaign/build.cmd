@@ -10,8 +10,7 @@ rem Since M6 it also links src/assert, the condition evaluator, in the same dire
 rem and that is what makes CR-CAP-1's identity structural rather than promised: the campaign's
 rem "live" verdicts are produced by the same code, over the same stored capture, that
 rem n8ro-judge re-judges later. There is no second evaluator for the two to disagree about.
-rem tools
-8ro-judgeuild.cmd is that one's proof, and it carries the searches that keep the
+rem tools\n8ro-judge\build.cmd is that one's proof, and it carries the searches that keep the
 rem assertion path unable to reach a host or a bus.
 rem
 rem Since M4 it also links src/compare, the determinism comparison, for the same reason and in

@@ -9,15 +9,15 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `ca5118c`**, format version `n8ro-capture/1`, producer `0.9.0`.
+**Pinned at EXT-08 commit `bda3904`**, format version `n8ro-capture/1`, producer `0.9.0`.
 
-The specification last changed at EXT-08 `1dc2861` — **clarifications only**, see "The fourth
-pin" below; `ca5118c` is EXT-08's `main` at the time of pinning and carries that file unchanged.
+The specification last changed at EXT-08 `dd13a5f` — **clarifications only**, see "The fifth
+pin" below; `bda3904` is EXT-08's `main` at the time of pinning and carries that file unchanged.
 Pinning the branch head rather than the last commit that touched the file is deliberate — it
 makes "is this current?" one comparison against `main` rather than a question about which commit
 last mattered.
 
-This is the **fourth** pin, and the drift is worth stating as a live hazard rather than a
+This is the **fifth** pin, and the drift is worth stating as a live hazard rather than a
 footnote:
 
 | Pin | EXT-08 commit | Producer | Went stale because |
@@ -25,7 +25,8 @@ footnote:
 | 1st | `eedc228` | 0.7.0 | Stale within the hour — producer 0.8.0 added `header.sample_form` |
 | 2nd | `063b5ba` | 0.8.0 | Producer 0.9.0 added `header.limits`, `header.part`, `header.continues_from` and `trailer.continued_in` (BTB-CAP-6) |
 | 3rd | `78fd4ef` | 0.9.0 | **EXT-08 fixed the four defects EXT-17 raised against this directory** — E-3, E-4, E-5 and E-6 |
-| 4th | `ca5118c` | 0.9.0 | Current |
+| 4th | `ca5118c` | 0.9.0 | **EXT-08 resolved E-7, E-8 and E-9 — its OWN escalations, on EXT-17's ruling — and regenerated its sample capture.** Neither event is one anything here watches |
+| 5th | `bda3904` | 0.9.0 | Current |
 
 ### The fourth pin, and why it is the different one
 
@@ -80,6 +81,63 @@ So: raise it, and when it comes back fixed, re-pin in the same breath. That is F
 written rule rather than a check — which is stated plainly because the next one will be caught by
 somebody remembering.
 
+**Nobody remembered. The fifth pin is F-38 recurring, twice over, three weeks' worth of
+specification behind — and it was found by cloning, not by reading.** See below.
+
+### The fifth pin, and the two ways `contract/` went stale that F-38 did not cover
+
+**F-38 says a `fixed` escalation makes this directory stale. It is narrower than the problem.**
+Two things happened at EXT-08 after `ca5118c`, and neither is an escalation this project raised:
+
+**(a) EXT-08 resolved E-7, E-8 and E-9 — and it resolved them ON EXT-17'S RULING.** Those three
+were escalations addressed *to* this project as the consumer of `n8ro-capture/1`; EXT-17's author
+settled all three, EXT-08 wrote the answers into the frozen specification at `dd13a5f`, and
+**nothing was written down here at all** — `docs/escalations.md` went from E-1 to E-6 and stopped.
+So this project answered three questions about the format it vendors, had those answers become
+specification, and then carried on reading a copy that predates its own rulings. **F-38's mirror
+image: an escalation this project ANSWERS makes `contract/` stale exactly as one it raises does,
+because the answer lands upstream, in the file this directory copies.** The three are now recorded
+in `docs/escalations.md` with the rest.
+
+**(b) EXT-08 regenerated its sample capture, for its own reasons.** Its closing audit found that
+the file it shipped was producer **0.5.0** while its build was **0.9.0**, so the one capture in
+that repository could not show from the file itself either that its samples are published rather
+than predicted or that it was not cut short by a bound. It re-ran and re-trimmed. That is a defect
+fixed upstream that this project neither raised nor could have — and there is no escalation, no
+issue, and no version bump to notice it by. **The only thing that catches a producer-side
+regeneration is running the pin check.**
+
+**Neither is a version change, and `n8ro-capture/1` did not move.** EXT-08 admitted both
+specification edits through §13's post-freeze clarification table, and the two new rows say what
+the earlier two say: no capture byte, no record type, no key meaning and no reader obligation
+changed.
+
+| Was | Now | Where it landed here |
+|---|---|---|
+| **E-7** — §14's host-dependent exclusion list named `platform.model_path` alone | It names three. `header.continues_from` and `trailer.continued_in` embed the run label, which defaults to an ordinal derived from `--out-dir`, and are host-dependent the same way. **Reachable only in a rotated set** | **F-50, and this is the one thing that did NOT confirm existing behaviour.** `src/compare/` masks one field and still masks one. The reasons are in `maskModelPath`'s comment and F-50's row, and the gap is unreachable for any capture this project produces |
+| **E-8** — the producer counts drops per *kind*, not per topic, merging the two event topics | §16 says so in writing | Nothing here. The reader reads `trailer.drops.samples_not_recorded` and the merge changes no obligation |
+| **E-9** — a not-met verdict's `segment` may name a segment in an *earlier part* of a rotated set | §7 and §10 both say so, and say to key per-segment statistics on `(part, segment)` | Nothing here. `SegmentKey` has been `(part, segment)` since M3 and `CaptureSet.h` already said so in those words |
+| **The sample capture was producer 0.5.0** | EXT-08 ships a 0.9.0 one: 11 150 lines, 10 915 samples, same two segments, same 132/90/7 roster and verdict counts | **Vendored ALONGSIDE the 0.5.0 file, not instead of it** — see the artifact table below |
+
+**Why the 0.5.0 sample was kept rather than replaced.** Three of tier 1's checks assert that
+`sample_form`, `limits` and `part` are reported **absent** rather than defaulted, which is §6.3a
+and §6.6's rule that an absent key means *unknown*. A capture that carries all three cannot
+exercise that. Replacing the fixture would have deleted one kind of coverage to buy another;
+vendoring both buys both, and the pair is the compatibility question §13 exists for — one reader,
+one version, one file that predates three keys and one that carries them.
+
+**What that closes, and it is the reason this matters more than a stale string.** Until this pin,
+the 0.9.0 keys were exercised **only** by tier 4, which reads the untracked 569 MB under
+`campaigns/m2-oq1/` and is skipped everywhere else. So on a fresh clone — an evaluator's machine —
+**nothing read a real 0.9.0 capture at all**, while `README.md` and this file both name 0.9.0 as
+the pinned producer. The suite printed its own skip line every time and no one read it as the gap
+it was. Tier 1b is mandatory and runs on every machine, because its input is committed.
+
+**How this pin was found: the clean-room pair test (F-49), not any check here.** Cloning both
+repositories cold and following both READMEs literally is what surfaced a regenerated sample; the
+documented pin check, run for the first time since the fourth pin, is what turned one stale file
+into two. `docs/clean-room.md` is the record.
+
 **What EXT-17 changed as a result: nothing.** Every correction confirmed a behaviour this
 project had already implemented and stated — the corrected segment sum, the three frozen shapes,
 the geodesy, the two environment preconditions. That is the useful outcome of raising them
@@ -108,7 +166,8 @@ a per-capture byte bound instead of only projecting one.
 | File | What it is | Status in EXT-08 |
 |---|---|---|
 | `capture-format-v1.md` | The capture format specification, field by field | **FROZEN** at EXT-08's M7. A change to what it specifies is now a version bump and a downstream change — for us |
-| `capture-atacama-air-defense-sample.n8rocap.jsonl` | A real capture from a real run, trimmed to 3.2 MB | Every structural record kept; two entities' samples. Reports CONFORMS against the spec above |
+| `capture-atacama-air-defense-sample.n8rocap.jsonl` | A real capture from a real run, producer **0.5.0**, trimmed to 3.2 MB | Every structural record kept; two entities' samples. Reports CONFORMS. **Kept at the fifth pin rather than replaced**: it is the file that predates `sample_form`, `limits` and `part`, and tier 1 asserts they are reported absent rather than defaulted (§6.3a, §6.6). No longer EXT-08's shipped sample |
+| `capture-atacama-air-defense-sample-0.9.0.n8rocap.jsonl` | The same scenario, producer **0.9.0** — 11 150 lines, 10 915 samples, 5.1 MB. **Added at the fifth pin** | EXT-08's current `docs/sample-capture/`, vendored **by identity**. It is what makes the three 0.9.0 header keys readable on a machine that does not have the untracked 569 MB, which until this pin meant every machine but one |
 | `condition-file-schema.md` | The referee's condition-file shape — **and since the fourth pin the arithmetic and the boundary rules too** | Reference only, in that EXT-08's OQ-6 resolved EXT-17 may adopt or supersede it. But it is now a real upstream file (`docs/condition-file-schema.md`) vendored **by identity** rather than an excerpt assembled here. E-5 fixed, F-19 closed |
 | `example.conditions.json` | A working condition file for the reference scenario | Reference only |
 

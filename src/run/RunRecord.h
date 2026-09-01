@@ -195,7 +195,7 @@ struct RunRecord {
     std::string notJudgeableReason;
 
     // Every verdict, already rendered as one JSON object per line by the evaluator, so that the
-    // run record and <runDir>erdicts.jsonl carry the same bytes and cannot drift apart.
+    // run record and <runDir>\verdicts.jsonl carry the same bytes and cannot drift apart.
     std::vector<std::string> verdictJsonLines;
     std::vector<std::string> verdictTextLines;
     // Parallel, in declaration order, so the sweep table can build a column per condition
