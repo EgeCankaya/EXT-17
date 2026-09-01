@@ -241,7 +241,7 @@ deliberate change. The predicate now asks what it always meant: did this run *ex
 **And it prompted something worth having on its own.** Re-checking a report cost a 25-minute
 re-run, which is why the defect survived long enough to reach a committed artifact. `n8ro-campaign
 report <dir>` now re-renders a stored campaign from the run records it already wrote — starting
-nothing, reading no capture, needing no N8RO install — through **the same printer** the live
+nothing, reading no capture, needing no host, scenario or recorder — through **the same printer** the live
 campaign uses, so a re-rendered report cannot disagree with the one that was printed. That is
 [B]'s *"cheap to iterate on"* applied to the report rather than to the judgement.
 

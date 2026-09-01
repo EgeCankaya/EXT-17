@@ -196,10 +196,36 @@ std::string limitsFingerprint(const capture::Header& h) {
 
 // --- The byte comparison ------------------------------------------------------------------------
 
-// Â§14: `platform.model_path` is "the one host-dependent field". This masks its value and nothing
-// else. It is a textual mask rather than a re-serialisation on purpose: re-writing the header
-// through a JSON writer would normalise things the producer wrote deliberately, and a byte
-// comparison whose two sides have both been through our formatter is not a byte comparison.
+// This masks `platform.model_path` and nothing else. It is a textual mask rather than a
+// re-serialisation on purpose: re-writing the header through a JSON writer would normalise
+// things the producer wrote deliberately, and a byte comparison whose two sides have both been
+// through our formatter is not a byte comparison.
+//
+// §14 USED TO NAME ONE HOST-DEPENDENT FIELD AND NOW NAMES THREE, AND THIS STILL MASKS ONE.
+// That is a decision, recorded as F-50, not an oversight. At the fifth pin the specification
+// widened the list to `platform.model_path` plus `header.continues_from` and
+// `trailer.continued_in`, which embed the run label and therefore differ between two ROTATED
+// sets recorded into different output directories. The widening came from EXT-08's E-7, which
+// EXT-17 itself ruled on, so agreeing with it is not in question. Three reasons it was not
+// implemented in the same pass:
+//
+//   1. It is unreachable for any capture this project produces. `--on-size-limit` defaults to
+//      `stop` (OQ-6), and an UNROTATED capture omits both keys entirely - tier 1b asserts
+//      exactly that on the vendored 0.9.0 fixture. It can only bite a user who hands this tool
+//      two rotated sets recorded elsewhere.
+//   2. The masking above runs on the header line only, which is where the offset arithmetic for
+//      `firstDifferingOffset` begins. `trailer.continued_in` is on the LAST line, so excluding
+//      it means splitting the byte walk into head/middle/tail and restating what a "first
+//      differing offset" means. That is a structural change to the one function the whole
+//      determinism claim rests on.
+//   3. ADR-1's position is that this comparison is never engineered to pass and masks as close
+//      to nothing as the format allows. Widening what it masks is a decision this project makes
+//      by measuring, and no rotated pair from a real run has ever been measured here - there is
+//      none to measure, because of (1).
+//
+// The mitigation is the specification's own and costs nothing: §14 says supplying `--run-label`
+// explicitly removes both keys as a difference, "which a campaign runner addressing runs by path
+// would do anyway".
 bool maskModelPath(std::string& line) {
     const char* kKey = "\"model_path\":\"";
     const std::size_t at = line.find(kKey);

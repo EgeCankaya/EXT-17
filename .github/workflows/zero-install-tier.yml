@@ -106,10 +106,18 @@ jobs:
       # Building proves the compile line. Running proves the claim: a capture EXT-08 produced is
       # read here, and a condition file written for EXT-08's referee is loaded here, on a machine
       # that has neither EXT-08 nor the SDK on it.
-      - name: Read EXT-08's capture and load EXT-08's condition file, with neither installed
+      #
+      # BOTH vendored captures, since the fifth pin. The 0.5.0 one predates `sample_form`,
+      # `limits` and `part`; the 0.9.0 one carries all three. Reading only the first is what F-49
+      # was - on a fresh clone nothing had ever read a real 0.9.0 capture, while two documents
+      # named 0.9.0 as the pinned producer. A runner nobody here owns is exactly where that
+      # should be visible.
+      - name: Read BOTH of EXT-08's captures and load its condition file, with neither installed
         shell: cmd
         run: |
           build\n8ro-capture\n8ro-capture.exe read contract\capture-atacama-air-defense-sample.n8rocap.jsonl --quiet
+          if errorlevel 1 exit /b 1
+          build\n8ro-capture\n8ro-capture.exe read contract\capture-atacama-air-defense-sample-0.9.0.n8rocap.jsonl --quiet
           if errorlevel 1 exit /b 1
           build\n8ro-judge\n8ro-judge.exe check --conditions contract\example.conditions.json
           if errorlevel 1 exit /b 1

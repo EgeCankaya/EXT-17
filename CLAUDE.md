@@ -1,6 +1,7 @@
 # CLAUDE.md — EXT-17 Headless Campaign Runner
 
-> **Current to M7, the fourth `contract/` pin, and the mentor's second relay (2026-09-01).**
+> **Current to M7, the FIFTH `contract/` pin, the cross-repo clean-room pair test, and the
+> mentor's second relay (2026-09-01).**
 > `docs/prd.md` (rev 11) is
 > the binding contract; this file carries what is expensive to get wrong and cheap to forget.
 > Every section below states something that was measured rather than something that was decided
@@ -24,7 +25,9 @@ Everything EXT-17 gets from EXT-08 crosses that boundary as a **documented, vers
 artifact**, and all of it is vendored in `contract/`:
 
 - `contract/capture-format-v1.md` — the capture format, **frozen** at EXT-08's M7
-- `contract/capture-*.n8rocap.jsonl` — a real capture, as a test fixture
+- `contract/capture-*.n8rocap.jsonl` — **two** real captures, producer 0.5.0 and 0.9.0. Both are
+  fixtures: the first is the one that predates `sample_form`, `limits` and `part` and proves an
+  absent key reads as *unknown*; the second carries all three. Neither replaces the other (F-49)
 - `contract/condition-file-schema.md` — the referee's condition shape, **and since the fourth pin
   the arithmetic and boundary rules too**. Until 2026-09-01 it was a verbatim *excerpt* of
   EXT-08's README that stopped one heading early (F-19, F-32), so how a distance is computed and
@@ -45,6 +48,29 @@ correction confirmed a behaviour already implemented and stated beside the text 
 with, which is what raising them rather than working around them buys. **And it added a rule:
 a `fixed` escalation makes `contract/` stale, and nothing notices** — so re-pin in the same
 breath, and re-run the suite. That is F-38, and it is a written rule and not a check.
+
+**And F-38 turned out to be narrower than the problem, which is what the FIFTH pin is
+(`bda3904`, F-47).** Two more things made `contract/` stale and **neither is an escalation this
+project raised**:
+
+1. **An escalation this project ANSWERS does it too.** E-7, E-8 and E-9 were raised by EXT-08
+   *against* EXT-17; EXT-17 settled all three; EXT-08 wrote the answers into the frozen
+   specification. So this project had ruled on three questions about the format it vendors and
+   was reading a copy that predated its own rulings — and `docs/escalations.md` ran E-1 to E-6
+   and stopped, because it only ever recorded outbound questions. It records inbound ones now.
+2. **The upstream fixing its own defect.** EXT-08 regenerated its sample capture because its own
+   audit found it shipped a producer-0.5.0 file against a 0.9.0 build. No escalation, no issue,
+   no version bump — nothing to notice it by except **running the pin check**, which
+   `contract/PROVENANCE.md` writes out in full and which had not been run since the fourth pin.
+
+**The fifth pin is also the first that changed something here**, and that is worth remembering
+because the previous four’s whole story was that they did not. E-7 widened §14’s
+host-dependent field list from one to three; `src/compare/` masks one, and that gap is **F-50**,
+open by decision with its bound stated. The other two confirmed behaviour already built.
+
+**Both were found by cloning both repositories cold and walking both READMEs, not by reading
+anything** — `docs/clean-room.md`. **A pass that reads one repository cannot see the seam
+between two.**
 
 The practical proof this is possible: EXT-08 wrote a conformance reader for its own format
 from `capture-format-v1.md` alone, linking neither its bridge nor the N8RO SDK. If it could be
