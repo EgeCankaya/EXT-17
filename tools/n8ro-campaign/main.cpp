@@ -91,12 +91,15 @@ void printHelp() {
 "              engineered to pass.\n"
 "\n"
 "  Which of the two decides is OQ-2, and it is DECIDED: content, by the DRI on 2026-09-01,\n"
-"  from the brief's own words. It was never ANSWERED by the brief's author, who has not\n"
-"  replied, and those are different words on purpose. The deciding sentence is the brief's\n"
-"  own statement of what the self-test is for - \"if it ever fails, you have found either a\n"
-"  defect in your harness or something far more interesting, and you must be able to tell\n"
-"  which\" - which a byte gate cannot serve, because it fails 100%% of the time on this\n"
-"  platform and so distinguishes neither case.\n"
+"  from the brief's own words - and CONCURRED with by the mentor the same day, who reached\n"
+"  the same answer independently. It was still never ANSWERED by the brief's author, who has\n"
+"  not replied, and those are three different words on purpose: criterion 2 is the author's\n"
+"  to discharge, so a second opinion raises confidence without closing the question.\n"
+"\n"
+"  The deciding sentence is the brief's own statement of what the self-test is for - \"if it\n"
+"  ever fails, you have found either a defect in your harness or something far more\n"
+"  interesting, and you must be able to tell which\" - which a byte gate cannot serve,\n"
+"  because it fails 100% of the time on this platform and so distinguishes neither case.\n"
 "\n"
 "  A pass on the content basis therefore discharges the brief's acceptance criterion 2 under\n"
 "  the CONTENT reading, which is now ruled rather than unruled. It does not discharge it\n"
@@ -1452,9 +1455,11 @@ int main(int argc, char** argv) {
         }
         line("campaign", "gate basis: " + std::string(ext17::compare::name(a.compare.gateBasis))
                              + ". OQ-2 is DECIDED (DRI, 2026-09-01) - content, from the brief's "
-                               "own words - and was never ANSWERED by the brief's author, who has "
-                               "not replied. Both comparisons are run and both are reported; the "
-                               "basis chooses which one decides. See docs/m7-oq2-oq3.md.");
+                               "own words - and CONCURRED with by the mentor the same day, "
+                               "independently. It was still never ANSWERED by the brief's author, "
+                               "who has not replied, and criterion 2 is theirs to discharge. Both "
+                               "comparisons are run and both are reported; the basis chooses "
+                               "which one decides. See docs/m7-oq2-oq3.md.");
         selfTest = ext17::run::runSelfTest(stc);
         selfTestRan = true;
 

@@ -128,21 +128,35 @@ acceptance criterion 2 is about. The content gate passed 190 of 190 on a clean h
 failed on a real pair for a real reason** (`campaigns/m6-gate-refused/`), which is the brief's
 *"defect in your harness"* case caught and named.
 
-**No code changed when it was decided.** `--gate-basis content|bytes` still selects it; `content`
-was already the default and is ADR-1's decision. Under `bytes` the gate correctly fails on this
-platform and the campaign correctly stops, and that has been run (`campaigns/m4-bytes/`). **A
-ruling from the brief's author would still change a default and no code**, and would still be
-acted on.
+**The mentor concurred with this reading on 2026-09-01**, independently and without having seen
+it. **That is a second opinion and not a ruling.** Acceptance criterion 2 belongs to the brief's
+author, who has still never replied, so the concurrence raises confidence in the decision and
+closes nothing — and every claim of criterion 2 still carries "under the content reading".
 
-Every report says so, on every run:
+**No code behaviour changed when it was decided, or when it was concurred with.** `--gate-basis
+content|bytes` still selects it; `content` was already the default and is ADR-1's decision. Under
+`bytes` the gate correctly fails on this platform and the campaign correctly stops, and that has
+been run (`campaigns/m4-bytes/`). **A ruling from the brief's author would still change a default
+and no code**, and would still be acted on.
+
+Every report says all three things, on every run:
 
 ```
   gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
-  OQ-2                  DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words, NOT
-                        answered by [B]'s author, who has not replied. ...
+  OQ-2                  DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words and
+                        CONCURRED with by the mentor on the same day, independently. Still NOT
+                        answered by [B]'s author, who has not replied - and criterion 2 is
+                        theirs to discharge, so a second opinion strengthens the decision
+                        without closing the question. ...
   GATE                  PASS   on the content basis
                         This does NOT discharge [B]'s acceptance criterion 2 as written.
 ```
+
+`self-test.json` carries the same three facts as three separate keys — `oq2_decided_by`,
+`oq2_concurred_by`, and `oq2_answered_by_brief_author`, which is still `false` — so a consumer
+cannot compute the last from the others. Four checks in `tests/determinism_test.cpp` hold the
+distinction together; two of them exist specifically to stop the concurrence ever appearing
+without the caveat.
 
 ### Measured here, not inherited
 
@@ -894,18 +908,17 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   here changed as a result**: every correction confirmed a behaviour already implemented and
   stated beside the text it disagreed with. The reader still reports both segment numbers and
   names which is which; it now agrees with the specification rather than reporting beside it.
-- **The headless invocation is confirmed in four of its six parts, and decided in the other
-  two.** The brief says *"confirm the invocation with your mentor"*, and on 2026-09-01 the mentor
-  confirmed: `N8RO_RELEASE` **is** expected in production; the degraded terrain configuration
+- **The headless invocation is confirmed in all six of its parts.** The brief says *"confirm the
+  invocation with your mentor"*, and on 2026-09-01 the mentor confirmed: `N8RO_RELEASE` **is** expected in production; the degraded terrain configuration
   **is** expected and should be left as it is; a console control event **is** the intended way to
   end an unattended host **and** its non-zero exit is expected; and `C:\N8RO\bin` on `PATH` **is**
-  a known second precondition. Every one confirms what was already built, so nothing changed.
-  **Two parts were not covered** — whether the bus-publish route is the intended control path,
-  and whether `SimEngineHost_SharedMemory` is right versus the seven other variants — and those
-  are **decided rather than answered**, on the reading in `docs/m7-oq2-oq3.md` §2. If either is
-  later corrected, `src/control/EngineControl.cpp` is one file and every campaign would need
-  re-running: a few hours of machine time. Re-measurement rather than rework, and the stated
-  exposure since M1.
+  a known second precondition. **Two further parts came back on a follow-up the same day**: the
+  bus-publish route **is** the intended control path, and on the choice of host variant the
+  answer was *"pick the one you prefer"* — so **no `SimEngineHost_*` variant is prescribed**, and
+  `SimEngineHost_SharedMemory` stays as this project's own explicitly-delegated choice rather
+  than an inference, on the reasoning in `docs/m7-oq2-oq3.md` §2.2. **Every one of the six
+  confirms what was already built, so nothing changed** — and the standing exposure carried since
+  M1 is discharged rather than merely unrealised.
 
 ### What a verdict does and does not prove
 

@@ -127,14 +127,15 @@ outcome in those words: *"M7 must state that metric as unmet rather than claim i
 ## 5. What is still open at the end of the project
 
 Stated in one place, because the last milestone is where an open item is most likely to quietly
-become a closed one. **Updated 2026-09-01, twice: after the mentor replied, and again after all
-four upstream issues came back fixed.**
+become a closed one. **Updated three times on 2026-09-01: after the mentor's first reply, after
+all four upstream issues came back fixed, and after the mentor's follow-up closed E-1.** Two rows
+survived all three, and both need somebody outside this project.
 
 | # | What | Whose | Status | Blocks anything? |
 |---|---|---|---|---|
 | **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted in `docs/recording-script.md`, including what *not* to say | **It is the deliverable.** Nothing else waits on it |
-| **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) — content. Never answered**, across five milestones | No. Both readings ship as selectable gates; a ruling changes a default and no code |
-| **OQ-3 (a) and (c)** | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **`decided`, not answered** — not covered in what was relayed on 2026-09-01. The other four parts **are answered** | No. One short follow-up closes them |
+| **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) and `concurred` (mentor, same day, independently) — content. Still never answered**, across five milestones. **The concurrence is a second opinion, not a ruling**: criterion 2 is [B]'s author's to discharge | No. Both readings ship as selectable gates; a ruling changes a default and no code |
+| ~~**OQ-3 (a) and (c)**~~ | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **CLOSED, 2026-09-01.** The follow-up ran: **(a) yes**; **(c) *"pick the one you prefer"***, so no variant is prescribed. **E-1 is answered in full** | No, and it never did. Nothing changed |
 | **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | **CLOSED — FIXED 2026-09-01**, option (a) taken, vendored back at the fourth pin | No, and it never did |
 | **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | **CLOSED — FIXED 2026-09-01, wider than raised.** EXT-08 folded in the third shape, which the issue never carried, and §14 now says an emptied self-test is a refusal rather than a pass | No — and it is the one with a measured operational cost, now including a campaign-level one (R15). **That cost is unchanged and was not traded away for the fix** |
 | **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | **CLOSED — FIXED 2026-09-01, and not by the fix that was asked for.** EXT-08 created a real upstream file rather than replying "take those two sections too"; the digest is now vendored by identity, closing **F-19** | No. The arithmetic was decided here and stated with its constants, and is unchanged |
@@ -155,17 +156,28 @@ first drift this project caused itself.
 except E-6, which is a five-milestone-old finding that only became reportable when the mentor
 confirmed the thing it depends on.
 
-**And after the fixes, two rows remain: the recording, and OQ-2 plus OQ-3's (a) and (c).** Both
-of those need a person who is not on this project. Nothing that is this project's to close is
-open.
+**And after the fixes and the second relay, two rows remain: the recording, and OQ-2.** Both need
+a person who is not on this project — a screen recorder and a human for the first, and the author
+of [B] for the second. **Nothing that is this project's to close is open.**
+
+**One row closed in a way worth naming, because it is the one that could most easily have been
+faked.** OQ-3 (a) and (c) were reported here as *not answered* while four of six were, rather
+than being rounded to "the mentor confirmed the invocation". Holding them cost one follow-up
+question, and the follow-up closed both. **The same rigour left OQ-2 open on the same day**: the
+mentor concurred with the content basis, and a concurrence from somebody who does not own the
+acceptance criterion is not a ruling. The rule cut both ways within a few hours, which is the
+only real evidence that it is a rule and not a posture.
 
 ## 6. What M7 did *not* do
 
-- **It did not close OQ-2**, and the implementer must not. Re-checked at M7: still unanswered.
+- **It did not close OQ-2**, and the implementer must not. Re-checked at M7: still unanswered,
+  and still unanswered after the mentor concurred with the content reading — **a concurrence
+  from somebody who does not own the acceptance criterion is not a ruling.**
 - **It did not re-raise E-1 while it was deferred.** M7's job was to carry its cost correctly,
   which meant holding §4's metric at UNMET until its named method actually happened. When the
   mentor did reply, four of six parts became answered and two did **not** — and the two that did
-  not were left `decided` rather than rounded up.
+  not were left `decided` rather than rounded up, until a follow-up answered them properly. **E-1
+  is now closed on all six.**
 - **It did not record the video**, and did not substitute anything for it.
 - **It did not re-run any campaign to improve an artifact.** `campaigns/m6-gate-refused/` and
   `campaigns/m5-sweep-first/` are both still there, both still counted.

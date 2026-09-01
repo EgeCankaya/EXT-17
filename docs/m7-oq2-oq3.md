@@ -1,8 +1,23 @@
 # OQ-2 and OQ-3 — decided by the DRI, on a reading of [B]
 
-**Status: DECIDED at M7, 2026-09-01. Both.**
+**Status: DECIDED at M7, 2026-09-01 — and then overtaken the same day, in different ways.**
 
-> **Read this line before any other in this document.** Neither question was *answered*. The
+> **UPDATE, later on 2026-09-01, and it supersedes the banner below.** Both recipients were
+> reached after this document was written.
+>
+> - **OQ-3 is ANSWERED IN FULL and E-1 is CLOSED.** The mentor confirmed all six parts across
+>   two relays — see §2.0 and §2.2. **Every answer matched the reading below**, so nothing this
+>   project ships changed. [B]'s *"confirm the invocation with your mentor"* is **discharged**.
+> - **OQ-2 is still NOT answered.** The mentor concurred with the content reading, independently
+>   — see §1.0 — but the question is addressed to the owner of [B], criterion 2 is theirs to
+>   discharge, and they have still never replied. A concurrence is not a ruling. **This one
+>   stays open.**
+>
+> The banner below is kept exactly as written, because it is the state these decisions were
+> taken in and because the distinction it draws is the reason both outcomes could be recorded
+> honestly rather than rounded to "we asked and it was fine".
+
+> **Read this line before any other in this document, as it stood when the decisions were made.** Neither question was *answered*. The
 > owner of [B] never replied to OQ-2, and no mentor ever reviewed OQ-3. What happened is that the
 > **DRI, on 2026-09-01, authorised the implementer to decide both from the brief's own words**,
 > because schedule became the binding constraint and neither recipient was reachable in time.
@@ -28,6 +43,37 @@
 ---
 
 ## 1. OQ-2 — content or bytes
+
+### 1.0 UPDATE, 2026-09-01 — the mentor concurs, and the question stays open anyway
+
+**The mentor was asked separately and said content.** They had not seen the reading below; they
+reached the same answer independently. That is worth recording and it is worth being precise
+about what it is.
+
+**It is a concurrence, not a ruling.** OQ-2 does not ask "what is the better basis" — that was
+decided below, and the mentor agreeing raises confidence in it. OQ-2 asks whether **[B]'s
+acceptance criterion 2 is discharged**, and [B]'s acceptance criteria belong to [B]'s author, who
+has still never replied. A second opinion from somebody entitled to hold one does not transfer
+that authority.
+
+So three words now attach to this question and none of them substitutes for another:
+
+| | who | what it means |
+|---|---|---|
+| `decided` | the DRI, 2026-09-01 | a person entitled to decide it did, on the reading below |
+| `concurred` | the mentor, 2026-09-01 | somebody else entitled to an opinion reached the same answer, independently |
+| `answered` | **nobody** | [B]'s author has not replied, and criterion 2 is theirs to discharge |
+
+**Nothing about the gate changed** — content was already the default and still is. What changed
+is what the reports say: `self-test.json` gained `gate.oq2_concurred_by` as a **separate key**
+beside `gate.oq2_decided_by` and `gate.oq2_answered_by_brief_author` (still `false`), so that a
+consumer cannot compute the last from the others. Two paired checks in
+`tests/determinism_test.cpp` assert that the concurrence may only ever appear in a report that
+also says [B]'s author has not replied — the failure being guarded is not the wording, it is
+somebody later reading "the mentor said content" and deleting the caveat.
+
+**The section below is unchanged.** It is the reading that decided the question, and it decided
+it before anyone concurred.
 
 ### 1.1 What [B] actually says, in full
 
@@ -119,15 +165,22 @@ decided the six parts; this table records which of them stopped being decisions.
 | **(d)** degraded terrain | leave it | **ANSWERED — yes, leave it as it is** |
 | **(e)** console control event; non-zero exit expected | both adopted | **ANSWERED — yes to both** |
 | **(f)** `C:\N8RO\bin` on `PATH` | a second, separate precondition | **ANSWERED — yes** |
-| **(a)** bus-publish route | yes, on [B]'s own ordering | **NOT COVERED.** Stays `decided` |
-| **(c)** `SimEngineHost_SharedMemory` | yes, on *"closed configuration"* + *"determinism first"* | **NOT COVERED.** Stays `decided` |
+| **(a)** bus-publish route | yes, on [B]'s own ordering | **ANSWERED on the follow-up — yes** |
+| **(c)** `SimEngineHost_SharedMemory` | yes, on *"closed configuration"* + *"determinism first"* | **ANSWERED on the follow-up — *"pick the one you prefer"***. No variant is prescribed |
 
 **Every answer matched the decision, and nothing changed as a result** — which is the useful
 thing about having asked: four readings of [B] were confirmed correct by the person [B] told us
 to ask.
 
-**(a) and (c) are not recorded as answered**, because they were not covered in what was relayed.
-The rule this project has applied to [B]'s author for five milestones applies to a mentor too.
+**(a) and (c) were not recorded as answered when the first relay did not cover them**, because
+the rule this project has applied to [B]'s author for five milestones applies to a mentor too.
+**A follow-up closed both later the same day, so E-1 is now closed in full** — six of six.
+
+**(c)'s answer settles less than it looks and more than it looks.** *"Pick the one you prefer"*
+does not say `SharedMemory` is right; it says **nothing is prescribed**. The decision below
+therefore stands unchanged and stands as **ours**, explicitly delegated rather than inferred —
+and what the answer removes is the possibility that we chose against an intent that existed and
+had simply not been written down. That was the actual risk, and it is now gone.
 
 **One answer had a consequence beyond confirming a reading.** (b) turned F-17 from *suspected*
 into *demonstrated* and produced **E-6**

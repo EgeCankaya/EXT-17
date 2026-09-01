@@ -44,12 +44,15 @@ the determinism self-test (CR-DET-1, and step 4 of the brief - a HARD GATE):
               engineered to pass.
 
   Which of the two decides is OQ-2, and it is DECIDED: content, by the DRI on 2026-09-01,
-  from the brief's own words. It was never ANSWERED by the brief's author, who has not
-  replied, and those are different words on purpose. The deciding sentence is the brief's
-  own statement of what the self-test is for - "if it ever fails, you have found either a
-  defect in your harness or something far more interesting, and you must be able to tell
-  which" - which a byte gate cannot serve, because it fails 100%% of the time on this
-  platform and so distinguishes neither case.
+  from the brief's own words - and CONCURRED with by the mentor the same day, who reached
+  the same answer independently. It was still never ANSWERED by the brief's author, who has
+  not replied, and those are three different words on purpose: criterion 2 is the author's
+  to discharge, so a second opinion raises confidence without closing the question.
+
+  The deciding sentence is the brief's own statement of what the self-test is for - "if it
+  ever fails, you have found either a defect in your harness or something far more
+  interesting, and you must be able to tell which" - which a byte gate cannot serve,
+  because it fails 100% of the time on this platform and so distinguishes neither case.
 
   A pass on the content basis therefore discharges the brief's acceptance criterion 2 under
   the CONTENT reading, which is now ruled rather than unruled. It does not discharge it

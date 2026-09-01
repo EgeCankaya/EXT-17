@@ -15,17 +15,27 @@ It is stronger than `sent` and **weaker than `answered`**. Reading `decided` as 
 precisely the failure this table exists to prevent, so every row carrying it says which in the
 same sentence, and so does every report the tools print.
 
+**`concurred` was added later the same day, for E-2, and it is the subtlest one here.** It means
+*somebody other than the recipient, entitled to an opinion, independently reached the same
+answer*. It sits beside `decided` rather than above it: it raises confidence in a decision and
+**does not** convert it into a ruling, because the question is still addressed to somebody who
+has not spoken. The specific case is OQ-2 — the mentor said content, and only [B]'s author can
+discharge [B]'s acceptance criterion 2. Two checks in `tests/determinism_test.cpp` now assert
+that the concurrence may only ever appear in a report that also says [B]'s author has not
+replied, so the two cannot drift apart.
+
 **`fixed` was added on 2026-09-01 too, and it is the strongest state in this file.** It means
 the recipient changed the thing, the change is on their `main`, and the correction has been
 vendored back here. Four rows carry it — E-3, E-4, E-5 and E-6, all against EXT-08 — and they
 are the first questions this project has asked that came back as edits rather than as replies.
 
-**As of 2026-09-01 four rows are `fixed`, one is `decided` and one is partly answered.** E-2
-(OQ-2) is decided and has never been answered by [B]'s author. E-1 (OQ-3) has **four of its six
-parts answered** by the mentor, and two — (a) and (c) — **were not covered in what was
-relayed**, so those two stay `decided` rather than answered. That distinction was preserved
-deliberately: an answer nobody gave is not recorded as one, and the rule applies to a mentor
-exactly as it applies to [B]'s author.
+**As of the end of 2026-09-01 four rows are `fixed`, one is CLOSED and one is `decided`.**
+**E-1 (OQ-3) is closed — all six parts answered**, the last two on the second relay. **E-2
+(OQ-2) is decided, concurred with by the mentor, and has still never been answered by [B]'s
+author**, which is where it stays: the mentor is not the person the question was addressed to,
+and criterion 2 is [B]'s author's to discharge. That distinction is preserved deliberately —
+an answer nobody gave is not recorded as one, and the rule applies to a mentor exactly as it
+applies to [B]'s author. It has now cut both ways, which is the point of having it.
 
 **Nothing this project ships changed when the four were fixed**, and that is the point rather
 than an anticlimax. Every correction confirmed a behaviour EXT-17 had already implemented and
@@ -37,8 +47,8 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 
 | # | Question | To | Raised | Status |
 |---|---|---|---|---|
-| E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **PARTLY ANSWERED, 2026-09-01.** The mentor confirmed **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, and **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Relayed by the DRI. **(a) and (c) were not covered and are NOT recorded as answered** - they remain `decided` on the reading in `m7-oq2-oq3.md` §2. Every confirmed answer matched what was already built, so **nothing changed**; (b) additionally produced **E-6** |
-| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI, 2026-09-01 — content. Still NEVER ANSWERED.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the reading is `docs/m7-oq2-oq3.md` §1 and the deciding sentence is [B]'s statement of what the self-test is *for*. **No code changed** — content was already the default. A ruling from [B]'s author would still be acted on and would still change a default and no code |
+| E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **ANSWERED IN FULL and CLOSED, 2026-09-01**, across two relays. First: **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Then, on the follow-up: **(a) yes**, the bus-publish route is the intended control path; **(c) the mentor declined to prescribe** - *"pick the one you prefer"* - which is a real answer and not a non-answer. **Every one of the six matched what was already built, so nothing changed.** (b) additionally produced **E-6**, now fixed |
+| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI and CONCURRED with by the mentor, 2026-09-01 — content. Still NEVER ANSWERED by [B]'s author.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words (`docs/m7-oq2-oq3.md` §1); the mentor, asked separately, reached the same answer independently. **That is a second opinion, not a ruling** — criterion 2 is [B]'s author's to discharge — so the row stays `decided` and every report says all three things. **No code behaviour changed** — content was already the default; what changed is that the reports now carry the concurrence, guarded by two tests |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **FIXED, 2026-09-01** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), closed. EXT-08 took option (a): §6.7 rule 2 and §11 now say only four of the five counters sum, and how to correct `segments`. Vendored back at the **fourth pin**. **No code changed here** — the reader already computed both numbers and said which was which |
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **FIXED, 2026-09-01, and not by the fix that was asked for** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), closed. EXT-08 created `docs/condition-file-schema.md` carrying all four sections, rather than replying "take those two as well", and added a test that fails if it drifts from its README. So the digest is now **vendored by identity** — which closes **F-19** as well. The geodesy here is unchanged and still this project's own decision; it now agrees with a vendored sentence instead of with an inference |
 | E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **FIXED, 2026-09-01** - [issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), closed. EXT-08's R8 block now states both preconditions and both failure modes. Fixed against the **corrected** citation: the issue as first filed named `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37), and the correction went as a comment rather than a silent edit. `contract/PROVENANCE.md` finding 6 - **ours** - carried the same omission and is corrected at the fourth pin |
@@ -48,9 +58,15 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 
 ## E-1 — OQ-3: confirm the headless invocation
 
-**Status: PARTLY ANSWERED, 2026-09-01 - four parts of six.** The mentor was asked and replied;
-the answers were relayed by the DRI on 2026-09-01 and are recorded here as **answers**, which is
-a stronger word than `decided` and is used deliberately.
+**Status: ANSWERED IN FULL and CLOSED, 2026-09-01 - all six parts, across two relays.** The
+mentor was asked and replied; the answers were relayed by the DRI and are recorded here as
+**answers**, which is a stronger word than `decided` and is used deliberately.
+
+**This row spent five milestones as `drafted`, one day as `decided`, half a day as partly
+answered, and is now closed.** The delay was this project's own — delivery was blocked on nobody
+else — and the outcome is worth stating plainly against that: **not one of the six answers
+changed anything.** Every one confirmed a reading of [B] or a measurement already built on. That
+is the argument for asking early rather than the argument for having waited.
 
 | part | question | answer |
 |---|---|---|
@@ -58,16 +74,27 @@ a stronger word than `decided` and is used deliberately.
 | **(d)** | Is the degraded terrain configuration expected on this install? | **Yes - leave it as it is.** Confirmed |
 | **(e)** | Is a console control event the intended way to end an unattended host, and is a non-zero exit from it expected? | **Yes to both.** Confirmed |
 | **(f)** | Is `C:\N8RO\bin` on `PATH` a second, separate precondition? | **Yes.** Confirmed |
-| **(a)** | Is the bus-publish route the intended control path? | **NOT COVERED in what was relayed.** Stays `decided`, on [B]'s own first-listed surface |
-| **(c)** | Is `SimEngineHost_SharedMemory` right, versus the seven other variants? | **NOT COVERED in what was relayed.** Stays `decided`, on *"campaign runs are for the closed configuration"* and *"determinism first"* |
+| **(a)** | Is the bus-publish route the intended control path? | **Yes.** Confirmed on the follow-up |
+| **(c)** | Is `SimEngineHost_SharedMemory` right, versus the seven other variants? | **"Pick the one you prefer."** The mentor declined to prescribe - which is an answer, and see below for what it does and does not settle |
 
-**(a) and (c) are not recorded as answered, and that is not pedantry.** This project has kept
-`drafted` / `sent` / `decided` / `answered` apart since M1 precisely so that a row cannot quietly
-acquire an answer nobody gave. The rule applies to a mentor exactly as it applies to [B]'s
-author. Both remain decided on the reading in `docs/m7-oq2-oq3.md` s2, and **one short follow-up
-would close them**.
+**(a) and (c) were held open for half a day rather than rounded up, and then closed properly.**
+When the first relay did not cover them they were recorded as **not answered**, because this
+project has kept `drafted` / `sent` / `decided` / `answered` apart since M1 precisely so a row
+cannot quietly acquire an answer nobody gave. One short follow-up closed both. The cost of the
+rigour was one question; the cost of skipping it would have been a permanent claim that a person
+had confirmed something they were never asked.
 
-**Nothing changed as a result of any answer.** Every confirmed part matched what was already
+**(c) deserves a sentence, because "pick the one you prefer" is easy to file as a non-answer and
+it is not one.** The question was *"is `SimEngineHost_SharedMemory` right, versus the seven other
+variants?"* The answer is that **no variant is prescribed** — so `SharedMemory` stays, and the
+reason it stays is now explicitly this project's own choice rather than an inference from [B].
+The reasoning is unchanged and is in §2.2: a best-effort transport is one permitted to drop, [B]
+says *"campaign runs are for the closed configuration"* and its rule 4 is *"determinism first"*,
+and a campaign whose whole purpose rests on the published stream being as complete as the
+platform can make it should not choose the variant allowed to drop. **What the answer removes is
+the possibility that we picked the wrong one against an intent nobody had stated.**
+
+**Nothing changed as a result of any of the six.** Every confirmed part matched what was already
 built and measured across roughly a hundred runs since M1 - which is the useful thing about
 having asked: the answers cost nothing to receive, because the shape was already right.
 
@@ -81,9 +108,10 @@ that omission is a defect worth another project's time — raised as **E-6**.
 EXT-08 file at all. The substance was unaffected; the citation was corrected by a comment on the
 issue rather than by a silent edit, and the mistake is recorded as **F-37**.*
 
-**Its previous statuses, for the record:** `decided` by the DRI (2026-09-01, superseded by this
-reply); before that **DEFERRED BY DECISION**; and before that **DRAFTED, NOT SENT** across four
-milestones since M1. [B]'s surface table is what asked for this in the first place - *"the host
+**Its previous statuses, for the record:** **PARTLY ANSWERED** (2026-09-01, four of six, and
+kept at four rather than rounded to six); `decided` by the DRI (2026-09-01, superseded); before
+that **DEFERRED BY DECISION**; and before that **DRAFTED, NOT SENT** across four milestones since
+M1. [B]'s surface table is what asked for this in the first place - *"the host
 binary that runs an engine with no GUI. **Confirm the invocation with your mentor**"* - and
 EXT-08 closed its own copy of the question and passed it here, on the grounds that EXT-17 is the
 project that runs the host in production.
@@ -272,9 +300,26 @@ exception with the measurement.
 
 ## E-2 — OQ-2, decided at M7 by the DRI, and never answered by [B]'s author
 
-**Status: DECIDED (DRI, 2026-09-01) — content. STILL NEVER ANSWERED.**
+**Status: DECIDED (DRI, 2026-09-01) and CONCURRED with (mentor, 2026-09-01, independently) — content. STILL NEVER ANSWERED by [B]'s author.**
 
-Both sentences are true and neither replaces the other. Re-checked at M4, M5 and M6 against
+**Three statements, all true, none of which replaces another — and the third is the one that
+keeps the row open.** The mentor was asked and said content. That is a second person entitled to
+an opinion reaching the same answer without having seen the reasoning, which is worth a great
+deal more than nothing. It is **not** a ruling: OQ-2 asks whether [B]'s acceptance criterion 2 is
+discharged, [B]'s author owns [B]'s acceptance criteria, and they have still never replied.
+
+**So the concurrence raises confidence and closes nothing**, and the reports say all three things
+in one breath — `self-test.json` carries `oq2_decided_by`, `oq2_concurred_by` and
+`oq2_answered_by_brief_author: false` as three separate keys for exactly that reason. A consumer
+asking "was criterion 2 discharged by the only person who can discharge it?" should key on the
+last one, and it is still `false`.
+
+**Two checks in `tests/determinism_test.cpp` are paired on this**: one asserts the report records
+the concurrence, and the other asserts the concurrence can only ever appear in a report that also
+says [B]'s author has not replied. The failure mode being guarded is not the wording — it is
+somebody later reading "the mentor said content" and deleting the caveat.
+
+Both of the original two sentences remain true and neither replaces the other. Re-checked at M4, M5 and M6 against
 EXT-08's own record: its `docs/escalations.md` E-1 — the upstream half of the same question — has
 read *"raised with the brief's author 2026-08-31; awaiting a reply"* throughout. **No ruling from
 [B]'s author exists on either side, and none is claimed.**
@@ -316,10 +361,13 @@ survives either answer:
   `campaigns/m4-bytes/`, where the same pair of runs scored `content PASS` (50 361 of 50 361
   samples agreeing) and `bytes FAIL`.
 - Every report states, in words, what a content pass does and does not discharge. **Since
-  2026-09-01 that wording says `DECIDED (DRI)` and, in the same breath, that [B]'s author has not
-  replied** — because "content" on its own would hide which of the two it is. `self-test.json`
-  carries it machine-readably as `gate.basis_is_a_named_deviation`, `gate.oq2_ruling`
-  (`decided`), `gate.oq2_decided_by` and `gate.oq2_answered_by_brief_author` (`false`).
+  2026-09-01 that wording says `DECIDED (DRI)`, `CONCURRED` by the mentor, and — in the same
+  breath — that [B]'s author has not replied**, because "content" on its own would hide which of
+  the three it is, and "the mentor agrees" on its own would let a second opinion pass for a
+  ruling. `self-test.json` carries it machine-readably as five separate keys:
+  `gate.basis_is_a_named_deviation`, `gate.oq2_ruling` (`decided`), `gate.oq2_decided_by`,
+  `gate.oq2_concurred_by` and `gate.oq2_answered_by_brief_author` (`false`). **They are separate
+  keys precisely so that a consumer cannot compute the last from the others.**
 
 So the outstanding ruling now changes **a default and no code**. If the answer is "bytes", the
 project stops at M4 by [B]'s own instruction and the command that demonstrates it already exists

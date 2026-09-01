@@ -1,6 +1,7 @@
 # CLAUDE.md — EXT-17 Headless Campaign Runner
 
-> **Current to M7, and to the fourth `contract/` pin (2026-09-01).** `docs/prd.md` (rev 10) is
+> **Current to M7, the fourth `contract/` pin, and the mentor's second relay (2026-09-01).**
+> `docs/prd.md` (rev 11) is
 > the binding contract; this file carries what is expensive to get wrong and cheap to forget.
 > Every section below states something that was measured rather than something that was decided
 > in a meeting, and where a number appears it is this project's own.
@@ -69,9 +70,14 @@ and `trailer.continued_in`. Reject on the **version**; ignore unknown **keys**.
 **Both comparisons always run and are always reported. Which one *decides* is `--gate-basis`,
 default `content`, and that default is this project's decision (ADR-1), not the client's.**
 
-**OQ-2 is `decided` and was never `answered`, and those two words must never be swapped.**
-Decided by the DRI on 2026-09-01 from [B]'s own words — `docs/m7-oq2-oq3.md` §1. [B]'s author has
-still never replied, and a ruling from them would still be acted on.
+**OQ-2 is `decided`, is `concurred` with, and was never `answered`. Those three words must never
+be swapped.** Decided by the DRI on 2026-09-01 from [B]'s own words — `docs/m7-oq2-oq3.md` §1 —
+and **concurred with by the mentor the same day, independently, without having seen the
+reading**. That is a second opinion and **not a ruling**: OQ-2 asks whether [B]'s acceptance
+criterion 2 is discharged, [B]'s acceptance criteria belong to [B]'s author, and **[B]'s author
+has still never replied**. A ruling from them would still be acted on. `self-test.json` keeps
+`oq2_decided_by`, `oq2_concurred_by` and `oq2_answered_by_brief_author` (`false`) as three
+separate keys so the last cannot be computed from the others.
 
 The deciding passage is **not** criterion 2's *"identical captures"*; it is [B]'s statement of
 what the self-test is **for** — *"if it ever fails, you have found either a defect in your harness
@@ -87,8 +93,11 @@ zero runs attempted (`campaigns/m4-bytes/`), so a ruling still changes a default
 **What may now be written, and what still may not.** Criterion 2 **is** claimed as met *under the
 content reading*, and every claim of it carries "under the content reading" in the same breath. It
 is **never** claimed under a byte reading, and it is **never** called answered, agreed, or ruled
-by [B]'s author. Two checks in `tests/determinism_test.cpp` assert the report carries both halves,
-so the distinction cannot erode quietly.
+by [B]'s author. **The mentor's concurrence may be stated and must never be stated alone** — four
+checks in `tests/determinism_test.cpp` now hold this: two assert the report carries both halves of
+the decided/not-answered pair, and two more assert the concurrence appears only in a report that
+also says [B]'s author has not replied. The failure being guarded is not the wording; it is
+somebody later reading "the mentor said content" and deleting the caveat.
 
 Four things about the comparison that are already right and are easy to break:
 
@@ -350,7 +359,9 @@ it can be delivered yet.
 *recorded*, not *raised*. E-3, E-4, E-5 and E-6 went to EXT-08 as GitHub issues and **all four
 came back fixed on 2026-09-01** — the strongest state in the table, because a reply is a sentence
 and a fix is a diff. **E-1 was drafted and unsent from M1 to M7** and its delivery was blocked on
-nobody but this project; four of its six parts are now answered by the mentor and two are not.
+nobody but this project — and when it finally went, **all six parts came back answered inside a
+day and not one of them changed anything.** That is the argument for asking early, and it is the
+cost of the delay stated rather than absorbed.
 
 ## Conventions
 
