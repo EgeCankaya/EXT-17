@@ -210,11 +210,20 @@ build\n8ro-campaign\n8ro-campaign.exe repeat ^
 > zero differing — and are **never byte-identical**, because about 0.2% of frames go unpublished,
 > differently every run, with every platform counter reading zero.
 >
-> The brief asks for 'identical captures'. Whether that means content or bytes is an open
-> question with its author and it is **unanswered**. So both readings are built as selectable
-> gates: under `--gate-basis bytes` the gate correctly fails and the campaign correctly stops. A
-> ruling changes a default and no code. Every report says so — I'm not going to tell you this
-> project met acceptance criterion 2, because it hasn't."
+> The brief asks for 'identical captures'. Whether that means content or bytes went to its
+> author and **was never answered**, across five milestones. It is **decided** rather than
+> answered — decided from the brief's own words, and the sentence it turns on isn't the one you'd
+> expect. It's the brief saying what the self-test is *for*: *if it ever fails, you have found
+> either a defect in your harness or something far more interesting, and you must be able to tell
+> which.* A byte gate fails a hundred and ninety times out of a hundred and ninety here,
+> identically whether the harness is clean or broken — so it tells you neither. This one passed
+> a hundred and ninety times clean and **has** failed on a real pair for a real reason, which is
+> exactly the case the brief describes.
+>
+> So both readings are built as selectable gates: under `--gate-basis bytes` the gate correctly
+> fails and the campaign correctly stops. A ruling from the author would still change a default
+> and no code. Every report says both halves — decided, not answered — and I'd rather say that
+> out loud than let 'the gate is content' do the hiding."
 
 ---
 
@@ -383,13 +392,22 @@ raid-leader-degraded   INDETERMINATE   health=nominal equals=degraded
 
 ## What not to say
 
-- **Do not say the self-test discharges the brief's acceptance criterion 2.** It does not, under
-  the content reading, and OQ-2 is unanswered.
+- **Do not say the brief's author ruled on the gate's basis.** They never replied. It is
+  **decided** - by the DRI on 2026-09-01, from the brief's own words - and *decided* is not
+  *answered*. Criterion 2 is discharged **under the content reading**, and that qualifier goes in
+  the same breath every time.
 - **Do not describe the twenty-run campaign as always succeeding.** It met R15 on its first
   attempt: the gate refused and no run was attempted.
 - **Do not call an `indeterminate` verdict a failure of the tool.** It is the correct answer.
-- **Do not call the sweep "reviewed".** The sweep-legibility metric is unmet until a mentor
-  reviews it.
+- **Do not say the mentor confirmed the whole invocation.** Four of six parts, on 2026-09-01:
+  `N8RO_RELEASE`, the terrain configuration, the shutdown method and its exit code, and the
+  `PATH` precondition. **The bus-publish route and the transport choice were not covered** and
+  remain decided rather than answered.
+
+**Two lines in this file were wrong for a few hours on 2026-09-01** - they said the sweep was
+unreviewed and criterion 2 unruled, both true when written and both overtaken the same day.
+Mentioned here because it is exactly the kind of staleness a script accumulates between writing
+and recording, and worth a re-read of this section before the camera goes on.
 
 ## If something goes wrong on camera
 

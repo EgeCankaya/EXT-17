@@ -31,7 +31,7 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI, 2026-09-01 — content. Still NEVER ANSWERED.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the reading is `docs/m7-oq2-oq3.md` §1 and the deciding sentence is [B]'s statement of what the self-test is *for*. **No code changed** — content was already the default. A ruling from [B]'s author would still be acted on and would still change a default and no code |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **SENT** — [EXT-08 issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), 2026-08-31. Awaiting a reply. Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **SENT** — [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), 2026-09-01. Awaiting a reply. Verified by correspondence against `eedc228` and `main`, since F-19 means it cannot be verified by identity. **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants |
-| E-6 | **A third defect in `contract/`** - `PROVENANCE.md` finding 6 documents the headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **SENT** - [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4). Recorded as F-17 since M1 on this project's own measurement; **the mentor's confirmation on 2026-09-01 that the variable IS expected in production is what moved it from suspected to demonstrated**, and made it worth another project's time |
+| E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **SENT** - [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), **plus a correction comment**: the issue as first filed cited `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37). The substance was unaffected and is now cited against EXT-08's own README, which is where EXT-17's digest inherited the omission. Recorded as F-17 since M1; the mentor's confirmation on 2026-09-01 that the variable IS expected in production is what moved it from suspected to demonstrated |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **SENT** — [EXT-08 issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), 2026-08-31. Awaiting a reply. Measured on 2 of 42 real captures. Not worked around: the test is implemented exactly as §5.1 states and both shapes are excluded; what M4 added is that the refusal names which shape it found |
 
 ---
@@ -62,10 +62,14 @@ built and measured across roughly a hundred runs since M1 - which is the useful 
 having asked: the answers cost nothing to receive, because the shape was already right.
 
 **One answer had a consequence elsewhere.** (b) turns **F-17** from *suspected* to
-*demonstrated*: `PROVENANCE.md` finding 6 documents this invocation **without** `N8RO_RELEASE`,
-and following it exactly produces a host that refuses every 42-entity load while sitting idle
-rather than failing. Now that the variable is confirmed as expected in production, that omission
-is a defect worth another project's time - raised as **E-6**.
+*demonstrated*: **EXT-08's own `README.md`** documents the R8 headless invocation **without**
+`N8RO_RELEASE`, and following it exactly produces a host that refuses every 42-entity load while
+sitting idle rather than failing. Now that the variable is confirmed as expected in production,
+that omission is a defect worth another project's time — raised as **E-6**.
+
+*E-6 was first filed citing `PROVENANCE.md` finding 6, which is EXT-17's own manifest and not an
+EXT-08 file at all. The substance was unaffected; the citation was corrected by a comment on the
+issue rather than by a silent edit, and the mistake is recorded as **F-37**.*
 
 **Its previous statuses, for the record:** `decided` by the DRI (2026-09-01, superseded by this
 reply); before that **DEFERRED BY DECISION**; and before that **DRAFTED, NOT SENT** across four
