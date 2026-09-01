@@ -1,0 +1,35 @@
+{
+  "schema": "ext17-campaign-summary/1",
+  "milestone": "M2 - execution only; no conditions are evaluated, so no run is a pass or a fail yet",
+  "stop_predicate": {
+    "kind": "frame_budget",
+    "statement": "A run is finished when the engine's frame number, as published on sim/engine/state, reaches 300."
+  },
+  "outcomes": {
+    "attempted": 2,
+    "completed": 2,
+    "timeout": 0,
+    "infrastructure_error": 0,
+    "sums_to_attempted": true
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 300,
+      "observed_sim_time_s": 15.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 6214489
+    },
+    {
+      "run_id": "001",
+      "outcome": "completed",
+      "predicate_satisfied": true,
+      "observed_frame": 300,
+      "observed_sim_time_s": 15.000000,
+      "observed_delta_s": 0.05000,
+      "capture_bytes": 6180139
+    }
+  ]
+}

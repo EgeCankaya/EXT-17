@@ -1,0 +1,54 @@
+﻿re-judging C:\Projects\EXT-17\campaigns\m6-campaign
+  7 condition(s) from C:\Projects\EXT-17\examples\atacama-raid.conditions.json
+  no host is started and no bus subscription is made - this binary links nothing that could
+
+  000  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  001  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  002  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  003  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  004  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  005  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  006  fail                  satisfied 3  violated 3  indeterminate 1   (met 1, not met 5)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  007  fail                  satisfied 4  violated 2  indeterminate 1   (met 2, not met 4)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  008  fail                  satisfied 5  violated 1  indeterminate 1   (met 3, not met 3)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  009  fail                  satisfied 5  violated 1  indeterminate 1   (met 3, not met 3)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  010  infrastructure_error  satisfied 0  violated 0  indeterminate 7   (met 0, not met 0)
+    no segment classified running, so nothing in this capture can be judged: sim_time_s does not order the samples of a frozen segment, and the sampling gap a not-met verdict is bounded against cannot be measured. This is not a determinism failure and it is not a failing scenario
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  011  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  012  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  013  infrastructure_error  satisfied 0  violated 0  indeterminate 7   (met 0, not met 0)
+    no segment classified running, so nothing in this capture can be judged: sim_time_s does not order the samples of a frozen segment, and the sampling gap a not-met verdict is bounded against cannot be measured. This is not a determinism failure and it is not a failing scenario
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  014  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  015  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  016  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  017  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  018  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+  019  pass                  satisfied 6  violated 0  indeterminate 1   (met 4, not met 2)
+    verify: 7 verdict(s) byte-identical to the live run's verdicts.jsonl
+
+  20 run(s) judged
+    pass                  8
+    fail                  10
+    timeout               0
+    infrastructure_error  2
+    (the four outcomes sum to 20, and no aggregate merges two of them)
+    indeterminate VERDICTS 32 - a verdict state, never a fifth run outcome

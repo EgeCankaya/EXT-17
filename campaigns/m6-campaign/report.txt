@@ -1,0 +1,79 @@
+﻿[campaign] report       re-rendered from 20 stored run record(s) in C:\Projects\EXT-17\campaigns\m6-campaign
+[campaign] report       nothing was run, no host was started and no capture was read - this is the report the campaign already wrote, printed again by the same printer
+[campaign] sweep        
+[campaign] sweep        SWEEP  red_raid_speed_ms  (m/s)  velocityNed magnitude, set before start  -  20 run(s), ordered by value
+[campaign] sweep        
+[campaign] sweep          value  run   outcome                   adds     keys   samples
+[campaign] sweep          11     000   fail                        48       48     50534  ##
+[campaign] sweep          22     001   fail                        47       47     50723  .
+[campaign] sweep          33     002   fail                        48       48     50447  ##
+[campaign] sweep          44     003   fail                        48       48     50347  ##
+[campaign] sweep          55     004   fail                        47       47     50410  .
+[campaign] sweep          70     005   fail                        50       50     50495  ######
+[campaign] sweep          85     006   fail                        54       54     50240  ###############
+[campaign] sweep          100    007   fail                        58       58     49828  ########################
+[campaign] sweep          115    008   fail                        63       63     48970  ###################################
+[campaign] sweep          130    009   fail                        64       64     48476  #####################################
+[campaign] sweep          150    010   infrastructure_error         -        -     49007  (no bar - this run did not complete)
+[campaign] sweep          170    011   pass                        65       65     48927  ########################################
+[campaign] sweep          190    012   pass                        65       65     48273  ########################################
+[campaign] sweep          210    013   infrastructure_error         -        -     47866  (no bar - this run did not complete)
+[campaign] sweep          240    014   pass                        59       59     47916  ##########################
+[campaign] sweep          270    015   pass                        59       59     50275  ##########################
+[campaign] sweep          300    016   pass                        56       56     47990  ####################
+[campaign] sweep          330    017   pass                        56       56     48274  ####################
+[campaign] sweep          355    018   pass                        55       55     47746  #################
+[campaign] sweep          380    019   pass                        54       54     47929  ###############
+[campaign] sweep        
+[campaign] sweep          the bar is `adds` scaled between 47 and 65 - NOT from zero, so a small real change is visible and is not a small real change drawn large by accident
+[campaign] sweep          adds    entity_add records in the run's first RUNNING segment. Roster lifecycle agreed exactly across twenty identical runs (M2), so this column carries no publication-schedule spread
+[campaign] sweep          keys    distinct (entity, occupancy) keys in that segment
+[campaign] sweep          samples total samples in it. This one DOES carry the platform's publication-schedule spread, measured at 0.38% over twenty identical runs
+[campaign] sweep        
+[campaign] sweep          The determinism gate ran at red_raid_speed_ms = 55 and established determinism FOR THAT VALUE. It is one claim at a named point, not one per run.
+[campaign] sweep        
+[campaign] sweep        VERDICTS ACROSS THE SWEEP  -  one column per condition whose outcome CHANGES
+[campaign] sweep        
+[campaign] sweep          value  run   outcome               C1    C2    C3    C4    C5    C6   
+[campaign] sweep          11     000   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          22     001   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          33     002   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          44     003   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          55     004   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          70     005   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          85     006   fail                  XX    XX    XX    OK    OK    OK  
+[campaign] sweep          100    007   fail                  XX    OK    XX    OK    OK    OK  
+[campaign] sweep          115    008   fail                  XX    OK    OK    OK    OK    OK  
+[campaign] sweep          130    009   fail                  XX    OK    OK    OK    OK    OK  
+[campaign] sweep          150    010   infrastructure_error  ??    ??    ??    ??    ??    ??  
+[campaign] sweep          170    011   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          190    012   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          210    013   infrastructure_error  ??    ??    ??    ??    ??    ??  
+[campaign] sweep          240    014   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          270    015   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          300    016   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          330    017   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          355    018   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep          380    019   pass                  OK    OK    OK    OK    OK    OK  
+[campaign] sweep        
+[campaign] sweep          C1  raid-leader-reaches-airfield
+[campaign] sweep          C2  raid-leader-crosses-corridor
+[campaign] sweep          C3  raid-leader-enters-depot-ring
+[campaign] sweep          C4  raid-leader-destroyed
+[campaign] sweep          C5  command-centre-destroyed
+[campaign] sweep          C6  airfield-operational
+[campaign] sweep        
+[campaign] sweep          OK  satisfied - the condition's answer was the asserted one
+[campaign] sweep          XX  VIOLATED  - it was decided and was not. This is what makes a run fail
+[campaign] sweep          ??  indeterminate - this capture cannot decide it. Never folded into either (CR-AS-4)
+[campaign] sweep        
+[campaign] sweep          Constant across the whole sweep, and therefore not a trend:
+[campaign] sweep            raid-leader-degraded  -  undetermined / indeterminate
+[campaign] sweep        
+[campaign] campaign     20 run(s) attempted
+[campaign] campaign       pass                  8
+[campaign] campaign       fail                  10
+[campaign] campaign       timeout               0
+[campaign] campaign       infrastructure_error  2
+[campaign] campaign       the four sum to 20, and no aggregate above merges two of them
+[campaign] campaign       32 INDETERMINATE verdict(s) across the campaign - a verdict state, never a fifth run outcome. See each run's verdicts.jsonl.

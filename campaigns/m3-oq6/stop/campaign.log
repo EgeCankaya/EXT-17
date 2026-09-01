@@ -1,0 +1,24 @@
+[campaign] campaign     disk: projecting 30480000 bytes for 1 run(s) of 1200 frames at 25400 bytes/frame
+[campaign] campaign     disk: 340451143680 bytes free, ceiling 8589934592
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] campaign     run timeout: 600000 ms (backstop; never the definition of the end)
+[campaign] run          === run 000 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 32380 -> C:\Projects\EXT-17\campaigns\m3-oq6\stop\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 38264 cwd C:\Projects\EXT-17\campaigns\m3-oq6\stop\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 38264 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 32380 exit 0 (on its own)
+[campaign] capture      read back: 16626 samples over 1 segment key(s), end_reason size_limit, conformant
+[campaign] capture      this capture does NOT cover the whole run - it ended at its size limit. Anything computed from it is over the part of the run that was recorded, not the run.
+[campaign] record       C:\Projects\EXT-17\campaigns\m3-oq6\stop\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] campaign     1 of 1 runs completed

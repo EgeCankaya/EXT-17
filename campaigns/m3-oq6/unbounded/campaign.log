@@ -1,0 +1,24 @@
+[campaign] campaign     disk: projecting 30480000 bytes for 1 run(s) of 1200 frames at 25400 bytes/frame
+[campaign] campaign     disk: 340484911104 bytes free, ceiling 8589934592
+[campaign] campaign     per-capture bound: 73200000 bytes, derived from 1200 frames. It is three times the measured per-frame capture cost, so a run that reaches it has overrun its projection rather than merely run.
+[campaign] campaign     stop predicate: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] campaign     run timeout: 600000 ms (backstop; never the definition of the end)
+[campaign] run          === run 000 : "Atacama Air Defense" ===
+[campaign] start        recorder pid 22920 -> C:\Projects\EXT-17\campaigns\m3-oq6\unbounded\runs\000
+[campaign] connect      client created, message pump started
+[campaign] start        host pid 37708 cwd C:\Projects\EXT-17\campaigns\m3-oq6\unbounded\runs\000\host
+[campaign] observed     host ready (engine state published) -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=(none)
+[campaign] publish      sim/scenario/command load_scenario "Atacama Air Defense"
+[campaign] observed     scenario loaded -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command start
+[campaign] observed     engine running -> state=running frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] run          watching for: A run is finished when the engine's frame number, as published on sim/engine/state, reaches 1200.
+[campaign] observed     stop predicate satisfied -> state=running frame=1200 simTime=60.000 dt=0.05000 scenario=loaded(Atacama Air Defense)
+[campaign] publish      sim/engine/command stop
+[campaign] observed     engine idle after stop -> state=idle frame=0 simTime=0.000 dt=0.00000 scenario=loaded(Atacama Air Defense)
+[campaign] teardown     host pid 37708 exit 3221225786 (on its own)
+[campaign] teardown     recorder pid 22920 exit 0 (on its own)
+[campaign] capture      read back: 50401 samples over 2 segment key(s), end_reason host_lost, conformant
+[campaign] record       C:\Projects\EXT-17\campaigns\m3-oq6\unbounded\runs\000\run.json (completed)
+[campaign] run          run 000 -> completed
+[campaign] campaign     1 of 1 runs completed

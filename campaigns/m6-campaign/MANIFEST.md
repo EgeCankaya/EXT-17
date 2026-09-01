@@ -24,6 +24,27 @@ Regenerate with:
 python tools\m6-checks\campaign_manifest.py campaigns\m6-campaign > campaigns\m6-campaign\MANIFEST.md
 ```
 
+## One superseded sentence, and why it was not edited
+
+`campaign.json` and `selftest/self-test.json` here record OQ-2 as **`"oq2_ruling": "unanswered"`**.
+That was true when this campaign ran and is not true now. **Later the same day —
+2026-09-01 — OQ-2 was DECIDED by the DRI (content) and CONCURRED with by the mentor,
+independently.** It has still never been ANSWERED by [B]'s author, and those three
+words stay apart: see `docs/m7-oq2-oq3.md` and `docs/escalations.md` E-2.
+
+**The artifacts were not rewritten, and that is the point.** They are evidence of an
+execution, not documentation of a position. Re-running this campaign to refresh one
+sentence would replace these measured numbers with different measured numbers, break
+every SHA-256 below, and invalidate the figures `docs/m6-assertions.md` and
+`docs/m7-oq2-oq3.md` quote from them - to correct wording that changed no behaviour.
+**No code changed when OQ-2 was decided**: `content` was already the default, and
+this campaign's gate ran on it.
+
+The binaries print the current three-part wording, and `src/run/SelfTest.cpp` writes
+`oq2_decided_by`, `oq2_concurred_by` and `oq2_answered_by_brief_author` as three
+separate keys. A campaign run today records `decided` and this section does not
+appear - it is keyed on the artifact, not on the calendar.
+
 ## The determinism self-test's two runs (NOT campaign runs)
 
 | run | value | outcome | capture | bytes | samples | segs | conformant | covers run | sha256 |

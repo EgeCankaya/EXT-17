@@ -247,7 +247,9 @@ Detail, and every number, in [`docs/m4-determinism.md`](docs/m4-determinism.md).
 
 ## Building
 
-Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`.
+Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`. A run that **records**
+additionally needs EXT-08's recorder binary, which is not built here — see
+[the fourth binary](#the-fourth-binary-is-not-in-this-repository----recorder) below.
 
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
@@ -261,8 +263,15 @@ tests\build.cmd                    ->  builds and runs the tests
 correctness is about our own output rather than about the platform; since M3 the capture reader,
 whose correctness is about somebody else's bytes; since M4 the determinism comparison, whose
 correctness is what every other result rests on; since M5 the axis; and since M6 the whole
-assertion surface. **78 + 96 + 126 + 166 = 466 checks**, of which the last two suites are each
-run twice, the second time under a comma-decimal locale.
+assertion surface. **78 + 105 + 126 + 166 = 475 checks** across five suites, of which the last
+two are each run twice, the second time under a comma-decimal locale.
+
+**That number is not typed here on trust.** `tests\build.cmd` sums what the suites actually
+printed and fails if the total is not the one in `tests\checks.golden.txt` — the same mechanism
+as the four golden `--help` files, and for the same reason. It is here because this figure
+*did* rot: it read `466` for a milestone after the determinism suite grew from 96 checks to 105,
+which is the third counting-drift finding in this project's own log (F-41). Growing the suite
+means updating the golden file and this sentence in the commit that grew it.
 
 **Three of the four tools need no N8RO install to build or to run, and that is the point.** Look
 at the compile lines of `n8ro-capture`, `n8ro-compare` and `n8ro-judge`: no `/I`, no `/LIBPATH`,
@@ -286,6 +295,32 @@ Each build ends by running its binary's own `--help` and comparing it against th
 beside it — `help.golden.txt`, one in each of the four tool directories. A drift fails the build. This is deliberate: the PRD does not enumerate the option list in prose, because
 a list nobody executes is exactly what drifted in the sibling project. **The golden file is the
 CLI's specification.**
+
+## The fourth binary is not in this repository — `--recorder`
+
+**Building all four tools does not give you everything a recording run needs.** `n8ro-campaign`
+starts a *recorder* as a child process and passes it `--recorder <path>`; that binary is
+**EXT-08's `n8ro-bridge.exe`**, and it is required unless you pass `--no-recorder`. Nothing here
+builds it, and nothing here can: EXT-08 and EXT-17 are separate repositories with no shared
+source, which is the rule this project is organised around.
+
+| | |
+|---|---|
+| What it is | EXT-08's capture recorder, built from that repository — typically `…\EXT-08\build\x64\Release\n8ro-bridge.exe`. The committed campaigns record the exact path they used in each run's `run.json` under `environment.recorder_exe` |
+| What it does here | It holds the bus subscription and writes the `n8ro-capture/1` file. **EXT-17 never subscribes to entity state itself** — that is why `src/control/` publishes on the control path only, and why resolving an entity glob is refused: a second subscriber would perturb the publication schedule the determinism gate measures |
+| Which commands need it | `run-once`, `repeat` and `self-test`. **`report` and every `n8ro-judge` command do not** — they read stored files, start nothing, and need no N8RO install either |
+| If you do not have it | `--no-recorder` still executes and still writes `run.json`; there is simply no capture, so nothing can be judged, compared or swept |
+
+**What crosses the boundary is a process and a documented file format, never a symbol.** The
+format is vendored in `contract/capture-format-v1.md` and this project implements it from that
+document alone — `tools\n8ro-capture\build.cmd` is the proof, and it is why a capture recorded by
+somebody else's conformant producer reads here just as well.
+
+**[B]'s surface table cites `include\n8ro-sim\infrastructure\EntityStateSample.h` as the answer
+to "what a run publishes". That header does not exist in release 2.1.328** — that directory holds
+exactly two files, `SimulationEngineClient.h` and `SimulationEngineHost.h`, and a tree-wide search
+finds nothing under any other name. It is recorded as **F-20**, a defect in the brief rather than
+a gap here, and the capture format is what stands in its place.
 
 ## Two environment preconditions, both measured
 

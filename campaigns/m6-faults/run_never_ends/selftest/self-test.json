@@ -1,0 +1,106 @@
+{
+  "schema": "ext17-self-test/1",
+  "requirement": "CR-DET-1",
+  "outcome": "passed",
+  "detail": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 0 sample(s) were present only in 000 and 66 only in 001, which is the publication schedule and not the simulation (§14).",
+  "gate": {
+    "basis": "content",
+    "basis_is_a_named_deviation": true,
+    "verdict": "pass",
+    "oq2_ruling": "unanswered",
+    "oq2_note": "Whether the gate is keyed on content or on bytes is out with the owner of the brief and has not been ruled on. A pass here does NOT discharge the brief's acceptance criterion 2 as written; it discharges it under the content reading (ADR-1)."
+  },
+  "runs": [
+    {
+      "run_id": "000",
+      "outcome": "completed",
+      "capture": "capture-atacama-air-defense-000.n8rocap.jsonl",
+      "capture_covers_whole_run": true,
+      "capture_conformant": true,
+      "samples": 12845
+    },
+    {
+      "run_id": "001",
+      "outcome": "completed",
+      "capture": "capture-atacama-air-defense-001.n8rocap.jsonl",
+      "capture_covers_whole_run": true,
+      "capture_conformant": true,
+      "samples": 12911
+    }
+  ],
+  "refused": null,
+  "content": {
+    "verdict": "pass",
+    "reason": "every sample present in BOTH runs at the same simulation instant agrees. This is not a claim that the two captures are identical: 0 sample(s) were present only in 000 and 66 only in 001, which is the publication schedule and not the simulation (§14).",
+    "compared_samples": 12845,
+    "agree": 12845,
+    "differ": 0,
+    "only_in_000": 0,
+    "only_in_001": 66,
+    "only_in_one_is_not_a_difference": true,
+    "coverage": 1.000000,
+    "coverage_floor": 0.990000,
+    "segments": [
+      {
+        "part": 0,
+        "segment": 0,
+        "clock_000": "running",
+        "clock_001": "running",
+        "compared": true,
+        "samples_000": 12845,
+        "samples_001": 12911,
+        "compared_samples": 12845,
+        "agree": 12845,
+        "differ": 0,
+        "only_in_000": 0,
+        "only_in_001": 66,
+        "duplicated_instants_000": 0,
+        "duplicated_instants_001": 0,
+        "duplicated_identical_000": 0,
+        "duplicated_identical_001": 0
+      },
+      {
+        "part": 0,
+        "segment": 1,
+        "clock_000": "indeterminate",
+        "clock_001": "indeterminate",
+        "compared": false,
+        "excluded_because": "clock is indeterminate in 000 and indeterminate in 001; only a running segment can be aligned across two runs",
+        "samples_000": 0,
+        "samples_001": 0,
+        "compared_samples": 0,
+        "agree": 0,
+        "differ": 0,
+        "only_in_000": 0,
+        "only_in_001": 0,
+        "duplicated_instants_000": 0,
+        "duplicated_instants_001": 0,
+        "duplicated_identical_000": 0,
+        "duplicated_identical_001": 0
+      }
+    ],
+    "differences": []
+  },
+  "bytes": {
+    "identical": false,
+    "expected_to_fail": true,
+    "note": "Run and reported alongside the content comparison, never engineered to pass. The one exclusion is platform.model_path, which the format names as the single host-dependent field.",
+    "bytes_000": 6179705,
+    "bytes_001": 6209069,
+    "headers_identical": true,
+    "model_path_excluded": true,
+    "model_path_differed": false,
+    "first_differing_offset": 5034,
+    "first_differing_line": 45
+  },
+  "result_equality": {
+    "outcome_000": "completed",
+    "outcome_001": "completed",
+    "outcomes_agree": true,
+    "verdicts_000": 0,
+    "verdicts_001": 0,
+    "verdicts_agree": true,
+    "verdicts_vacuous": true,
+    "verdicts_note": "At M4 no conditions are declared, so both runs produce zero verdicts and this line is vacuous. It becomes substantive at M6 with CR-AS-3."
+  }
+}

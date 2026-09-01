@@ -106,6 +106,53 @@ def rows_for(runs_dir):
     return rows
 
 
+def oq2_wording_note(campaign_dir):
+    """Emit a dated note when a campaign's stored artifacts predate the OQ-2 decision.
+
+    A campaign's `campaign.json` and `self-test.json` are written by the run that produced
+    them and are never rewritten afterwards: they are evidence, and re-running to refresh a
+    sentence would replace measured numbers with different measured numbers and invalidate
+    every SHA-256 in the manifest. So a campaign executed before 2026-09-01's OQ-2 decision
+    carries `"oq2_ruling": "unanswered"`, which the tools no longer print.
+
+    This is read from the artifact rather than hard-coded, so it retires itself: a campaign
+    run by the current binary records `decided` and gets no note.
+    """
+    path = os.path.join(campaign_dir, "campaign.json")
+    if not os.path.isfile(path):
+        return
+    try:
+        with open(path, "rb") as f:
+            summary = json.loads(f.read().decode("utf-8-sig"))
+    except (ValueError, OSError):
+        return
+    if summary.get("self_test", {}).get("gate", {}).get("oq2_ruling") != "unanswered":
+        return
+
+    quoted = '"oq2_ruling": "unanswered"'
+    print()
+    print("## One superseded sentence, and why it was not edited")
+    print()
+    print("`campaign.json` and `selftest/self-test.json` here record OQ-2 as **`%s`**." % quoted)
+    print("That was true when this campaign ran and is not true now. **Later the same day —")
+    print("2026-09-01 — OQ-2 was DECIDED by the DRI (content) and CONCURRED with by the mentor,")
+    print("independently.** It has still never been ANSWERED by [B]'s author, and those three")
+    print("words stay apart: see `docs/m7-oq2-oq3.md` and `docs/escalations.md` E-2.")
+    print()
+    print("**The artifacts were not rewritten, and that is the point.** They are evidence of an")
+    print("execution, not documentation of a position. Re-running this campaign to refresh one")
+    print("sentence would replace these measured numbers with different measured numbers, break")
+    print("every SHA-256 below, and invalidate the figures `docs/m6-assertions.md` and")
+    print("`docs/m7-oq2-oq3.md` quote from them - to correct wording that changed no behaviour.")
+    print("**No code changed when OQ-2 was decided**: `content` was already the default, and")
+    print("this campaign's gate ran on it.")
+    print()
+    print("The binaries print the current three-part wording, and `src/run/SelfTest.cpp` writes")
+    print("`oq2_decided_by`, `oq2_concurred_by` and `oq2_answered_by_brief_author` as three")
+    print("separate keys. A campaign run today records `decided` and this section does not")
+    print("appear - it is keyed on the artifact, not on the calendar.")
+
+
 def emit(campaign_dir):
     runs_dir = os.path.join(campaign_dir, "runs")
     rows = rows_for(runs_dir) if os.path.isdir(runs_dir) else []
@@ -113,6 +160,7 @@ def emit(campaign_dir):
     self_rows = rows_for(selftest_dir) if os.path.isdir(selftest_dir) else []
 
     name = os.path.basename(os.path.normpath(campaign_dir))
+    as_written = os.path.normpath(campaign_dir).replace("/", "\\")
     print("# `%s` - capture manifest" % name)
     print()
     print("**The captures themselves are not committed.** One 1200-frame run of Atacama Air")
@@ -137,9 +185,13 @@ def emit(campaign_dir):
     print("Regenerate with:")
     print()
     print("```cmd")
-    print("python tools\\m6-checks\\campaign_manifest.py campaigns\\%s > campaigns\\%s\\MANIFEST.md"
-          % (name, name))
+    # The path AS GIVEN, not the basename. A nested campaign - m6-faults/<fault>/ - would
+    # otherwise be told to regenerate itself from a directory that does not exist.
+    print(r"python tools\m6-checks\campaign_manifest.py %s > %s\MANIFEST.md"
+          % (as_written, as_written))
     print("```")
+
+    oq2_wording_note(campaign_dir)
 
     def table(title, data):
         if not data:

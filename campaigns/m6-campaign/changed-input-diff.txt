@@ -1,0 +1,80 @@
+﻿run-to-run diff - two runs at DIFFERENT inputs
+  runs                  capture-atacama-air-defense-000.n8rocap.jsonl  against  capture-atacama-air-defense-019.n8rocap.jsonl
+  what this is          the brief's second diffing half: "change one input and show exactly
+                        where the two runs diverged". A divergence here is the ANSWER, not a
+                        failure - and it is not a determinism finding, because these are two
+                        configurations rather than one configuration run twice.
+  what it is NOT        a gate. n8ro-campaign can only ever produce a self-test pair - two
+                        copies of one RunConfig - so nothing in a campaign can reach this
+                        framing by accident. It is asked for on purpose.
+  agreement here        would mean the changed input did not take effect, and is worth
+                        more attention than a divergence.
+
+  content comparison    DIVERGED
+    compared            (part 0, segment 0)  running in both, 48 entity key(s)
+    excluded            (part 0, segment 1)  clock is indeterminate in capture-atacama-air-defense-000.n8rocap.jsonl and indeterminate in capture-atacama-air-defense-019.n8rocap.jsonl; only a running segment can be aligned across two runs
+                          0 and 0 sample(s) in it were not compared
+    compared            44345 sample(s)
+    agree               14279
+    differ              30066
+    present in one only capture-atacama-air-defense-000.n8rocap.jsonl: 6189   capture-atacama-air-defense-019.n8rocap.jsonl: 3584   (not differences - see verdict)
+    coverage            92.5223% of the smaller run's comparable samples (44345 of 47929), floor 99.0000%
+    verdict             30066 sample(s) present in both runs at the same simulation instant carry DIFFERENT values. This is not the publication schedule; it is the simulation.
+
+    FIRST DIFFERENCE    segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.7000000000000001
+                          field "positionGeodetic": [-23.496501124623734, -68.24737681458308, 3.1649440373868827]   against   [-23.496492816664038, -68.24737482276302, 3.1649440373868827]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 586, capture-atacama-air-defense-019.n8rocap.jsonl line 562
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.7500000000000001
+                          field "positionGeodetic": [-23.496508335092052, -68.2473553053241, 3.7220797189434793]   against   [-23.496494642295836, -68.2473520224991, 3.7220797189434793]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 629, capture-atacama-air-defense-019.n8rocap.jsonl line 605
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.8000000000000002
+                          field "positionGeodetic": [-23.496516650763244, -68.2473304991774, 4.343404716243479]   against   [-23.49649674775599, -68.24732572746635, 4.343404716243479]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 672, capture-atacama-air-defense-019.n8rocap.jsonl line 648
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.8500000000000002
+                          field "positionGeodetic": [-23.49652607633764, -68.24730238212094, 5.027460247757248]   against   [-23.496499134234593, -68.24729592280163, 5.027460247757248]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 715, capture-atacama-air-defense-019.n8rocap.jsonl line 691
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.9000000000000002
+                          field "positionGeodetic": [-23.496536616081116, -68.2472709414287, 5.7733505763328905]   against   [-23.496501802811725, -68.24726259501561, 5.7733505763328905]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 758, capture-atacama-air-defense-019.n8rocap.jsonl line 734
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 0.9500000000000003
+                          field "positionGeodetic": [-23.496548273895094, -68.24723616546171, 6.580677567337548]   against   [-23.496504754475197, -68.24722573177137, 6.580677567337548]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 801, capture-atacama-air-defense-019.n8rocap.jsonl line 777
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 1.0000000000000002
+                          field "positionGeodetic": [-23.496561053363827, -68.24719804352708, 7.449494697566199]   against   [-23.496507990132514, -68.24718532173486, 7.449494697566199]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 844, capture-atacama-air-defense-019.n8rocap.jsonl line 820
+
+    then (context only) segment (part 0, segment 0)  entity BlueSAM_ShortRange_wpn_600_0@1
+                          sim_time_s 1.0500000000000003
+                          field "positionGeodetic": [-23.49657495778665, -68.24715656578172, 8.38027384368255]   against   [-23.49651151061904, -68.24714135447299, 8.38027384368255]
+                          capture-atacama-air-defense-000.n8rocap.jsonl line 887, capture-atacama-air-defense-019.n8rocap.jsonl line 863
+
+  byte comparison       not run - see below
+  result equality       not checked - see below
+                        Neither answers a question worth asking about two DIFFERENT inputs. Two such
+                        runs are of course not byte-identical, and their outcomes are of course allowed
+                        to differ - that is what a sweep is. Both belong to the self-test, where
+                        agreement is the expectation; here they would read as two more failures sitting
+                        beside an answer.
+
+  DIVERGED              at the point named above - segment, (entity, occupancy), sim_time_s
+                        and field. That is the brief's "exactly where", and it is the answer
+                        this diff exists to give.
+                        30066 of 44345 compared sample(s) differ. The count is context; the FIRST one is
+                        the finding, because everything after it is downstream of it.
+                        
+                        Samples present in one run only are NOT divergences here either: this
+                        platform publishes a different subset of frames every run, and that is
+                        true whether or not an input changed.

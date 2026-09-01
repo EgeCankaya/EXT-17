@@ -51,21 +51,62 @@ out/
 #
 # The captures themselves stay out. A re-run does not reproduce them byte for byte anyway -
 # that is this project's central measurement, not a limitation of this decision.
+#
+# TWO RULES BELOW EXIST BECAUSE THIS BLOCK GOT THEM WRONG FOR SEVEN MILESTONES (F-40):
+#
+#   1. `*.txt` IS WHITELISTED, and it is the whole point. The comment above has said since the
+#      first commit that the report is a deliverable that must be committed - and the patterns
+#      re-included .md, .json and .log while the report the campaign actually writes is
+#      report.txt. So did changed-input-diff.txt, which is the ONLY artifact of [B]'s
+#      "change one input and show exactly where the two runs diverged" and is NOT regenerable
+#      without the captures. A comment stating an intention is not a pattern implementing it.
+#
+#   2. THE DEPTH-2 RULES ARE NAMED, NEVER `*.log`. `campaigns/*/*/` is two different things -
+#      a nested CAMPAIGN (m6-faults/<fault>/, m3-oq6/<probe>/, which carry campaign.json and
+#      runs/) and a nested RUN (m5-oq4/<value>/, m2-axis/<probe>/, which carry a 24 MB capture
+#      and 2.5 MB each of host-logger.log and host.err). No glob can tell them apart, so at
+#      that depth the transcript is whitelisted as `campaign.log` BY NAME. Writing `*.log`
+#      there would commit about 200 MB of host logs, silently.
 !campaigns/
 campaigns/**
+
+# Directories, so git will descend. Re-including a directory commits nothing by itself; every
+# file still needs a negation of its own below.
 !campaigns/*/
 !campaigns/*/runs/
 !campaigns/*/runs/*/
 !campaigns/*/selftest/
 !campaigns/*/selftest/runs/
 !campaigns/*/selftest/runs/*/
+!campaigns/*/*/
+!campaigns/*/*/runs/
+!campaigns/*/*/runs/*/
+!campaigns/*/*/selftest/
+!campaigns/*/*/selftest/runs/
+!campaigns/*/*/selftest/runs/*/
+
+# Campaign-level files. `*.txt` is the report, the run-to-run diff and the re-judge check.
 !campaigns/*/*.md
 !campaigns/*/*.json
 !campaigns/*/*.log
+!campaigns/*/*.txt
+
+# Nested-campaign files, one level down - m6-faults/<fault>/ and m3-oq6/<probe>/. The
+# transcript is named rather than globbed; see rule 2 above.
+!campaigns/*/*/*.md
+!campaigns/*/*/*.json
+!campaigns/*/*/*.txt
+!campaigns/*/*/campaign.log
+
+# Run-level files, named individually at every depth. NEVER `*.log` on any of these lines.
 !campaigns/*/runs/*/run.json
 !campaigns/*/runs/*/verdicts*.jsonl
 !campaigns/*/selftest/*.json
 !campaigns/*/selftest/runs/*/run.json
+!campaigns/*/*/runs/*/run.json
+!campaigns/*/*/runs/*/verdicts*.jsonl
+!campaigns/*/*/selftest/*.json
+!campaigns/*/*/selftest/runs/*/run.json
 
 # n8ro-sim-local writes a per-entity JSONL dump into ./test_artifacts relative to its
 # working directory, unasked. Hundreds of MB per run.
