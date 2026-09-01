@@ -49,6 +49,19 @@ pass unchanged against the re-pinned files.
 | **E-5** — the condition digest was an excerpt of EXT-08's README that stopped one heading early | EXT-08 now owns `docs/condition-file-schema.md` carrying all four sections, with a test there that fails if it drifts from the README | `condition-file-schema.md` is now **vendored by identity** |
 | **E-6** — EXT-08's README documented the headless invocation without `N8RO_RELEASE` | The R8 block states both preconditions and both failure modes | Finding 6 below |
 
+**How to run the pin check, because a naive one fails on Windows.** Compare the **git blobs**,
+not the working-tree files: both repositories store these with LF and check them out with CRLF,
+so `diff` between two working trees reports a difference on every line while the tracked content
+is identical. From EXT-17:
+
+```
+git rev-parse HEAD:contract/capture-format-v1.md
+git -C ..\EXT-08 rev-parse ca5118c:docs/capture-format-v1.md
+```
+
+Equal hashes mean equal content. At this pin they are `a6974af…` for the format and `9d65ed0…`
+for the condition schema.
+
 **F-19 closes with this pin.** The condition digest could not be checked by identity, because no
 file of that name existed upstream to check it against. One does now, and this directory's copy
 is byte-identical to it — so a pin check is one comparison for all three vendored artifacts
