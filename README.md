@@ -248,8 +248,8 @@ Detail, and every number, in [`docs/m4-determinism.md`](docs/m4-determinism.md).
 ## Building
 
 Requires Visual Studio's x64 toolchain and the N8RO SDK at `C:\N8RO`. A run that **records**
-additionally needs EXT-08's recorder binary, which is not built here — see
-[the fourth binary](#the-fourth-binary-is-not-in-this-repository----recorder) below.
+additionally needs EXT-08's recorder binary, which is **not built here** — see *"The fourth
+binary is not in this repository"* below, after the build scripts.
 
 ```
 tools\n8ro-campaign\build.cmd      ->  build\n8ro-campaign\n8ro-campaign.exe
