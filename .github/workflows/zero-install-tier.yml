@@ -1,0 +1,115 @@
+# EXT-17 - the zero-install tier, built and run on a machine nobody here owns.
+#
+# WHAT THIS IS FOR. This repository's central claim is a boundary: the capture reader, the
+# determinism comparison and the condition evaluator link NOTHING - not EXT-08, not the N8RO SDK,
+# not a third-party JSON library - and the whole test suite needs no N8RO install. Until now that
+# was checked only by build-time searches over our own sources, on the one machine that has the
+# SDK. A search proves no forbidden name appears. It cannot prove the install is unnecessary,
+# because the install was always there.
+#
+# A stock `windows-latest` runner has never had C:\N8RO on it. If the suite builds and passes
+# there, the claim is evidence rather than an argument. That is the only kind of clean-room
+# result that is not self-certified.
+#
+# WHAT IT DELIBERATELY DOES NOT COVER. `n8ro-campaign`, `m1-run` and the two spikes link
+# n8ro-sim.lib and n8ro-core.lib and cannot build here; a run that records additionally needs
+# EXT-08's recorder binary. That is 4 of the 8 build scripts, and the honest way to state the
+# split is to run the half that can run rather than to weaken the half that cannot. README's
+# "Building" section carries the same split in prose.
+
+name: zero-install tier
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  clean-room:
+    name: build and test with no N8RO install
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: This runner really is a clean room
+        shell: cmd
+        run: |
+          if exist "C:\N8RO" (
+            echo FAIL: C:\N8RO exists on this runner, so nothing below is evidence of anything.
+            exit /b 1
+          )
+          if not "%N8RO_RELEASE%"=="" (
+            echo FAIL: N8RO_RELEASE is set to "%N8RO_RELEASE%".
+            exit /b 1
+          )
+          echo No C:\N8RO. No N8RO_RELEASE. No EXT-08 checkout.
+
+      # This step is the regression guard for the .gitattributes added alongside this workflow.
+      # Before it existed, a clone rewrote the vendored fixture to CRLF - 7180 bytes of a file
+      # that contract/ exists to pin byte for byte. It was invisible from a working directory and
+      # would be invisible again the moment somebody deletes a line from .gitattributes.
+      - name: The vendored contract/ pin survived checkout, and the goldens are still CRLF
+        shell: pwsh
+        run: |
+          # iso-8859-1 rather than ::Latin1, which does not exist before .NET 5 - this way the
+          # step can be run locally under Windows PowerShell 5.1 as well as under the runner's
+          # pwsh 7. A check nobody can execute outside CI is a check nobody debugs.
+          $latin1 = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+          function Get-CrCount($p) {
+            $t = $latin1.GetString([System.IO.File]::ReadAllBytes($p))
+            return $t.Length - $t.Replace("`r", "").Length
+          }
+          $fail = 0
+          Write-Host "contract/ must contain no CR at all - format section 2 is 'LF, never CRLF, on any platform':"
+          foreach ($f in Get-ChildItem contract -File) {
+            $cr = Get-CrCount $f.FullName
+            $ok = if ($cr -eq 0) { "ok  " } else { $fail = 1; "FAIL" }
+            Write-Host ("  {0}  CR={1,-6} {2}" -f $ok, $cr, $f.Name)
+          }
+          Write-Host "goldens must be CRLF - they are compared with fc against Windows console output:"
+          foreach ($f in @('tests/checks.golden.txt') + (Get-ChildItem tools -Recurse -Filter help.golden.txt | ForEach-Object { $_.FullName })) {
+            $cr = Get-CrCount $f
+            $ok = if ($cr -gt 0) { "ok  " } else { $fail = 1; "FAIL" }
+            Write-Host ("  {0}  CR={1,-6} {2}" -f $ok, $cr, $f)
+          }
+          if ($fail) { throw "checkout did not reproduce the committed bytes" }
+
+      - name: Which compiler the free tier found
+        shell: cmd
+        run: |
+          call tools\find-vcvars.cmd free
+          if errorlevel 1 exit /b 1
+          cl 2>&1 | findstr /C:"Version"
+
+      # The real gate. 475 checks across five suites, two of them run a second time under a
+      # comma-decimal locale. This script links nothing; if it passes here it needed nothing.
+      - name: tests
+        shell: cmd
+        run: tests\build.cmd
+
+      # Each of these three self-checks its own boundary - the SDK's and the producer's names, a
+      # global sort of a capture, and for two of them CR-DET-2's clock and locale hazards - and
+      # then compares its own --help against the golden file beside it.
+      - name: n8ro-capture
+        shell: cmd
+        run: tools\n8ro-capture\build.cmd
+
+      - name: n8ro-compare
+        shell: cmd
+        run: tools\n8ro-compare\build.cmd
+
+      - name: n8ro-judge
+        shell: cmd
+        run: tools\n8ro-judge\build.cmd
+
+      # Building proves the compile line. Running proves the claim: a capture EXT-08 produced is
+      # read here, and a condition file written for EXT-08's referee is loaded here, on a machine
+      # that has neither EXT-08 nor the SDK on it.
+      - name: Read EXT-08's capture and load EXT-08's condition file, with neither installed
+        shell: cmd
+        run: |
+          build\n8ro-capture\n8ro-capture.exe read contract\capture-atacama-air-defense-sample.n8rocap.jsonl --quiet
+          if errorlevel 1 exit /b 1
+          build\n8ro-judge\n8ro-judge.exe check --conditions contract\example.conditions.json
+          if errorlevel 1 exit /b 1
