@@ -127,26 +127,37 @@ outcome in those words: *"M7 must state that metric as unmet rather than claim i
 ## 5. What is still open at the end of the project
 
 Stated in one place, because the last milestone is where an open item is most likely to quietly
-become a closed one. **Updated 2026-09-01, after the mentor replied.**
+become a closed one. **Updated 2026-09-01, twice: after the mentor replied, and again after all
+four upstream issues came back fixed.**
 
 | # | What | Whose | Status | Blocks anything? |
 |---|---|---|---|---|
 | **The recording** | [B]'s deliverable 4 | Needs a person | **Not delivered.** Scripted in `docs/recording-script.md`, including what *not* to say | **It is the deliverable.** Nothing else waits on it |
 | **OQ-2** | Is the gate keyed on content or on bytes? | The owner of [B] | **`decided` (DRI, 2026-09-01) — content. Never answered**, across five milestones | No. Both readings ship as selectable gates; a ruling changes a default and no code |
 | **OQ-3 (a) and (c)** | Is the bus route the intended control path? Is `SimEngineHost_SharedMemory` right versus the seven other variants? | Mentor | **`decided`, not answered** — not covered in what was relayed on 2026-09-01. The other four parts **are answered** | No. One short follow-up closes them |
-| **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | Sent 2026-08-31, no reply | No |
-| **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | Sent 2026-08-31, no reply | No — and it is the one with a measured operational cost, now including a campaign-level one (R15) |
-| **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | Sent 2026-09-01, no reply | No. The arithmetic is decided here and stated with its constants |
-| **E-6** | `PROVENANCE.md` finding 6 omits `N8RO_RELEASE` | EXT-08 ([#4](https://github.com/EgeCankaya/EXT-08/issues/4)) | Sent 2026-09-01, no reply | No. **New at M7** — the mentor's answer turned F-17 from suspected into demonstrated |
+| **E-3** | §6.7's summing rule is wrong for `segments` | EXT-08 ([#1](https://github.com/EgeCankaya/EXT-08/issues/1)) | **CLOSED — FIXED 2026-09-01**, option (a) taken, vendored back at the fourth pin | No, and it never did |
+| **E-4** | §5.1's frozen-clock test detects three phenomena, not one | EXT-08 ([#2](https://github.com/EgeCankaya/EXT-08/issues/2)) | **CLOSED — FIXED 2026-09-01, wider than raised.** EXT-08 folded in the third shape, which the issue never carried, and §14 now says an emptied self-test is a refusal rather than a pass | No — and it is the one with a measured operational cost, now including a campaign-level one (R15). **That cost is unchanged and was not traded away for the fix** |
+| **E-5** | The vendored condition digest stops one heading early | EXT-08 ([#3](https://github.com/EgeCankaya/EXT-08/issues/3)) | **CLOSED — FIXED 2026-09-01, and not by the fix that was asked for.** EXT-08 created a real upstream file rather than replying "take those two sections too"; the digest is now vendored by identity, closing **F-19** | No. The arithmetic was decided here and stated with its constants, and is unchanged |
+| **E-6** | EXT-08's README documents the R8 invocation without `N8RO_RELEASE` | EXT-08 ([#4](https://github.com/EgeCankaya/EXT-08/issues/4)) | **CLOSED — FIXED 2026-09-01**, the same day it was raised, against the corrected citation (F-37) | No. **New at M7** — the mentor's answer turned F-17 from suspected into demonstrated |
 
 **What closed on 2026-09-01, and it is worth naming separately:** four of OQ-3's six parts moved
-from `decided` to **`answered`**, and the **sweep-legibility metric moved from UNMET to met by
-its own named method**. Neither changed a line of code — every confirmed answer matched what was
-already built and measured.
+from `decided` to **`answered`**; the **sweep-legibility metric moved from UNMET to met by its
+own named method**; and **all four EXT-08 issues moved from `sent` to `fixed`** — a fifth state,
+stronger than `answered`, because a reply is a sentence and a fix is a diff. **None of it changed
+a line of code** — every confirmed answer and every correction matched what was already built and
+measured, which is what raising them rather than working around them was for.
+
+**Two rows shrank as a side effect and one grew.** F-19 and F-18 both close at the fourth pin.
+The new one is **F-38**: a fixed escalation makes `contract/` stale, and nothing notices — the
+first drift this project caused itself.
 
 **Nothing in that table was discovered at M7.** Every row was open before this milestone began,
 except E-6, which is a five-milestone-old finding that only became reportable when the mentor
 confirmed the thing it depends on.
+
+**And after the fixes, two rows remain: the recording, and OQ-2 plus OQ-3's (a) and (c).** Both
+of those need a person who is not on this project. Nothing that is this project's to close is
+open.
 
 ## 6. What M7 did *not* do
 

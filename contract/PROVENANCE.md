@@ -9,25 +9,72 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `78fd4ef`**, format version `n8ro-capture/1`, producer `0.9.0`.
+**Pinned at EXT-08 commit `ca5118c`**, format version `n8ro-capture/1`, producer `0.9.0`.
 
-The specification last changed at EXT-08 `9e63315` (producer 0.9.0, BTB-CAP-6); `78fd4ef` is
-EXT-08's `main` at the time of pinning and carries that file unchanged. Pinning the branch
-head rather than the last commit that touched the file is deliberate — it makes "is this
-current?" one comparison against `main` rather than a question about which commit last
-mattered.
+The specification last changed at EXT-08 `1dc2861` — **clarifications only**, see "The fourth
+pin" below; `ca5118c` is EXT-08's `main` at the time of pinning and carries that file unchanged.
+Pinning the branch head rather than the last commit that touched the file is deliberate — it
+makes "is this current?" one comparison against `main` rather than a question about which commit
+last mattered.
 
-This is the **third** pin, and the drift is worth stating as a live hazard rather than a
+This is the **fourth** pin, and the drift is worth stating as a live hazard rather than a
 footnote:
 
 | Pin | EXT-08 commit | Producer | Went stale because |
 |---|---|---|---|
 | 1st | `eedc228` | 0.7.0 | Stale within the hour — producer 0.8.0 added `header.sample_form` |
 | 2nd | `063b5ba` | 0.8.0 | Producer 0.9.0 added `header.limits`, `header.part`, `header.continues_from` and `trailer.continued_in` (BTB-CAP-6) |
-| 3rd | `78fd4ef` | 0.9.0 | Current |
+| 3rd | `78fd4ef` | 0.9.0 | **EXT-08 fixed the four defects EXT-17 raised against this directory** — E-3, E-4, E-5 and E-6 |
+| 4th | `ca5118c` | 0.9.0 | Current |
 
-**In both cases the addition was non-breaking and the freeze held — which is the pattern, not a
-coincidence.** EXT-08's format was designed so its producer can grow without moving the version:
+### The fourth pin, and why it is the different one
+
+**The first three went stale because the producer grew. This one moved because EXT-17 pushed
+four defects back across the boundary and EXT-08 fixed all four.** That is the `contract/`
+discipline completing a full circuit for the first time — a defect found here, raised there,
+corrected there, and vendored back — rather than being worked around here, and the circuit is
+worth more than any of the four corrections.
+
+**Nothing in this pin is a behaviour change.** All four fixes are documentation. No capture
+changes, no key gains or loses a meaning, no reader that conformed before fails after, and
+`n8ro-capture/1` did not move — EXT-08 lists both specification edits under §13's new
+"Clarifications made after the freeze" for exactly that reason. What the re-pin had to verify is
+that claim, and it did: the full test suite and `n8ro-capture read` on the vendored sample both
+pass unchanged against the re-pinned files.
+
+| Was | Now | Where it landed here |
+|---|---|---|
+| **E-3** — §6.7 said a run's totals are the sum across parts, which is false for `segments` | §6.7 rule 2 and §11 both say only four of the five counters sum, and how to correct `segments` | Finding 8 below |
+| **E-4** — §5.1's frozen-clock test was read as "the clock was reset" | §5.1 states what a positive result establishes and lists **three** shapes; §14 says an emptied self-test is a refusal, not a pass | Finding 2 below |
+| **E-5** — the condition digest was an excerpt of EXT-08's README that stopped one heading early | EXT-08 now owns `docs/condition-file-schema.md` carrying all four sections, with a test there that fails if it drifts from the README | `condition-file-schema.md` is now **vendored by identity** |
+| **E-6** — EXT-08's README documented the headless invocation without `N8RO_RELEASE` | The R8 block states both preconditions and both failure modes | Finding 6 below |
+
+**F-19 closes with this pin.** The condition digest could not be checked by identity, because no
+file of that name existed upstream to check it against. One does now, and this directory's copy
+is byte-identical to it — so a pin check is one comparison for all three vendored artifacts
+rather than two comparisons and a judgement call about the third.
+
+### The rule this pin adds
+
+**A `fixed` row in `docs/escalations.md` is not finished until the pin has moved and the suite has
+re-run.** For about an hour on 2026-09-01 this directory held a copy that this project's own
+escalations file described as wrong while the upstream file was right — a state nothing here can
+detect, because an issue closing on another repository is not an event anything watches. The
+three earlier drifts were the producer growing and were caught by re-reading this file; this one
+was **caused by this project's own success** and had no trigger at all.
+
+So: raise it, and when it comes back fixed, re-pin in the same breath. That is F-38, and it is a
+written rule rather than a check — which is stated plainly because the next one will be caught by
+somebody remembering.
+
+**What EXT-17 changed as a result: nothing.** Every correction confirmed a behaviour this
+project had already implemented and stated — the corrected segment sum, the three frozen shapes,
+the geodesy, the two environment preconditions. That is the useful outcome of raising them
+rather than working around them: the arithmetic in `src/assert/Geodesy.h` is still this
+project's own decision, and it now agrees with a vendored sentence instead of with an inference.
+
+**In every earlier case the addition was non-breaking and the freeze held — which is the
+pattern, not a coincidence.** EXT-08's format was designed so its producer can grow without moving the version:
 §13 makes an added key non-breaking, and CAP-6 needed no new record type and no new value in any
 closed vocabulary, because `size_limit` was already in the closed sets for `trailer.end_reason`
 and `segment_close.reason`. `n8ro-capture/1` has never changed.
@@ -49,7 +96,7 @@ a per-capture byte bound instead of only projecting one.
 |---|---|---|
 | `capture-format-v1.md` | The capture format specification, field by field | **FROZEN** at EXT-08's M7. A change to what it specifies is now a version bump and a downstream change — for us |
 | `capture-atacama-air-defense-sample.n8rocap.jsonl` | A real capture from a real run, trimmed to 3.2 MB | Every structural record kept; two entities' samples. Reports CONFORMS against the spec above |
-| `condition-file-schema.md` | The referee's condition-file shape | Reference only. EXT-08's OQ-6 resolved that EXT-17 may adopt or supersede it |
+| `condition-file-schema.md` | The referee's condition-file shape — **and since the fourth pin the arithmetic and the boundary rules too** | Reference only, in that EXT-08's OQ-6 resolved EXT-17 may adopt or supersede it. But it is now a real upstream file (`docs/condition-file-schema.md`) vendored **by identity** rather than an excerpt assembled here. E-5 fixed, F-19 closed |
 | `example.conditions.json` | A working condition file for the reference scenario | Reference only |
 
 ## What is deliberately NOT here
@@ -96,6 +143,19 @@ Detect such a segment and exclude it. The test is exact rather than a heuristic:
 segment each entity publishes once per frame, so the maximum number of samples any one
 `(entity, occupancy)` carries at a single `sim_time_s` is 1. See §5.1 and §14.
 
+**The test is exact; what a positive result MEANS is narrower than "the clock was reset", and
+since the fourth pin §5.1 says so.** It establishes that *the segment cannot be aligned on
+`sim_time_s`* — which is all a consumer needs, and is why the instruction to exclude does not
+depend on the cause. Three shapes satisfy it: a reset clock; a burst published twice with
+byte-identical values inside a segment whose clock ran normally; and a publication landing in
+that same burst carrying values that **differ**. EXT-17 measured the second and third and raised
+them as **E-4** — the second at 1 of 27 ordinary runs, the third at 4 of 35 parameterised ones,
+and the third is the one this project causes for itself by updating entity state before `start`.
+§14 now also carries the consequence EXT-17 pays: excluding these segments can leave a self-test
+with nothing left to compare, at roughly 1 pair in 14, and **that is a refusal rather than a
+pass** — retrying until a pair happens to come out comparable would turn a real refusal into a
+silent one.
+
 ### 3. A single ordinary run contains TWO segments
 
 Because the stop path unloads and reloads, one run of one scenario produces segment 0 (the run)
@@ -122,9 +182,23 @@ conclusion from a file that looks perfectly clean. See §14, "Known loss".
 ### 6. The headless host's invocation, which EXT-17 needs outright
 
 ```
+set N8RO_RELEASE=C:\N8RO
+set PATH=C:\N8RO\bin;%PATH%
 n8ro-sim-app.exe --sim-config SimEngineHost_SharedMemory ^
                  --model-path C:\N8RO\data\db --schema-file N8roSimSchema
 ```
+
+**The two environment lines are not decoration, and until the fourth pin they were missing from
+this finding and from EXT-08's README alike.** That omission is **E-6**, corrected upstream now.
+With `N8RO_RELEASE` unset the host resolves its plugin directory from the current working
+directory, skips the plugin scan, never registers `componentPhysics`, and **refuses every
+42-entity scenario load while sitting idle rather than failing** — so an unattended campaign
+hangs instead of breaking, which is the worse of the two. `C:\N8RO\bin` on `PATH` is a
+**second, separate** precondition for anything linking the SDK: without it a binary exits **53**
+having produced no output at all, which reads like a crash and is a missing DLL. Setting one
+does not cover the other. Measured at EXT-17's M1 and M2 (F-17); the mentor confirmed on
+2026-09-01 that `N8RO_RELEASE` **is** expected to be set in production, which is what turned
+this from a local provisioning quirk into a defect worth another project's time.
 
 **It takes no scenario argument.** It hosts an engine and subscribes to its command topic;
 loading a scenario is a separate step published on `sim/scenario/command`
@@ -142,6 +216,11 @@ since what is demonstrated is that it *works*, not that it is the intended produ
 that nothing it ships changes with the answer, and passed the confirmation here: it is
 **EXT-17's OQ-3**, and this is the project that runs the host in production. `[B]` asks its own
 reader to confirm it, so the ask lands here by the brief's own instruction, not by delegation.
+
+**Four of OQ-3's six parts were answered by the mentor on 2026-09-01** — the environment
+variable, the degraded terrain configuration, the console control event and its non-zero exit,
+and `PATH`. Parts (a) and (c) were not covered by what was relayed and are **not** recorded as
+answered. See `docs/escalations.md` E-1.
 
 ### 8. The recorder can bound its own captures, and rotate them — as of producer 0.9.0
 
@@ -175,6 +254,14 @@ are linked only by `header.part` / `header.continues_from` / `trailer.continued_
 key on `(part, segment)`, and a segment cut by a rotation shows as a `segment_close` with
 `reason: "size_limit"` in one part and a `segment_open` in the next. Choosing `stop` avoids all
 of it and keeps one file per run. See upstream §6.6 and §6.7, and EXT-17's OQ-6.
+
+**Third, a rotated run's `counts.segments` is NOT the sum of its parts', and since the fourth
+pin §6.7 rule 2 says so.** It follows directly from the sentence above — a cut segment is *one*
+segment appearing in two files, so it is counted in both — but §6.7 used to state the summing
+rule for all five counters with no exception. EXT-17 measured it on a real four-part capture:
+parts reading 1, 1, 1, 2, summing to **5**, for a run with **2** segments, while the other four
+counters summed correctly. Raised as **E-3**. Subtract one per cut — a cut being a part whose
+trailer carries both `end_reason: "size_limit"` and a `continued_in`.
 
 ### 7. Start the recorder before the host
 

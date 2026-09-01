@@ -15,12 +15,22 @@ It is stronger than `sent` and **weaker than `answered`**. Reading `decided` as 
 precisely the failure this table exists to prevent, so every row carrying it says which in the
 same sentence, and so does every report the tools print.
 
-**As of 2026-09-01 one row is `decided` and one is partly answered.** E-2 (OQ-2) is decided and
-has never been answered by [B]'s author. E-1 (OQ-3) has **four of its six parts answered** by the
-mentor, and two — (a) and (c) — **were not covered in what was relayed**, so those two stay
-`decided` rather than answered. That distinction was preserved deliberately: an answer nobody
-gave is not recorded as one, and the rule applies to a mentor exactly as it applies to [B]'s
-author.
+**`fixed` was added on 2026-09-01 too, and it is the strongest state in this file.** It means
+the recipient changed the thing, the change is on their `main`, and the correction has been
+vendored back here. Four rows carry it — E-3, E-4, E-5 and E-6, all against EXT-08 — and they
+are the first questions this project has asked that came back as edits rather than as replies.
+
+**As of 2026-09-01 four rows are `fixed`, one is `decided` and one is partly answered.** E-2
+(OQ-2) is decided and has never been answered by [B]'s author. E-1 (OQ-3) has **four of its six
+parts answered** by the mentor, and two — (a) and (c) — **were not covered in what was
+relayed**, so those two stay `decided` rather than answered. That distinction was preserved
+deliberately: an answer nobody gave is not recorded as one, and the rule applies to a mentor
+exactly as it applies to [B]'s author.
+
+**Nothing this project ships changed when the four were fixed**, and that is the point rather
+than an anticlimax. Every correction confirmed a behaviour EXT-17 had already implemented and
+stated beside the text it disagreed with. What changed is that four inferences became vendored
+sentences — see `contract/PROVENANCE.md`, "The fourth pin".
 
 Sections below are in the order they were last written, not in numerical order; the table is the
 index. `docs/findings.md` indexes these alongside every other issue this project has found.
@@ -29,10 +39,10 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 |---|---|---|---|---|
 | E-1 | **OQ-3** - is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **PARTLY ANSWERED, 2026-09-01.** The mentor confirmed **(b)** `N8RO_RELEASE` is expected in production, **(d)** the degraded terrain configuration is expected and stays, **(e)** a console control event is the intended shutdown and its non-zero exit is expected, and **(f)** `C:\N8RO\bin` on `PATH` is a known second precondition. Relayed by the DRI. **(a) and (c) were not covered and are NOT recorded as answered** - they remain `decided` on the reading in `m7-oq2-oq3.md` §2. Every confirmed answer matched what was already built, so **nothing changed**; (b) additionally produced **E-6** |
 | E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI, 2026-09-01 — content. Still NEVER ANSWERED.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the reading is `docs/m7-oq2-oq3.md` §1 and the deciding sentence is [B]'s statement of what the self-test is *for*. **No code changed** — content was already the default. A ruling from [B]'s author would still be acted on and would still change a default and no code |
-| E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **SENT** — [EXT-08 issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), 2026-08-31. Awaiting a reply. Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
-| E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **SENT** — [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), 2026-09-01. Awaiting a reply. Verified by correspondence against `eedc228` and `main`, since F-19 means it cannot be verified by identity. **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants |
-| E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **SENT** - [EXT-08 issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), **plus a correction comment**: the issue as first filed cited `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37). The substance was unaffected and is now cited against EXT-08's own README, which is where EXT-17's digest inherited the omission. Recorded as F-17 since M1; the mentor's confirmation on 2026-09-01 that the variable IS expected in production is what moved it from suspected to demonstrated |
-| E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **SENT** — [EXT-08 issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), 2026-08-31. Awaiting a reply. Measured on 2 of 42 real captures. Not worked around: the test is implemented exactly as §5.1 states and both shapes are excluded; what M4 added is that the refusal names which shape it found |
+| E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **FIXED, 2026-09-01** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), closed. EXT-08 took option (a): §6.7 rule 2 and §11 now say only four of the five counters sum, and how to correct `segments`. Vendored back at the **fourth pin**. **No code changed here** — the reader already computed both numbers and said which was which |
+| E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **FIXED, 2026-09-01, and not by the fix that was asked for** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), closed. EXT-08 created `docs/condition-file-schema.md` carrying all four sections, rather than replying "take those two as well", and added a test that fails if it drifts from its README. So the digest is now **vendored by identity** — which closes **F-19** as well. The geodesy here is unchanged and still this project's own decision; it now agrees with a vendored sentence instead of with an inference |
+| E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **FIXED, 2026-09-01** - [issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), closed. EXT-08's R8 block now states both preconditions and both failure modes. Fixed against the **corrected** citation: the issue as first filed named `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37), and the correction went as a comment rather than a silent edit. `contract/PROVENANCE.md` finding 6 - **ours** - carried the same omission and is corrected at the fourth pin |
+| E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **FIXED, 2026-09-01, and wider than it was raised** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), closed. EXT-08 took option (a) and folded in the **third** shape M5 found afterwards, which the issue never carried: §5.1 now states what a positive result establishes and lists all three. §14 gained the consequence this project pays — an emptied self-test is a **refusal, not a pass**, and retrying would make it a silent one. **No code changed here**; R12 and R14 are now upstream text |
 
 ---
 
@@ -163,7 +173,17 @@ this way.
 
 ## E-3 — `capture-format-v1.md` §6.7: a rotated run's segment count is not the sum of its parts'
 
-**Status: SENT to EXT-08 on 2026-08-31 as [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1). Awaiting a reply.** It goes to **EXT-08**, not to the brief's author:
+**Status: FIXED by EXT-08 on 2026-09-01. [Issue #1](https://github.com/EgeCankaya/EXT-08/issues/1) is closed, and the correction is vendored here at the fourth pin.**
+
+EXT-08 took option (a) below, narrowing §6.7's stitching rule 2 to the four counters that do sum
+and stating how to correct `segments`; §11 restates the same rule and was corrected with it. It
+is listed under §13's new *"Clarifications made after the freeze"*, so a consumer holding an
+older pin can see what moved without diffing. **No code changed here** — `n8ro-capture` already
+computed both numbers and printed which was which, and it now agrees with the specification
+rather than reporting beside it.
+
+*The question as it was raised is kept below, unedited.* It goes to **EXT-08**, not to the
+brief's author:
 `contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in its own words —
 *"If one of them is wrong or insufficient, that is a defect in EXT-08's contract and it goes back
 there."* This is the first time that rule has had to be used.
@@ -243,6 +263,10 @@ be the kind of quiet divergence the repo split and the frozen format exist to pr
 correction upstream should carry into the next re-pin of `contract/` rather than being noted only
 here.
 
+**That is what happened.** The correction landed upstream on 2026-09-01 and the fourth pin
+carried it into both `contract/capture-format-v1.md` and finding 8, which now states the
+exception with the measurement.
+
 
 ---
 
@@ -309,7 +333,21 @@ says so rather than claiming the gate passed as written.
 
 ## E-4 — `capture-format-v1.md` §5.1: a duplicated publication is not a reset clock, and one test detects both
 
-**Status: SENT to EXT-08 on 2026-08-31 as [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2). Awaiting a reply.** It goes to **EXT-08**, like E-3 and for the same
+**Status: FIXED by EXT-08 on 2026-09-01, and fixed WIDER than it was raised. [Issue #2](https://github.com/EgeCankaya/EXT-08/issues/2) is closed, and the correction is vendored here at the fourth pin.**
+
+EXT-08 took option (a): §5.1 keeps its test unchanged and now states what a positive result
+actually establishes — *the segment cannot be aligned on `sim_time_s`* — then lists the shapes
+that satisfy it. **Three, not the two this issue carried.** The third — a pre-`start` update
+landing in the roster burst with values that *differ* — was measured at M5, after the issue was
+filed, and was never added to it; EXT-08 folded it in from this project's own notes. §14 gained
+the operational consequence as well: excluding these segments can leave a self-test with nothing
+to compare, and **that is a refusal rather than a pass**, with retrying named as the wrong fix.
+R12 and R14 are therefore upstream text now rather than local discipline. **No code changed
+here.**
+
+*The question as it was raised is kept below, unedited — including its "two shapes" framing,
+which is what the evidence supported on 2026-08-31.* It goes to **EXT-08**, like E-3 and for the
+same
 reason: `contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in its
 own words — *"If one of them is wrong or insufficient, that is a defect in EXT-08's contract and
 it goes back there."* This is the second time that rule has been used, and R11 is the risk that
@@ -416,8 +454,25 @@ rather than costing one run. Measured on the first execution of the twenty-run c
 
 ## E-5 — `contract/condition-file-schema.md` is a faithful excerpt that stops one heading before the part a consumer needs
 
-**Status: SENT to EXT-08 on 2026-09-01 as [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3). Awaiting a reply.** It goes to **EXT-08** for the reason E-3
-and E-4 did: `contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in
+**Status: FIXED by EXT-08 on 2026-09-01 — and NOT by the fix that was asked for, which is the interesting part. [Issue #3](https://github.com/EgeCankaya/EXT-08/issues/3) is closed, and the result is vendored here at the fourth pin.**
+
+The question below asks whether EXT-08 would vendor two more sections into this directory's
+digest. EXT-08's answer was that saying "yes, take those two as well" fixes one consumer and
+leaves the next one to make the same excerpt, because the thing that *invited* the excerpt is
+that **there was no file to take** — the schema lived only as four sections of a README. So
+EXT-08 created `docs/condition-file-schema.md` carrying all four verbatim, kept the sections in
+the README for the reader who lands there, added a note above them saying to vendor the file
+rather than excerpt them, and wrote `tests/referee/check_schema_digest.py` to fail if the two
+ever drift.
+
+**Two consequences here.** `contract/condition-file-schema.md` is now a byte-identical copy of a
+real upstream file, so **F-19 closes**: all three vendored artifacts are checkable by identity
+and a pin check is one comparison rather than two and a judgement. And the geodesy in
+`src/assert/Geodesy.h` is unchanged — it was this project's own decision, arrived at from what
+was vendored, and it agrees with the newly vendored text exactly. **No code changed here.**
+
+*The question as it was raised is kept below, unedited.* It goes to **EXT-08** for the reason
+E-3 and E-4 did: `contract/` is vendored and read-only here, and `PROVENANCE.md` states the rule in
 its own words — *"If one of them is wrong or insufficient, that is a defect in EXT-08's contract
 and it goes back there."* This is the third time that rule has been used.
 
@@ -506,3 +561,7 @@ The practical test is the one `PROVENANCE.md` itself proposes: a third party sho
 implement the consumer side from `contract/` alone. For the capture format that is demonstrably
 true and was demonstrated twice. For the condition file it is currently false, in exactly one
 place, and that place is the arithmetic every geometric verdict rests on.
+
+**Since the fourth pin it is true for the condition file as well**, and by a stronger route than
+the one asked for: the arithmetic and the boundary rules are in `contract/` because there is an
+upstream file that carries them, not because two more sections were copied across once.

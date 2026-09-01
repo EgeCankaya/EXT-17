@@ -1,9 +1,9 @@
 # CLAUDE.md — EXT-17 Headless Campaign Runner
 
-> **Current to M6.** `docs/prd.md` (rev 6) is the binding contract; this file carries what is
-> expensive to get wrong and cheap to forget. Every section below states something that was
-> measured rather than something that was decided in a meeting, and where a number appears it is
-> this project's own.
+> **Current to M7, and to the fourth `contract/` pin (2026-09-01).** `docs/prd.md` (rev 10) is
+> the binding contract; this file carries what is expensive to get wrong and cheap to forget.
+> Every section below states something that was measured rather than something that was decided
+> in a meeting, and where a number appears it is this project's own.
 
 ## What this repo is
 
@@ -24,16 +24,26 @@ artifact**, and all of it is vendored in `contract/`:
 
 - `contract/capture-format-v1.md` — the capture format, **frozen** at EXT-08's M7
 - `contract/capture-*.n8rocap.jsonl` — a real capture, as a test fixture
-- `contract/condition-file-schema.md` — the referee's condition shape, reference only. **It is a
-  verbatim EXCERPT of EXT-08's README that stops one heading early** (F-19, F-32): the sections
-  saying how a distance is computed and how a boundary is decided did not cross, and both are
-  needed to make a verdict reproducible. Raised as E-5; EXT-17 decides the arithmetic itself in
-  `src/assert/Geodesy.h` and states the constants
+- `contract/condition-file-schema.md` — the referee's condition shape, **and since the fourth pin
+  the arithmetic and boundary rules too**. Until 2026-09-01 it was a verbatim *excerpt* of
+  EXT-08's README that stopped one heading early (F-19, F-32), so how a distance is computed and
+  how a boundary is decided did not cross. Raised as **E-5**; EXT-08 fixed it by creating a real
+  upstream file, which this now vendors **by identity**. The arithmetic in `src/assert/Geodesy.h`
+  is unchanged and still this project's own decision — it now agrees with a vendored sentence
+  rather than with an inference
 - `contract/PROVENANCE.md` — **read this first.** What crossed, what did not, and the seven
   measured findings from EXT-08 that bind what EXT-17 should build
 
 `contract/` is read-only from here. If something in it is wrong or insufficient, that is a
 defect in EXT-08's contract and it goes back there rather than being worked around.
+
+**That rule has now completed a full circuit, and the fourth pin is what it looks like.** All
+four `contract/` defects this project raised — E-3, E-4, E-5 and E-6 — were fixed upstream on
+2026-09-01 and vendored back at EXT-08 `ca5118c`. **Nothing here changed as a result**: every
+correction confirmed a behaviour already implemented and stated beside the text it disagreed
+with, which is what raising them rather than working around them buys. **And it added a rule:
+a `fixed` escalation makes `contract/` stale, and nothing notices** — so re-pin in the same
+breath, and re-run the suite. That is F-38, and it is a written rule and not a check.
 
 The practical proof this is possible: EXT-08 wrote a conformance reader for its own format
 from `capture-format-v1.md` alone, linking neither its bridge nor the N8RO SDK. If it could be
@@ -96,7 +106,10 @@ Four things about the comparison that are already right and are easy to break:
    burst published twice with byte-identical values, in a segment whose clock did not reset. So a
    campaign stops at its own gate roughly 1 pair in 14, for a reason that is not a determinism
    failure. **Do not add a retry.** The refusal names which shape it found; the imprecision in
-   §5.1 went back to EXT-08 as E-4.
+   §5.1 went back to EXT-08 as E-4 and **was fixed there on 2026-09-01** — §5.1 now lists all
+   three shapes and §14 says an emptied self-test is a refusal rather than a pass. The exclusion,
+   the floor and the no-retry rule are unchanged; they are upstream text now as well as local
+   discipline.
 
 ## The one parameterisation axis, since M5 — and the cost it carries
 
@@ -247,8 +260,11 @@ ceiling is `8 GiB` over the whole campaign directory. See `docs/m3-oq6.md`.
 
 **The reader supports rotation anyway**, because a capture rotated elsewhere still has to be
 readable here — and reading a rotated set found one imprecision in the frozen specification: §6.7
-says a run's totals are the sum across its parts, which is false for `segments`. That is E-3 in
-`docs/escalations.md`, back to EXT-08, not worked around.
+said a run's totals are the sum across its parts, which is false for `segments`. That is E-3 in
+`docs/escalations.md`, back to EXT-08, not worked around — and **fixed there on 2026-09-01**:
+§6.7 rule 2 and §11 now name the four counters that sum and say to subtract one per cut. The
+reader is unchanged; it computed both numbers and said which was which, and now agrees with the
+specification instead of reporting beside it.
 
 ## Verified environment — do not re-derive
 
@@ -263,10 +279,12 @@ says a run's totals are the sum across its parts, which is false for `segments`.
   current working directory, skips the plugin scan, never registers `componentPhysics` (from the
   stock `bin\plugins\sim\n8ro-physics.dll`), and **refuses every 42-entity scenario load** — while
   sitting idle rather than failing. **Confirmed by the mentor on 2026-09-01: it IS expected to be
-  set in production** (E-1 part (b)). `contract/PROVENANCE.md` finding 6 omits it — which that
-  confirmation turns from *suspected wrong* into *demonstrably wrong*, and it went to EXT-08 as
-  **E-6** ([issue #4](https://github.com/EgeCankaya/EXT-08/issues/4)). Still the contract's to
-  correct, not ours. See `docs/m1-lifecycle.md` §7(a).
+  set in production** (E-1 part (b)). It went to EXT-08 as **E-6**
+  ([issue #4](https://github.com/EgeCankaya/EXT-08/issues/4)) and **was fixed there the same
+  day** — EXT-08's README R8 block now carries both preconditions and both failure modes. The
+  issue as first filed cited `contract/PROVENANCE.md` finding 6, which is **ours, not EXT-08's**
+  (F-37); the citation was corrected by a comment, and finding 6 itself was corrected here at the
+  fourth pin. See `docs/m1-lifecycle.md` §7(a).
 - **`C:\N8RO\bin` must be on `PATH`** for any binary of ours that links the SDK — it is where
   `n8ro-sim.dll` and `n8ro-core.dll` resolve from, and there is nowhere else. Measured at M2: a
   client launched from a scratch directory without it exits 53 having produced no output at all,
@@ -328,9 +346,11 @@ reverse check is the useful one at a milestone close: every finding in that mile
 should have a row, and every escalation still marked `drafted` should be re-examined for whether
 it can be delivered yet.
 
-**`drafted` is not `sent`.** A finding written up and not delivered is *recorded*, not *raised*.
-E-3 and E-4 went to EXT-08 as GitHub issues; **E-1 has been drafted and unsent since M1** and its
-delivery is blocked on nobody but this project.
+**`drafted` is not `sent`, and `sent` is not `fixed`.** A finding written up and not delivered is
+*recorded*, not *raised*. E-3, E-4, E-5 and E-6 went to EXT-08 as GitHub issues and **all four
+came back fixed on 2026-09-01** — the strongest state in the table, because a reply is a sentence
+and a fix is a diff. **E-1 was drafted and unsent from M1 to M7** and its delivery was blocked on
+nobody but this project; four of its six parts are now answered by the mentor and two are not.
 
 ## Conventions
 
