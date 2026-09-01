@@ -154,10 +154,15 @@ still change a default and no code.
 
 ## 2. OQ-3 / E-1 — the headless invocation
 
-### 2.0 UPDATE, 2026-09-01 — the mentor replied, and four of the six are now ANSWERED
+### 2.0 UPDATE, 2026-09-01 — the mentor replied, and all six are now ANSWERED
 
 **This section was written before the mentor was reachable.** It stands as the reading that
-decided the six parts; this table records which of them stopped being decisions.
+decided the six parts; this table records what each of them came back as.
+
+**The answers arrived in two relays, and the middle state is worth keeping.** The first covered
+(b), (d), (e) and (f). (a) and (c) were **not** covered, were recorded as not answered rather
+than rounded up, and were closed by a short follow-up later the same day. The rigour cost one
+question.
 
 | part | decided below as | the mentor's answer |
 |---|---|---|
