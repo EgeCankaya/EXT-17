@@ -90,9 +90,17 @@ void printHelp() {
 "              format names as legitimately host-dependent. EXPECTED TO FAIL here, and never\n"
 "              engineered to pass.\n"
 "\n"
-"  Which of the two decides is OQ-2, out with the owner of the brief and UNANSWERED. A pass\n"
-"  on the content basis does NOT discharge the brief's acceptance criterion 2 as written; it\n"
-"  discharges it under the content reading, which is this project's own named deviation.\n"
+"  Which of the two decides is OQ-2, and it is DECIDED: content, by the DRI on 2026-09-01,\n"
+"  from the brief's own words. It was never ANSWERED by the brief's author, who has not\n"
+"  replied, and those are different words on purpose. The deciding sentence is the brief's\n"
+"  own statement of what the self-test is for - \"if it ever fails, you have found either a\n"
+"  defect in your harness or something far more interesting, and you must be able to tell\n"
+"  which\" - which a byte gate cannot serve, because it fails 100%% of the time on this\n"
+"  platform and so distinguishes neither case.\n"
+"\n"
+"  A pass on the content basis therefore discharges the brief's acceptance criterion 2 under\n"
+"  the CONTENT reading, which is now ruled rather than unruled. It does not discharge it\n"
+"  under a byte reading and nothing here claims it does. See docs/m7-oq2-oq3.md.\n"
 "  A campaign whose self-test does not pass executes no campaign run at all.\n"
 "\n"
 "  --gate-basis <b>         content (default) or bytes. Selects which comparison decides.\n"
@@ -1443,9 +1451,10 @@ int main(int argc, char** argv) {
                                    "values are run, not gated, and the report says so.");
         }
         line("campaign", "gate basis: " + std::string(ext17::compare::name(a.compare.gateBasis))
-                             + ". OQ-2 is UNANSWERED - whether the gate is keyed on content or on "
-                               "bytes is out with the owner of the brief. Both comparisons are "
-                               "run and both are reported; the basis chooses which one decides.");
+                             + ". OQ-2 is DECIDED (DRI, 2026-09-01) - content, from the brief's "
+                               "own words - and was never ANSWERED by the brief's author, who has "
+                               "not replied. Both comparisons are run and both are reported; the "
+                               "basis chooses which one decides. See docs/m7-oq2-oq3.md.");
         selfTest = ext17::run::runSelfTest(stc);
         selfTestRan = true;
 

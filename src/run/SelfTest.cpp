@@ -164,12 +164,23 @@ void SelfTestResult::writeMembers(json::Writer& w) const {
     w.member("basis", std::string(compare::name(comparison.gateBasis)));
     w.member("basis_is_a_named_deviation", comparison.gateBasis == compare::GateBasis::Content);
     w.member("verdict", std::string(compare::name(comparison.gate)));
-    w.member("oq2_ruling", std::string("unanswered"));
+    // `decided` is a fourth state, deliberately distinct from `answered`. It means a person
+    // entitled to decide it did, on stated evidence, and the original recipient still has not
+    // spoken. A consumer reading this file must be able to tell those apart.
+    w.member("oq2_ruling", std::string("decided"));
+    w.member("oq2_decided_by", std::string("DRI, 2026-09-01"));
+    w.member("oq2_answered_by_brief_author", false);
     w.member("oq2_note",
-             std::string("Whether the gate is keyed on content or on bytes is out with the owner "
-                         "of the brief and has not been ruled on. A pass here does NOT discharge "
-                         "the brief's acceptance criterion 2 as written; it discharges it under "
-                         "the content reading (ADR-1)."));
+             std::string("DECIDED, not answered. The DRI authorised deciding it from the brief's "
+                         "own words on 2026-09-01; the brief's author has never replied and a "
+                         "ruling from them would still be acted on. The deciding sentence is the "
+                         "brief's own statement of the self-test's purpose - if it ever fails, "
+                         "you have found either a defect in your harness or something far more "
+                         "interesting, and you must be able to tell which - which a byte gate "
+                         "cannot serve, because it fails 100% of the time on this platform and "
+                         "so distinguishes neither case. A pass here discharges the brief's "
+                         "acceptance criterion 2 under the CONTENT reading, which is now ruled "
+                         "rather than unruled. See docs/m7-oq2-oq3.md."));
     w.endObject();
 
     w.beginArray("runs");

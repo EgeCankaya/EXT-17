@@ -59,12 +59,26 @@ and `trailer.continued_in`. Reject on the **version**; ignore unknown **keys**.
 **Both comparisons always run and are always reported. Which one *decides* is `--gate-basis`,
 default `content`, and that default is this project's decision (ADR-1), not the client's.**
 
-`OQ-2 is still unanswered` — re-checked against EXT-08's own escalation record at M4. So M4 was
-built so that a ruling either way changes a default and no code: under `--gate-basis bytes` the
-gate correctly fails on this platform and the campaign correctly stops with exit 3 and zero runs
-attempted, which has been demonstrated (`campaigns/m4-bytes/`). **Never write, anywhere, that
-[B]'s acceptance criterion 2 has been discharged.** A content pass discharges it *under the
-content reading*, and every report this project produces says so.
+**OQ-2 is `decided` and was never `answered`, and those two words must never be swapped.**
+Decided by the DRI on 2026-09-01 from [B]'s own words — `docs/m7-oq2-oq3.md` §1. [B]'s author has
+still never replied, and a ruling from them would still be acted on.
+
+The deciding passage is **not** criterion 2's *"identical captures"*; it is [B]'s statement of
+what the self-test is **for** — *"if it ever fails, you have found either a defect in your harness
+or something far more interesting, and you must be able to tell which."* A byte gate fails 190 of
+190 here, identically on a clean harness and a broken one, so it distinguishes neither case. The
+content gate passed 190 of 190 clean **and failed on a real pair for a real reason** at M6
+(`campaigns/m6-gate-refused/`).
+
+**No code changed when it was decided** — content was already the default — and M4's shape still
+holds: under `--gate-basis bytes` the gate correctly fails and the campaign stops with exit 3 and
+zero runs attempted (`campaigns/m4-bytes/`), so a ruling still changes a default and no code.
+
+**What may now be written, and what still may not.** Criterion 2 **is** claimed as met *under the
+content reading*, and every claim of it carries "under the content reading" in the same breath. It
+is **never** claimed under a byte reading, and it is **never** called answered, agreed, or ruled
+by [B]'s author. Two checks in `tests/determinism_test.cpp` assert the report carries both halves,
+so the distinction cannot erode quietly.
 
 Four things about the comparison that are already right and are easy to break:
 

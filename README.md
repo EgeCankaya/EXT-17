@@ -12,20 +12,29 @@ campaign summary, both machine-readable and both legible; a re-judge mode over s
 run-to-run diff for both of the questions the brief asks of one; and the four ugly realities
 injected deliberately and survived.
 
-> **Two things are outstanding and are reported as outstanding rather than claimed.** The
-> **5-minute recording** needs a person; it is scripted beat by beat in
-> `docs/recording-script.md` and is not delivered. And one success metric, *"sweep legibility"*,
-> names **mentor review** as its measurement method — no mentor has reviewed it, so it is
-> **unmet** regardless of what the artifact shows. See
-> [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status) and
-> `docs/m7-evidence.md` §4.
+> **Two things are outstanding, and both need a person rather than more work.** The **5-minute
+> recording** is scripted beat by beat in `docs/recording-script.md` and is **not delivered**. And
+> the brief asks its reader to *"confirm the invocation with your mentor"* — **that confirmation
+> did not happen**, and no reading of the brief can discharge an instruction to ask someone. Both
+> are reported as outstanding rather than claimed. See
+> [the deliverables](#the-deliverables-the-brief-asks-for-and-their-status).
+>
+> **Two open questions were DECIDED on 2026-09-01, and neither was ANSWERED.** The DRI authorised
+> deciding OQ-2 (which comparison the gate reads) and OQ-3 (the host invocation) from the brief's
+> own words, because schedule became binding and neither recipient had replied in five
+> milestones. **`decided` is not `answered`** — this project keeps the two apart in every artifact
+> that carries them, down to `self-test.json`'s `oq2_answered_by_brief_author: false` — and
+> [`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md) is the reading. **Neither changed any code.**
 
 > **The determinism gate passes on content, and that is this project's decision rather than the
 > client's.** The brief asks for two identical runs to *"produce identical captures"*; measured
 > here across 190 pairs, they agree on every sample present in both at the same simulation
 > instant and are **never** byte-identical. Both comparisons are run and reported on every
-> self-test, and which one *decides* is an open question with the brief's author (OQ-2,
-> unanswered). See [Proving determinism](#proving-determinism--the-self-test-and-the-gate).
+> self-test, and which one *decides* was **decided by the DRI on 2026-09-01 from the brief's own
+> words — and was never answered by the brief's author, who has not replied** (OQ-2). Those are
+> different words and this project keeps them apart everywhere. See
+> [Proving determinism](#proving-determinism--the-self-test-and-the-gate) and
+> [`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md).
 
 The binding contract is `docs/prd.md`, which is itself written against the client brief. The
 capture format EXT-17 consumes is vendored, read-only, in `contract/`.
@@ -105,17 +114,34 @@ anyone has to remember.
 | **content** | per `(entity, occupancy)` value sequences aligned on `sim_time_s`, **running segments only**. Values are compared as the verbatim text the capture carried, never as reformatted numbers |
 | **bytes** | byte for byte, with `platform.model_path` excluded — the one field the format names as legitimately host-dependent (§14), and the only exclusion there will ever be. **Expected to fail here, and never engineered to pass** |
 
-**Which of the two decides the gate is OQ-2, out with the owner of the brief and unanswered.**
-`--gate-basis content|bytes` selects it; `content` is the default and is ADR-1's decision. Under
-`bytes` the gate correctly fails on this platform and the campaign correctly stops — that is the
-honest implementation of the brief's strictest reading rather than an argument about it, and it
-has been run. **A ruling either way therefore changes a default and no code.**
+**Which of the two decides the gate is OQ-2, and it is DECIDED — content — and was never
+ANSWERED.**
+Decided by the DRI on 2026-09-01 from the brief's own words, because schedule became the binding
+constraint and the brief's author had not replied in five milestones. The reading is
+[`docs/m7-oq2-oq3.md`](docs/m7-oq2-oq3.md) §1, and **the sentence it turns on is not the one
+usually quoted** — it is the brief's statement of what the self-test is *for*:
+
+> *"If it ever fails, you have found either a defect in your harness or something far more
+> interesting, and you must be able to tell which."*
+
+A byte gate fails **190 times in 190** here, identically whether the harness is clean or broken,
+so it distinguishes neither case — it defeats the purpose the brief states for the very test its
+acceptance criterion 2 is about. The content gate passed 190 of 190 on a clean harness **and has
+failed on a real pair for a real reason** (`campaigns/m6-gate-refused/`), which is the brief's
+*"defect in your harness"* case caught and named.
+
+**No code changed when it was decided.** `--gate-basis content|bytes` still selects it; `content`
+was already the default and is ADR-1's decision. Under `bytes` the gate correctly fails on this
+platform and the campaign correctly stops, and that has been run (`campaigns/m4-bytes/`). **A
+ruling from the brief's author would still change a default and no code**, and would still be
+acted on.
 
 Every report says so, on every run:
 
 ```
   gate basis            content   (ADR-1: the content basis is THIS PROJECT'S decision, not the client's)
-  OQ-2                  UNANSWERED. ...
+  OQ-2                  DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words, NOT
+                        answered by [B]'s author, who has not replied. ...
   GATE                  PASS   on the content basis
                         This does NOT discharge [B]'s acceptance criterion 2 as written.
 ```
@@ -777,7 +803,8 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   captures at the same simulation instant carries the same values: 9 573 667 of 9 573 667 over
   those pairs, zero differing. It establishes **nothing** about the samples present in only one of
   them, and it says so in the verdict rather than in a footnote. Whether that discharges the
-  brief's acceptance criterion 2 is **OQ-2, and it is unanswered**.
+  brief's acceptance criterion 2 was **OQ-2**, and it is **decided rather than answered** — see
+  below.
 - **This project measures one machine.** The brief claims the platform's guarantee holds *"on
   every run and every machine"*. Nothing here tests cross-machine reproducibility and no claim
   about it is made (ADR-1). The self-test run against captures from two machines is the cheapest
@@ -864,8 +891,15 @@ structural rather than promised — and `--verify` checks it anyway, byte for by
   segment cut by a rotation is closed in one part and opened in the next. Measured: 5 summed for a
   2-segment run. It is raised with EXT-08 as E-3, and the reader reports both numbers and names
   the gap rather than picking one silently.
-- **The headless invocation is not yet confirmed.** It is measured working; whether it is the
-  *intended* production shape is OQ-3, open, in `docs/escalations.md`.
+- **The headless invocation is adopted, and the mentor confirmation the brief asks for did not
+  happen.** OQ-3 was **decided by the DRI on 2026-09-01** — from the brief's own words where the
+  brief speaks, and from measurement where it does not. The six parts are answered in
+  `docs/m7-oq2-oq3.md` §2, and the invocation itself is unchanged: it is the one measured across
+  roughly a hundred runs since M1. But the brief says *"confirm the invocation with your
+  mentor"*, which is an instruction to ask a person — **no reading of the brief can discharge it,
+  and it was not done.** If a mentor later corrects it, `src/control/EngineControl.cpp` is one
+  file and every campaign would need re-running: a few hours of machine time. That is
+  re-measurement rather than rework, and it has been the stated exposure since M1.
 
 ### What a verdict does and does not prove
 
@@ -982,10 +1016,17 @@ both is the point — re-running until the numbers are welcome is choosing evide
 | A 5-minute recording | **NOT DELIVERED.** It needs a person. Scripted beat by beat in `docs/recording-script.md`, including what *not* to say |
 | A page of notes on determinism | Done — `docs/determinism-notes.md`, and its §5 is the part the brief says to write carefully |
 
-**One success metric is also unmet, and is reported as unmet.** *"Sweep legibility"* names
-**mentor review of the sweep report** as its measurement method, and no mentor has reviewed it.
-The artifact exceeds the target — see the sweep section — and that is not what the metric
-measures. `docs/m7-evidence.md` §4 says why marking it met anyway would be the wrong call.
+**One success metric is split, and both halves are reported.** The brief's own acceptance
+criterion 3 — *"a parameter sweep shows a result that varies with the parameter, presented so the
+trend is visible"* — **names no reviewer and no method, and it is met on measured evidence**: see
+the sweep section. The PRD's *internal* verification method for that metric was **mentor review
+of the sweep report**, and it **was not executed**, by DRI decision on 2026-09-01.
+
+**That method is this project's own invention, not the client's**, and it is recorded as not
+executed rather than quietly rewritten to one this project already passes — swapping a
+verification method for one you satisfy is what makes a metrics table worthless. A mentor review
+remains available and would add confidence; nothing in the brief requires it.
+`docs/m7-evidence.md` §4 and `docs/m7-oq2-oq3.md` §3 carry the reasoning.
 
 ## Boundaries
 

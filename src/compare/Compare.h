@@ -261,8 +261,12 @@ struct CompareOptions {
 
     // Which comparison decides the gate. Content is ADR-1's decision and this project's, not
     // the client's; Bytes is [B]'s strictest reading. **Both always run and both are always
-    // reported** — the basis chooses which one the gate reads, and nothing else. OQ-2 is the
-    // ruling that would settle which is right, and it is unanswered.
+    // reported** — the basis chooses which one the gate reads, and nothing else.
+    //
+    // **OQ-2 is DECIDED and was never ANSWERED.** The DRI authorised deciding it from [B]'s own
+    // words on 2026-09-01 (`docs/m7-oq2-oq3.md`); [B]'s author never replied. The default did
+    // not move — it was already Content — so what the decision changed is what the reports are
+    // allowed to say, not what they compute.
     GateBasis gateBasis = GateBasis::Content;
 };
 

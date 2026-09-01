@@ -966,9 +966,16 @@ std::string renderReport(const ComparisonResult& r) {
         row("gate basis", std::string(name(r.gateBasis))
                               + "   (ADR-1: the content basis is THIS PROJECT'S decision, not the "
                                 "client's)");
-        row("OQ-2", "UNANSWERED. Whether the gate is keyed on content or on bytes is out with the");
-        cont("owner of the brief and has not been ruled on. Both comparisons are run and");
-        cont("reported below; the basis above chooses which one decides, and nothing else.");
+        // OQ-2 is DECIDED and was never ANSWERED, and those are different words on purpose.
+        // The DRI authorised the implementer to decide it from [B]'s own words on 2026-09-01;
+        // [B]'s author never replied and a ruling from them would still be worth having. This
+        // line says both, because a report that said only "content" would be hiding which.
+        row("OQ-2", "DECIDED (DRI, 2026-09-01) - content. Decided from [B]'s own words, NOT");
+        cont("answered by [B]'s author, who has not replied. The deciding sentence is");
+        cont("\"if it ever fails, you have found either a defect in your harness or");
+        cont("something far more interesting, and you must be able to tell which\" - a byte");
+        cont("gate fails 100% of the time here and so distinguishes neither. See");
+        cont("docs/m7-oq2-oq3.md. Both comparisons still run and are still reported below.");
         s += "\n";
     }
 
@@ -1141,9 +1148,12 @@ std::string renderReport(const ComparisonResult& r) {
     row("GATE", gv + "   on the " + name(r.gateBasis) + " basis");
     cont(r.gateReason);
     if (r.gateBasis == GateBasis::Content) {
-        cont("This does NOT discharge [B]'s acceptance criterion 2 as written. It");
-        cont("discharges it under the content reading, which is this project's named");
-        cont("deviation (ADR-1) and is unruled (OQ-2).");
+        cont("This discharges [B]'s acceptance criterion 2 under the CONTENT reading,");
+        cont("which is this project's named deviation (ADR-1) and is now RULED - by the");
+        cont("DRI on 2026-09-01, from [B]'s own words, and NOT by [B]'s author, who has");
+        cont("not replied. It does not discharge criterion 2 under a byte reading, and");
+        cont("nothing here claims it does: --gate-basis bytes fails on this platform and");
+        cont("has been run (campaigns/m4-bytes/).");
     }
     return s;
 }

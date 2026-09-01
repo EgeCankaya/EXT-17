@@ -18,6 +18,7 @@ target disagree, the target wins and the row is wrong.
 | `open` | Understood and **not** fixed, because it is not this project's to fix. The row says whose |
 | `raised` | Sent to whoever owns it. A reply may or may not exist — `docs/escalations.md` tracks that separately |
 | `drafted` | Written up and **not** sent. **This is not the same as raised**, and conflating the two is how a project comes to believe it has told someone something it has not |
+| `decided` | **Added 2026-09-01.** A person entitled to decide it did, on stated evidence, and **the original recipient still has not spoken**. Stronger than `raised`, **weaker than `answered`**. Two items carry it, E-1 and E-2, and both say so in the same sentence they say what was decided. Reading it as `answered` is the failure this table exists to prevent |
 
 ---
 
@@ -121,13 +122,44 @@ not delivered is *recorded*, not *raised*.
 
 | # | Question | To | Delivery | Blocked on |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`deferred` — a decision taken 2026-09-01, not drift** | **Nothing, now.** The DRI has decided to complete every milestone first and return to the mentor items afterwards, on the grounds that the mentor is not readily accessible and schedule is the binding constraint. That is a scheduling decision with a stated cost (below), not an item still waiting to be noticed. It does not block: the invocation is measured working, and `src/control/EngineControl` is one file if the answer changes it |
-| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`raised`** — sent 2026-08-31 via EXT-08's E-1; re-checked at M4 and again at M5, **no reply** | **The recipient.** Does not block: M4 shipped both readings as selectable gates, so a ruling changes a default and no code |
+| E-1 | **OQ-3** — is this the intended production invocation of the headless host? Six parts, (a)–(f) | Mentor | **`decided` — DRI, 2026-09-01. Never sent.** | **Nothing.** All six parts decided from [B]'s own words or from measurement (`m7-oq2-oq3.md` §2); the invocation is unchanged and is now stated rather than proposed. **The mentor confirmation [B] asks for did not happen** and is a named limit in the README, not a queue item |
+| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | **`decided` — DRI, 2026-09-01, content. Still never `answered`** | **The recipient, still.** Sent 2026-08-31 via EXT-08's E-1; re-checked at M4, M5 and M6; no reply. Decided from [B]'s own words because schedule became binding. **No code changed** — content was already the default |
 | E-3 | §6.7's summing rule (F-15) | EXT-08 | **`raised`** — [issue #1](https://github.com/EgeCankaya/EXT-08/issues/1) | Nothing. Does not block |
 | E-4 | §5.1's frozen-clock test (F-16) | EXT-08 | **`raised`** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2) | Nothing. Does not block, and it is the one with a measured operational cost — **~1 pair in 14, and worse than that since M6**: F-29 found a fourth shape of the same mechanism that fails the gate and stops the *whole campaign* rather than costing one run |
 | E-5 | The vendored condition-file digest stops one heading early (F-32) | EXT-08 | **`raised`** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), sent 2026-09-01 | Nothing. Does not block: the geodesy is decided here and stated with its constants. It is the first `contract/` finding that could **not** be handled by implementing what the text says, because there is no text |
 
-### E-1 is deferred by decision, and here is what that costs
+### E-1 and E-2 are DECIDED by the DRI — and neither was ever ANSWERED
+
+**Superseding the deferral below, on 2026-09-01.** Schedule became the binding constraint, and
+the DRI authorised deciding both from [B]'s own words rather than waiting for recipients who had
+not replied. **The reading that decided them is `docs/m7-oq2-oq3.md`.**
+
+**What `decided` means here, said once so nothing downstream has to re-derive it:** a person
+entitled to decide it did, on stated evidence, and **the original recipient still has not
+spoken**. It is not `answered`. Every place carrying the decision — the escalation rows, the PRD,
+the README, `self-test.json`, and every report the tools print — says both halves in the same
+sentence, because *"the gate is content"* on its own would hide which of the two it is.
+
+**Neither decision changed any code.** OQ-2's default was already `content`; OQ-3's invocation is
+the one measured across roughly a hundred runs since M1. What changed is what this project is
+entitled to *say*, and that two open questions stopped being open.
+
+**One thing did NOT get decided, and is not claimed to be.** [B] asks its reader to *"confirm the
+invocation with your mentor"*. That is an instruction to ask a person, no reading of [B] can
+discharge it, and it did not happen. It is now a **named limit in the README** — a change of
+where it is recorded, not a claim that it was done. The same shape applies to the
+sweep-legibility metric: **[B]'s own acceptance criterion 3 is met on measured evidence, and the
+PRD's internal mentor-review verification method was not executed.** The metric row says exactly
+that, rather than being rewritten to a method it could pass.
+
+**What reversing costs, if a reply ever arrives:** `m7-oq2-oq3.md` §5. Briefly — a content ruling
+changes one status word; a byte ruling changes a default and no code, and blocks the project at
+[B]'s step 4, which would be that ruling's consequence rather than a defect here; a mentor
+correcting the invocation costs a few hours of re-measurement and one file.
+
+---
+
+### The deferral this superseded, and what it cost — kept, because the prediction was exact
 
 **Decided 2026-09-01 by the DRI:** complete M6 and M7, then return to the mentor items. The
 mentor is not readily accessible and schedule is the binding constraint. **This is a decision,

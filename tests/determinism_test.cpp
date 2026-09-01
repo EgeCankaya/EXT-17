@@ -780,11 +780,27 @@ void gateBasisIsSelectableAndBothAlwaysRun() {
            rc.bytes.identical == rb.bytes.identical);
 
     const std::string report = renderReport(rc);
-    ok("the report states that OQ-2 is unanswered", contains(report, "UNANSWERED"));
+
+    // OQ-2 was DECIDED on 2026-09-01 and has never been ANSWERED. Those are different words and
+    // the report has to carry both, because "content" alone would hide which one it is. These
+    // checks exist to stop the distinction quietly eroding into "the gate is content, the end".
+    ok("the report states that OQ-2 is DECIDED", contains(report, "DECIDED"));
+    ok("…and says who decided it, so it is not read as a ruling from [B]'s author",
+       contains(report, "DRI, 2026-09-01"));
+    ok("…and states in the same breath that [B]'s author has NOT replied",
+       contains(report, "not") && contains(report, "answered by [B]'s author"));
+    ok("…and does NOT claim it was answered",
+       !contains(report, "ANSWERED by [B]'s author, who has replied"));
+    ok("…and carries the sentence of [B]'s that decided it",
+       contains(report, "defect in your harness"));
     ok("…that the byte comparison is expected to fail rather than defective",
        contains(report, "EXPECTED TO FAIL"));
-    ok("…and that a content pass does not discharge the brief's criterion as written",
-       contains(report, "does NOT discharge"));
+    ok("…and that criterion 2 is discharged under the CONTENT reading specifically",
+       contains(report, "CONTENT reading"));
+    ok("…while still saying a byte reading is not discharged and is not claimed",
+       contains(report, "does not discharge criterion 2 under a byte reading"));
+    ok("…and points at the document carrying the reading",
+       contains(report, "docs/m7-oq2-oq3.md"));
 }
 
 }  // namespace

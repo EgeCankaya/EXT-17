@@ -13,8 +13,11 @@ Compares two captures of the SAME configuration two ways and reports both:
             names as legitimately host-dependent, and the only exclusion there will
             ever be. EXPECTED TO FAIL on this platform. Never engineered to pass.
 
-Which of the two decides the gate is OQ-2, out with the owner of the brief and
-UNANSWERED. --gate-basis selects it; both always run and both are always reported.
+Which of the two decides the gate is OQ-2. It is DECIDED - content - by the DRI on
+2026-09-01 from the brief's own words, and it was never ANSWERED by the brief's author,
+who has not replied. Those are different words on purpose. --gate-basis still selects
+it; both comparisons always run and both are always reported. docs/m7-oq2-oq3.md
+carries the reading that decided it.
 
 options:
   --gate-basis <b>       content (default, ADR-1, THIS PROJECT'S decision) or bytes

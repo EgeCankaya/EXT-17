@@ -4,18 +4,25 @@ One row per question that leaves this project. A question is only ever marked **
 a reply exists; "asked" and "answered" are separate things because conflating them is how a
 project ends up believing it has a ruling it never received.
 
-**Three states, not two.** `drafted` means written and **not delivered** — nobody has been told.
+**Four states, not two.** `drafted` means written and **not delivered** — nobody has been told.
 `sent` means delivered and awaiting a reply. `answered` means a reply exists. A finding that is
 written down but not delivered is *recorded*, not *raised*, and the difference is the whole reason
 this file has a status column.
+
+**`decided` was added on 2026-09-01, and it is the one to read carefully.** It means *a person
+entitled to decide it did, on stated evidence, and the original recipient still has not spoken*.
+It is stronger than `sent` and **weaker than `answered`**. Two rows carry it — E-1 and E-2 — and
+in both the recipient has never replied and a reply would still be acted on. Reading `decided` as
+`answered` is precisely the failure this table exists to prevent, so both rows say which in the
+same sentence, and so does every report the tools print.
 
 Sections below are in the order they were last written, not in numerical order; the table is the
 index. `docs/findings.md` indexes these alongside every other issue this project has found.
 
 | # | Question | To | Raised | Status |
 |---|---|---|---|---|
-| E-1 | **OQ-3** — is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **STILL DRAFTED, NOT SENT — and it is the only item here whose delivery is blocked on nobody but this project.** Extended at M2 with (e) and (f). There is no channel to a mentor from the repository, so sending it is the DRI's action. It has now been outstanding across four milestones, and M4 has keyed a determinism gate to runs produced by the invocation it asks about |
-| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | Sent by EXT-08 as its E-1; **re-checked at M4 and still unanswered**. This is the downstream half. **M4 shipped both readings as selectable gates rather than waiting**, so a ruling either way changes a default and no code — see below |
+| E-1 | **OQ-3** — is this the intended production invocation of the headless host? | Mentor | 2026-08-31 (M1) | **DECIDED by the DRI, 2026-09-01 — and never SENT.** The DRI authorised deciding its six parts from [B]'s own words where [B] speaks, and from measurement where it does not (`docs/m7-oq2-oq3.md` §2). The invocation is unchanged and is now stated as this project's production invocation. **What [B] actually asked for — *"confirm the invocation with your mentor"* — did not happen**, and that stays a named limit in the README rather than a closed item |
+| E-2 | **OQ-2** — is the determinism gate keyed on content or on bytes? | Owner of [B] | 2026-08-31 | **DECIDED by the DRI, 2026-09-01 — content. Still NEVER ANSWERED.** Sent by EXT-08 as its E-1 and re-checked at M4, M5 and M6 with no reply. The DRI authorised deciding it from [B]'s own words; the reading is `docs/m7-oq2-oq3.md` §1 and the deciding sentence is [B]'s statement of what the self-test is *for*. **No code changed** — content was already the default. A ruling from [B]'s author would still be acted on and would still change a default and no code |
 | E-3 | **A defect in `contract/`** — §6.7 says a rotated run's totals are the sum of its parts' `counts`; for `segments` that is not true | EXT-08 | 2026-08-31 (M3) | **SENT** — [EXT-08 issue #1](https://github.com/EgeCankaya/EXT-08/issues/1), 2026-08-31. Awaiting a reply. Measured on a real four-part capture. Not worked around: the reader implements what §6.7 says and reports what is true beside it |
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **SENT** — [EXT-08 issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), 2026-09-01. Awaiting a reply. Verified by correspondence against `eedc228` and `main`, since F-19 means it cannot be verified by identity. **Not worked around, and unlike E-3 and E-4 it could not be**: there is no vendored text to implement, so EXT-17 decided the computation itself and states it with its constants |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **SENT** — [EXT-08 issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), 2026-08-31. Awaiting a reply. Measured on 2 of 42 real captures. Not worked around: the test is implemented exactly as §5.1 states and both shapes are excluded; what M4 added is that the refusal names which shape it found |
@@ -24,12 +31,23 @@ index. `docs/findings.md` indexes these alongside every other issue this project
 
 ## E-1 — OQ-3: confirm the headless invocation
 
-**Status: DEFERRED BY DECISION, 2026-09-01 — not sent, and not waiting to be noticed.** The DRI
-has decided to complete M6 and M7 first and return to the mentor items afterwards: the mentor is
-not readily accessible and schedule is the binding constraint. The cost of that choice is stated
-in `docs/findings.md` §E rather than left to be discovered — chiefly that **M7 must report its
-sweep-legibility success metric as unmet**, since that metric's named method is mentor review.
-Revisit at the close of M7, with OQ-2, the sweep report and the twenty-run campaign together.
+**Status: DECIDED BY THE DRI, 2026-09-01 — and never SENT.** Schedule became the binding
+constraint and the mentor was not reachable in time, so the DRI authorised deciding the six
+sub-questions below from [B]'s own words where [B] speaks, and from measurement where it does
+not. **The decision and its evidence are in `docs/m7-oq2-oq3.md` §2**, part by part.
+
+**Nothing about the invocation changed.** It is the one measured across roughly a hundred runs
+since M1. What changed is that it is now *stated* as this project's production invocation rather
+than carried as a candidate, and that six technical unknowns became one process step.
+
+**That one process step is NOT discharged, and is not closed over.** [B] asks its reader to
+*"confirm the invocation with your mentor"*. That is an instruction to ask a person; no reading
+of [B] can satisfy it; it did not happen. It now lives as a **named limit in the README** rather
+than as an item in a queue — which is a change of where it is recorded, not a claim that it was
+done.
+
+**Its previous status, for the record: DEFERRED BY DECISION, 2026-09-01**, and before that
+**DRAFTED, NOT SENT** across four milestones since M1.
 
 **Its previous status, for the record: STILL DRAFTED, NOT SENT — outstanding since M1, across
 four milestones.** There is no
@@ -213,11 +231,38 @@ here.
 
 ---
 
-## E-2 — OQ-2, re-checked at M4, and what M4 did instead of waiting
+## E-2 — OQ-2, decided at M7 by the DRI, and never answered by [B]'s author
 
-**Status: still unanswered.** Re-checked at the start of M4 against EXT-08's own record: its
-`docs/escalations.md` E-1 — the upstream half of the same question — still reads *"raised with
-the brief's author 2026-08-31; awaiting a reply"*. No ruling exists on either side.
+**Status: DECIDED (DRI, 2026-09-01) — content. STILL NEVER ANSWERED.**
+
+Both sentences are true and neither replaces the other. Re-checked at M4, M5 and M6 against
+EXT-08's own record: its `docs/escalations.md` E-1 — the upstream half of the same question — has
+read *"raised with the brief's author 2026-08-31; awaiting a reply"* throughout. **No ruling from
+[B]'s author exists on either side, and none is claimed.**
+
+What changed on 2026-09-01 is that schedule became the binding constraint and the DRI authorised
+deciding it from [B]'s own words. **The reading is `docs/m7-oq2-oq3.md` §1**, and the sentence it
+turns on is not the one usually quoted — it is [B]'s statement of what the self-test is *for*:
+
+> *"If it ever fails, you have found either a defect in your harness or something far more
+> interesting, and you must be able to tell which."*
+
+A byte gate fails **190 times in 190** here, identically on a clean harness and a broken one, so
+it cannot tell you which case you are in — it defeats the purpose [B] states for the very test
+criterion 2 is about. The content gate passed 190 of 190 on a clean harness **and has failed on a
+real pair for a real reason** (M6, `campaigns/m6-gate-refused/`), which is [B]'s *"defect in your
+harness"* case being caught and named. That is the argument.
+
+**No code changed.** `content` was already the default. What moved is the deviation's status —
+from *named and unruled* to *named and ruled, by the DRI rather than by [B]'s author* — and what
+the reports are therefore allowed to say.
+
+**A ruling from [B]'s author is still worth having and would still be acted on.** If it says
+content, a status line changes from `decided` to `answered`. If it says bytes, `--gate-basis
+bytes` already exists and already works, the campaign correctly stops at exit 3 on this hardware,
+and that consequence belongs to the ruling rather than to this project.
+
+### What M4 built instead of waiting, which is what made deciding cheap
 
 **M4 did not wait, and did not assume the deviation had been granted.** It built the shape that
 survives either answer:
@@ -231,9 +276,11 @@ survives either answer:
   strictest reading rather than an argument about it, and it has been run against real captures:
   `campaigns/m4-bytes/`, where the same pair of runs scored `content PASS` (50 361 of 50 361
   samples agreeing) and `bytes FAIL`.
-- Every report states, in words, that a content pass **does not** discharge [B]'s acceptance
-  criterion 2 as written, and that OQ-2 is unanswered. `self-test.json` carries the same thing
-  machine-readably as `gate.basis_is_a_named_deviation` and `gate.oq2_ruling`.
+- Every report states, in words, what a content pass does and does not discharge. **Since
+  2026-09-01 that wording says `DECIDED (DRI)` and, in the same breath, that [B]'s author has not
+  replied** — because "content" on its own would hide which of the two it is. `self-test.json`
+  carries it machine-readably as `gate.basis_is_a_named_deviation`, `gate.oq2_ruling`
+  (`decided`), `gate.oq2_decided_by` and `gate.oq2_answered_by_brief_author` (`false`).
 
 So the outstanding ruling now changes **a default and no code**. If the answer is "bytes", the
 project stops at M4 by [B]'s own instruction and the command that demonstrates it already exists
