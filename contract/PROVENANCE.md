@@ -217,6 +217,17 @@ where it is published, and a consumer's tree where no such repository exists at 
 `tests/referee/check_schema_digest.py` still reports 100 lines identical, so the byte-identity
 that F-19 bought is intact and the blob above is the proof.
 
+**The bound on that fix, stated rather than left to be discovered.** An absolute URL resolves
+from all three locations, but it resolves **into EXT-08**, and both repositories are currently
+private. A reader given access to this repository alone gets a 404 on those two links — better
+than the relative paths, which 404'd for everybody including a reader holding both, but not the
+same as working. The two targets exist on EXT-08 `main` and were verified there
+(`src/Geodesy.h`, 4 194 bytes; `conditions/atacama.conditions.json`, 2 245 bytes). **A vendored
+file cannot do better than this**: the arithmetic it describes is upstream's, so a link to it is
+a link out of this tree whatever form it takes. What is here and needs no access at all is
+`src/assert/Geodesy.h` — this project's own implementation, with its own constants spelled out,
+which is what a reader without EXT-08 should be sent to.
+
 **What it says about a by-identity vendor, which is the part worth keeping.** Vendoring by
 identity is strictly better than excerpting — that was E-5's whole result — but it copies a
 file's mistakes as faithfully as its content, and a *relative path* is the one kind of content

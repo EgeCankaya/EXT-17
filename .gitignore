@@ -108,6 +108,21 @@ campaigns/**
 !campaigns/*/*/selftest/*.json
 !campaigns/*/*/selftest/runs/*/run.json
 
+# --- The scratch directories the README documents. LAST, because the last match wins. -------
+#
+# Every writing command in `README.md` names one of these, so that following the README cannot
+# overwrite a committed campaign. But the whitelist above deliberately COMMITS a campaign's
+# report -- `campaign.json`, `campaign.log`, `report.txt`, each `run.json` and `verdicts.jsonl`
+# -- because that is [B]'s third deliverable. Both are right, and together they meant a reviewer
+# who ran the Quickstart got a tree full of untracked files that look like evidence and are not.
+#
+# These names are reserved for that and are never committed. A campaign worth keeping gets a
+# name of its own, which is also what makes "is this evidence?" answerable by the directory name.
+campaigns/mine/
+campaigns/mine-*/
+campaigns/scratch/
+campaigns/smoke-*/
+
 # n8ro-sim-local writes a per-entity JSONL dump into ./test_artifacts relative to its
 # working directory, unasked. Hundreds of MB per run.
 test_artifacts/
