@@ -1,8 +1,8 @@
 # CLAUDE.md — EXT-17 Headless Campaign Runner
 
-> **Current to M7, the FIFTH `contract/` pin, the cross-repo clean-room pair test, and the
-> mentor's second relay (2026-09-01).**
-> `docs/prd.md` (rev 11) is
+> **Current to M7, the SIXTH `contract/` pin, the cross-repo clean-room pair test, the
+> mentor's second relay, and the handover documentation cross-check (2026-09-02).**
+> `docs/prd.md` (rev 13) is
 > the binding contract; this file carries what is expensive to get wrong and cheap to forget.
 > Every section below states something that was measured rather than something that was decided
 > in a meeting, and where a number appears it is this project's own.
@@ -67,6 +67,17 @@ project raised**:
 because the previous four’s whole story was that they did not. E-7 widened §14’s
 host-dependent field list from one to three; `src/compare/` masks one, and that gap is **F-50**,
 open by decision with its bound stated. The other two confirmed behaviour already built.
+
+**And the SIXTH pin (`7fe7dec`, E-10) is a THIRD cause, found at handover.** The first three
+moved because the producer grew; the fourth and fifth because an escalation was resolved. This
+one moved because **the vendored file was wrong on its own terms**: `condition-file-schema.md`
+carried two links written relative to EXT-08's root `README.md`, and neither resolved from
+`docs/` upstream **or** from `contract/` here — including the one citing `src/Geodesy.h`, which
+is the sentence E-5 was raised to obtain. Fixed upstream as absolute URLs, the only form correct
+in all three places the text lives, and re-pinned in the same breath. **Nothing here changed.**
+The lesson is narrow and worth keeping: **a by-identity vendor copies a relative path faithfully,
+and a byte check cannot see that it is broken** — both copies are identically broken. Only
+following the link from the copy finds it.
 
 **Both were found by cloning both repositories cold and walking both READMEs, not by reading
 anything** — `docs/clean-room.md`. **A pass that reads one repository cannot see the seam

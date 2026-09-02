@@ -9,15 +9,16 @@ Everything in this directory is **vendored, pinned and read-only from EXT-17's p
 Do not edit these files. If one of them is wrong or insufficient, that is a defect in EXT-08's
 contract and it goes back there.
 
-**Pinned at EXT-08 commit `bda3904`**, format version `n8ro-capture/1`, producer `0.9.0`.
+**Pinned at EXT-08 commit `7fe7dec`**, format version `n8ro-capture/1`, producer `0.9.0`.
 
 The specification last changed at EXT-08 `dd13a5f` — **clarifications only**, see "The fifth
-pin" below; `bda3904` is EXT-08's `main` at the time of pinning and carries that file unchanged.
+pin" below; `7fe7dec` is EXT-08's `main` at the time of pinning and carries that file unchanged.
+`condition-file-schema.md` last changed at `7fe7dec` itself — two links, see "The sixth pin".
 Pinning the branch head rather than the last commit that touched the file is deliberate — it
 makes "is this current?" one comparison against `main` rather than a question about which commit
 last mattered.
 
-This is the **fifth** pin, and the drift is worth stating as a live hazard rather than a
+This is the **sixth** pin, and the drift is worth stating as a live hazard rather than a
 footnote:
 
 | Pin | EXT-08 commit | Producer | Went stale because |
@@ -26,7 +27,8 @@ footnote:
 | 2nd | `063b5ba` | 0.8.0 | Producer 0.9.0 added `header.limits`, `header.part`, `header.continues_from` and `trailer.continued_in` (BTB-CAP-6) |
 | 3rd | `78fd4ef` | 0.9.0 | **EXT-08 fixed the four defects EXT-17 raised against this directory** — E-3, E-4, E-5 and E-6 |
 | 4th | `ca5118c` | 0.9.0 | **EXT-08 resolved E-7, E-8 and E-9 — its OWN escalations, on EXT-17's ruling — and regenerated its sample capture.** Neither event is one anything here watches |
-| 5th | `bda3904` | 0.9.0 | Current |
+| 5th | `bda3904` | 0.9.0 | **EXT-17 found two links in `condition-file-schema.md` that resolve nowhere.** A defect in the vendored text itself — a third cause, and the first one visible without leaving this directory |
+| 6th | `7fe7dec` | 0.9.0 | Current |
 
 ### The fourth pin, and why it is the different one
 
@@ -73,7 +75,7 @@ Equal hashes mean equal content. All four artifacts, and where each one comes fr
 | This directory | EXT-08 `main` | Blob |
 |---|---|---|
 | `capture-format-v1.md` | `docs/capture-format-v1.md` | `86ecf8e…` |
-| `condition-file-schema.md` | `docs/condition-file-schema.md` | `9d65ed0…` |
+| `condition-file-schema.md` | `docs/condition-file-schema.md` | `f6dd10f…` *(was `9d65ed0…` through the fifth pin)* |
 | `example.conditions.json` | `conditions/atacama.conditions.json` | `f5bc63b…` |
 | `capture-…-sample-0.9.0.n8rocap.jsonl` | `docs/sample-capture/capture-atacama-air-defense-sample.n8rocap.jsonl` | `a848759…` |
 
@@ -101,8 +103,12 @@ So: raise it, and when it comes back fixed, re-pin in the same breath. That is F
 written rule rather than a check — which is stated plainly because the next one will be caught by
 somebody remembering.
 
-**Nobody remembered. The fifth pin is F-38 recurring, twice over, three weeks' worth of
-specification behind — and it was found by cloning, not by reading.** See below.
+**Nobody remembered. The fifth pin is F-38 recurring, twice over — and it was found by cloning,
+not by reading.** See below. **The staleness lasted one day, not longer**, and that is stated
+precisely because it is the weakest-sounding version of the finding: this repository's whole log
+runs 2026-08-31 to 2026-09-02, so one day is a third of it, and a blind spot that nothing watches
+does not expire. What the interval measures is how long the project ran, not how long the gap
+would have lasted.
 
 ### The fifth pin, and the two ways `contract/` went stale that F-38 did not cover
 
@@ -177,9 +183,51 @@ and a reader working from a stale one cannot interpret a key it meets. Re-check 
 relying on it, and treat a drifted `contract/` as a defect to fix rather than a difference to
 tolerate.
 
-**What the current pin adds**, and what EXT-17 can now use: see finding 8 below and PRD rev 2.
+**What the fifth pin added**, and what EXT-17 can now use: see finding 8 below and PRD rev 2.
 In one line — the recorder can bound and rotate its own captures, so CR-CAP-5 can hand each run
 a per-capture byte bound instead of only projecting one.
+
+### The sixth pin: the defect was in the vendored text, not around it
+
+**The first three pins moved because the producer grew. The fourth and fifth moved because an
+escalation was resolved — by EXT-08 or by us. This one moved because the vendored file was
+wrong on its own terms**, and that is a third cause. It is also the only one so far that was
+visible from inside this directory, and nothing here saw it for a day.
+
+`condition-file-schema.md` carried two links:
+
+```
+[`conditions/atacama.conditions.json`](conditions/atacama.conditions.json)
+[`src/Geodesy.h`](src/Geodesy.h)
+```
+
+Both are correct relative to EXT-08's `README.md`, which is where those sections are maintained
+and where E-5 cut them from. **Neither is correct anywhere the file actually lives.** Upstream
+the file sits under `docs/`, so both resolved to `docs/conditions/…` and `docs/src/…` and hit
+nothing. **Here it is worse than a 404**: `src/Geodesy.h` is cited as *"the formulae are in
+`src/Geodesy.h` with the constants spelled out, so a third party can reproduce any verdict with
+a calculator"*, and no file of that name exists at any path in this repository. That sentence is
+the vendored answer to the exact gap E-5 was raised about — the arithmetic a consumer needs in
+order not to diverge silently — and it pointed at nothing.
+
+**It went back to EXT-08 rather than being patched here**, which is this directory's rule, and
+EXT-08 fixed it at `7fe7dec` by making both links absolute URLs. That is the only form that is
+correct in all three places the text lives: the root README where it is maintained, `docs/`
+where it is published, and a consumer's tree where no such repository exists at all.
+`tests/referee/check_schema_digest.py` still reports 100 lines identical, so the byte-identity
+that F-19 bought is intact and the blob above is the proof.
+
+**What it says about a by-identity vendor, which is the part worth keeping.** Vendoring by
+identity is strictly better than excerpting — that was E-5's whole result — but it copies a
+file's mistakes as faithfully as its content, and a *relative path* is the one kind of content
+whose correctness depends on where the file is. A byte comparison cannot see it: the digest check
+passed on every commit while both links were broken, because the two copies were identically
+broken. **The check that finds this is a human following the link from the copy**, which is
+what the clean-room discipline says and is how it was found.
+
+**Nothing EXT-17 ships changed** — sixth pin, same as the four before it. `src/assert/Geodesy.h`
+is unchanged and is still this project's own decision; what changed is that the sentence pointing
+at its upstream counterpart now arrives somewhere.
 
 ## What is here
 
@@ -188,7 +236,7 @@ a per-capture byte bound instead of only projecting one.
 | `capture-format-v1.md` | The capture format specification, field by field | **FROZEN** at EXT-08's M7. A change to what it specifies is now a version bump and a downstream change — for us |
 | `capture-atacama-air-defense-sample.n8rocap.jsonl` | A real capture from a real run, producer **0.5.0**, trimmed to 3.2 MB | Every structural record kept; two entities' samples. Reports CONFORMS. **Kept at the fifth pin rather than replaced**: it is the file that predates `sample_form`, `limits` and `part`, and tier 1 asserts they are reported absent rather than defaulted (§6.3a, §6.6). No longer EXT-08's shipped sample |
 | `capture-atacama-air-defense-sample-0.9.0.n8rocap.jsonl` | The same scenario, producer **0.9.0** — 11 150 lines, 10 915 samples, 5.1 MB. **Added at the fifth pin** | EXT-08's current `docs/sample-capture/`, vendored **by identity**. It is what makes the three 0.9.0 header keys readable on a machine that does not have the untracked 569 MB, which until this pin meant every machine but one |
-| `condition-file-schema.md` | The referee's condition-file shape — **and since the fourth pin the arithmetic and the boundary rules too** | Reference only, in that EXT-08's OQ-6 resolved EXT-17 may adopt or supersede it. But it is now a real upstream file (`docs/condition-file-schema.md`) vendored **by identity** rather than an excerpt assembled here. E-5 fixed, F-19 closed |
+| `condition-file-schema.md` | The referee's condition-file shape — **and since the fourth pin the arithmetic and the boundary rules too** | Reference only, in that EXT-08's OQ-6 resolved EXT-17 may adopt or supersede it. But it is now a real upstream file (`docs/condition-file-schema.md`) vendored **by identity** rather than an excerpt assembled here. E-5 fixed, F-19 closed. **Re-pinned at the sixth pin**: two links in it resolved nowhere from any location the file lives in — E-10 |
 | `example.conditions.json` | A working condition file for the reference scenario | Reference only |
 
 ## What is deliberately NOT here

@@ -213,6 +213,14 @@ the directory go stale. Twice.
 
 ## 5. The fifth pin, and what moved
 
+> **Dated record, superseded in one row.** This section is what the pass of 2026-09-01 found and
+> is left as it stood. `contract/` has since moved again — the **sixth** pin, EXT-08 `7fe7dec`,
+> for two links in `condition-file-schema.md` that resolved nowhere (E-10), which took that
+> file's blob from `9d65ed0…` to `f6dd10f…`. `contract/PROVENANCE.md` is the current pin and
+> this is not; the "Now" column below means *now as of 2026-09-01*. Also note the table lists
+> three artifacts and the documented check covers **four** — `example.conditions.json`, unchanged
+> at `f5bc63b…` through both pins, was omitted from this table and not from the check.
+
 `contract/` re-pinned from EXT-08 `ca5118c` to **`bda3904`**. The pin check as `PROVENANCE.md`
 documents it, before and after:
 

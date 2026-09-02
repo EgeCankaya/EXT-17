@@ -19,6 +19,10 @@ independently by the mentor, and **never answered by the brief's author, who has
 See [Status, in full](#status-in-full) and
 [Proving determinism](#proving-determinism--the-self-test-and-the-gate).
 
+**Reviewing rather than running it?** [Decisions taken without a
+ruling](#decisions-taken-without-a-ruling) is the list to start from: the twelve calls that were
+made here rather than waited on, why each was made, and what overturning each one would cost.
+
 ---
 
 ## Quickstart
@@ -32,12 +36,21 @@ tools\n8ro-campaign\build.cmd
 set PATH=C:\N8RO\bin;%PATH%
 
 build\n8ro-campaign\n8ro-campaign.exe repeat ^
-    --out-dir     campaigns\demo ^
+    --out-dir     campaigns\mine ^
     --campaign    examples\atacama-raid-speed.json ^
     --conditions  examples\atacama-raid.conditions.json ^
     --recorder    <path-to-EXT-08>\build\x64\Release\n8ro-bridge.exe ^
     --frames      1200
 ```
+
+**Every command in this README writes into a scratch `--out-dir`, and that is deliberate.** A
+campaign directory is not append-only: `campaign.log` is opened `"wb"`, `campaign.json` is
+rewritten, and runs land in `runs/000` upward whether or not something is already there. So an
+`--out-dir` naming a **committed** campaign — `campaigns\m6-campaign`, `campaigns\demo` — would
+overwrite the evidence this README asks you to check it against, and on a different machine the
+publication schedule differs by design, so the original would be recoverable only from git. Read
+a committed campaign with `report` and `n8ro-judge`, which start no host and write nothing into
+it; write new runs somewhere else.
 
 That one invocation runs the determinism self-test and **stops the campaign if it does not
 pass**, then executes one run per declared parameter value — starting the host and the recorder,
@@ -146,6 +159,40 @@ measures.
   line reader, a catch that still tears down and still writes the run record, and a catch in each
   `main` that exits `4`.
 
+## Decisions taken without a ruling
+
+**Delivery time was the binding constraint, so the decisions below were taken here rather than
+waited on.** Every one of them is a decision a reviewer is entitled to overturn, and every one is
+already recorded in full somewhere in this repository — this section adds no new fact. It puts
+them in one list so that reviewing them is not four documents of reading, and it states what
+overturning each would actually cost, which in most rows is a flag or a default rather than a
+rewrite.
+
+**Two have since been put to the mentor, and neither changed anything.** OQ-3's six parts came
+back answered in full on 2026-09-01 and confirmed what was already built; the mentor also
+**concurred independently** with the content gate — which is a second opinion and **not a
+ruling**, because the acceptance criterion it discharges belongs to the brief's author, who has
+never replied.
+
+| # | What was decided here | Why it was decided rather than asked | The full record | What overturning it costs |
+|---|---|---|---|---|
+| **1** | **The determinism gate decides on *content*, not on bytes.** The single deviation from the brief's literal words | The brief's own account of what the self-test is *for* — *"you must be able to tell which"*. A byte gate fails **190 of 190** pairs here, identically on a clean harness and a broken one, so it distinguishes neither; the content gate passed 190 of 190 clean **and refused a real pair for a real reason** at M6 | ADR-1 and OQ-2 in [`docs/prd.md`](docs/prd.md); E-2 in [`docs/escalations.md`](docs/escalations.md); [Proving determinism](#proving-determinism--the-self-test-and-the-gate) | **A flag, not a change.** `--gate-basis bytes` is implemented, tested and evidenced (`campaigns/m4-bytes/`): the gate correctly fails, the campaign stops with exit 3 and **zero runs attempted**. So overturning this costs no engineering — it stops the project at milestone 4 permanently, which is why it was worth deciding rather than defaulting |
+| **2** | **"The run is finished" is a frame budget**, with an unconditional timeout behind it | The brief flags the problem as harder than it sounds and does not answer it. The predicate had to be observable from what the run publishes, free of wall-clock quantities, **identical across two runs of one configuration**, and reached without the timeout firing — a frame budget is the only candidate that satisfies the third by construction | OQ-1 and CR-EX-3 in [`docs/prd.md`](docs/prd.md); [The stop predicate](#the-stop-predicate--what-the-run-is-finished-means) | Moderate. It is one seam and the timeout stays either way, but a predicate that is not identical across two runs re-opens the determinism gate — two runs that stopped at different points cannot be compared at all |
+| **3** | **The one parameterisation axis is *initial positions and velocities***, as one declared scalar applied to named entities before `start` | Decided by exercising all three of the brief's candidates over **18 probe runs**, not by arguing from a feasibility result. The catalogue axis enumerates fine (10 scenarios, 119 ms) but **a name has no order**, and the brief asks for a *trend* | OQ-4 in [`docs/prd.md`](docs/prd.md); [Sweeping one parameter](#sweeping-one-parameter--the-axis-and-where-the-trend-is) | The seam (`RunConfig::afterLoadBeforeStart`) is axis-independent, so a swap is a new declaration plus a re-measurement — not a rewrite. But swapping to the catalogue axis costs the brief's acceptance criterion 3, because there is no trend to plot along a set of names |
+| **4** | **The axis acts *before* `start`, and the available mitigation was deliberately not taken** | Applying the parameter at frame ≥ 1 avoids the start-up roster burst entirely and was built and measured at M2 — but then the axis is *"state at frame 1"*, and the brief's axis is *"initial positions and velocities"* | R14 in [`docs/prd.md`](docs/prd.md); [`CLAUDE.md`](CLAUDE.md), the axis section | **This is the row with a running cost.** Measured **4 of 35** parameterised runs (11.4%) freeze segment 0, against 1 of 27 ordinary ones, and once in twenty it refused the gate outright — that execution is **kept** at `campaigns/m6-gate-refused/` rather than replaced by the clean one. Taking the mitigation moves one publish |
+| **5** | **A refused gate is a refusal. No retry was added** | A retry turns an exclusion the format cannot yet distinguish into a silent one, and the gate is the thing every later number rests on | CR-DET-1 in [`docs/prd.md`](docs/prd.md); E-4 in [`docs/escalations.md`](docs/escalations.md), now fixed upstream | Trivial to add, and that is the point — it would make roughly **1 campaign stop in 14** disappear without making the underlying condition disappear |
+| **6** | **`expect` is the one key added to EXT-08's condition schema, and it is kept apart from the verdict** | The vendored schema is a *referee* — it reports whether a condition held and says nothing about whether that is welcome. The brief's third question (*"did anything reach a terminal state it should not have"*) cannot be written without it | OQ-5 and ADR-5 in [`docs/prd.md`](docs/prd.md); [Writing an assertion](#writing-an-assertion--the-condition-file-and-what-a-verdict-is-entitled-to-say) | Folding the fact and the expectation into one state costs direct comparability between EXT-08's live verdicts and a re-judgement here, which is the main thing adopting the schema bought |
+| **7** | **A capture ignores an unknown key; a campaign file and a condition file refuse one** | Authorship. The format is somebody else's and must survive a producer adding a field — it already has, twice, across three producer releases. A campaign file is written by a person, where `"value"` for `"values"` would otherwise be a sweep that silently did not happen | CR-AS-1 and CR-PAR-1 in [`docs/prd.md`](docs/prd.md) | Small, and the reason to keep it is a class of failure that produces no error at all |
+| **8** | **One file per run — `stop`, not `rotate`. 8 GiB over the whole campaign directory; per-run bound `61 000 × --frames`** | Decided by exercising both on real runs rather than choosing from documentation. `rotate` works completely and is not lossy — but one run's two segments become five `(part, segment)` keys, four of them fragments that nothing in any file identifies as such | OQ-6 in [`docs/prd.md`](docs/prd.md); [Disk](#disk--the-ceiling-and-what-it-is-measured-over) | **The cheapest row here.** The reader supports rotation anyway and was verified against a real four-part capture, so this is a default value rather than a design |
+| **9** | **The axis's measured 400 m/s ceiling is *not* enforced by the tool** | The ceiling belongs to a scenario's entity profiles, not to a campaign runner. Hard-coding it would be this project asserting something about scenarios it has never loaded | R13 in [`docs/prd.md`](docs/prd.md) | A validation check is easy; the per-scenario measurement behind it is the real cost. Above the ceiling the platform clamps at 20 m/s² — at 900 m/s a run spends 42% of itself off parameter |
+| **10** | **A not-met geometric verdict's bound uses 20 m/s², measured on one entity profile in one scenario** | The alternative — calling every not-met geometric verdict `indeterminate` — is the literal reading of *"absence is not evidence"*, and it makes the tool useless, including for the one condition the committed sweep exists to demonstrate | R16 in [`docs/prd.md`](docs/prd.md); named in `src/assert/Judge.h` and in the limits section | **This is the weakest link, and it is stated rather than buried.** A wrong value would have to be wrong by two orders of magnitude to change any committed verdict. If a second scenario is ever swept, its clamp is measured first |
+| **11** | **`src/compare/` masks one of the format's three host-dependent fields, not all three** | Open **by decision** rather than by oversight: the other two embed a run label that this campaign's own naming holds constant, so the gap has a stated bound rather than an unknown one | F-50, beside the code in `src/compare/`; E-7 in [`docs/escalations.md`](docs/escalations.md) | Small and known. It is listed here because a gap left open by decision should be reviewed by somebody other than the person who decided it |
+| **12** | **`SimEngineHost_SharedMemory`, of the eight available variants** | This one *was* asked. The mentor **declined to prescribe** — *"pick the one you prefer"* — so it remains this project's own choice, taken on the brief's *"campaign runs are for the closed configuration"* plus determinism-first, against a transport permitted to drop | OQ-3 (c) in [`docs/prd.md`](docs/prd.md); E-1 in [`docs/escalations.md`](docs/escalations.md) | A command-line value. What the answer removed was the risk of having chosen against an intent that existed and had never been written down |
+
+**If any row should read the other way, say which.** Each one is a change to this repository and
+not to the argument for it — the argument is already written down beside the decision, which is
+what makes overturning it cheap.
+
 ## Documentation
 
 **[`docs/prd.md`](docs/prd.md) is the deep dive and the binding contract** — the full requirements
@@ -154,16 +201,17 @@ it. Read it for the requirement-by-requirement traceability (Appendix A), the us
 criteria (Appendix B), the architecture decision records (Appendix C), and the risks and open
 decisions.
 
-Three documents sit beside it, and each is the record of something this README only summarises:
+Four documents sit beside it, and each is the record of something this README only summarises:
 
 | | |
 |---|---|
 | [`contract/PROVENANCE.md`](contract/PROVENANCE.md) | **Read this first if you are reviewing the boundary.** What crossed from EXT-08, what did not, and the measured findings that bind what this repository was allowed to build |
-| [`docs/determinism-notes.md`](docs/determinism-notes.md) | What had to be done to make run-to-run comparison meaningful — **and the things that could not be explained** |
-| [`docs/escalations.md`](docs/escalations.md) | Every question that went to somebody else, what came back, and what was decided here when nothing did. `drafted` is not `sent`, and `sent` is not `fixed` |
+| [`docs/determinism-notes.md`](docs/determinism-notes.md) | What had to be done to make run-to-run comparison meaningful — **and the things that could not be explained**. [B]'s fifth deliverable |
+| [`docs/escalations.md`](docs/escalations.md) | Every question that left this project **and every question that arrived at it**, what came back, and what was decided here when nothing did. `drafted` is not `sent`, and `sent` is not `fixed` |
+| [`docs/clean-room.md`](docs/clean-room.md) | Both repositories cloned cold and both READMEs walked literally, in both orders. **A pass that reads one repository cannot see the seam between two** — it found seven things, two of which blocked an evaluator |
 
 The rest of this README is the reference manual: everything below is detail behind one of the
-five sections above.
+six sections above.
 
 ---
 
@@ -559,8 +607,11 @@ needs `PATH` for itself, because it links the SDK too.
 ```
 set PATH=C:\N8RO\bin;%PATH%
 
+rem --out-dir is a SCRATCH directory. Never name a committed campaign here: campaign.log is
+rem opened "wb", campaign.json is rewritten, and runs land in runs/000 upward over whatever is
+rem already there. Read a committed campaign with `report` and `n8ro-judge` instead.
 n8ro-campaign run-once ^
-    --out-dir campaigns\demo ^
+    --out-dir campaigns\mine ^
     --recorder <path-to-n8ro-bridge.exe> ^
     --scenario "Atacama Air Defense" ^
     --frames 1200
@@ -573,9 +624,11 @@ n8ro-campaign repeat ^
     --recorder <...> ^
     --frames 1200
 
-rem The committed twenty-run campaign, judged. One command, no manual step.
+rem The twenty-run campaign, judged. One command, no manual step. This is the configuration
+rem committed at campaigns\m6-campaign; it is re-run into a scratch directory, because running
+rem it back over the committed one would overwrite the evidence it is there to be checked against.
 n8ro-campaign repeat ^
-    --out-dir campaigns\m6-campaign ^
+    --out-dir campaigns\mine-20 ^
     --campaign examples\atacama-raid-speed-20.json ^
     --conditions examples\atacama-raid.conditions.json ^
     --recorder <...>
@@ -1271,9 +1324,20 @@ verdicts, its summary and its log. **Not its captures.** One 1200-frame run of A
 Defense writes about 24 MB of JSON Lines, so the twenty-run campaign alone is 527 MB, and
 `.gitignore` has excluded captures since this repository's first commit for that reason.
 
-Each campaign carries a `MANIFEST.md` instead, giving every capture's byte size, SHA-256 and the
-counts this project's own reader made of it. **What that establishes is narrower than it looks,
-and the file says so**: it does not make a re-run byte-identical — nothing does, and that is this
+**Every campaign carries a `MANIFEST.md` instead**, giving every capture's byte size, SHA-256 and
+the counts this project's own reader made of it. That is fourteen manifests over eleven campaign
+directories — `m6-faults` carries one per injected fault — and it covers all 94 uncommitted
+captures, not only M6's. The generator was written at M6; **it was run backwards over every
+earlier campaign at handover**, because a stand-in that covers the newest evidence and not the
+evidence the older claims rest on is not a stand-in.
+
+**Five directories under `campaigns/` are NOT campaigns and carry no manifest**: `m2-axis`,
+`m3-oq6`, `m5-oq4`, `m5-oq4-pair` and `m5-oq4-repeat` are the feasibility spikes of
+`tools/spike-axis` and `tools/spike-oq4`, laid out one directory per probe rather than as
+`runs/NNN`, and their findings are quoted in the milestone record rather than counted off a
+capture. Evidence, not product — the same status their tools carry.
+
+**What a manifest establishes is narrower than it looks, and the file says so**: it does not make a re-run byte-identical — nothing does, and that is this
 project's central measurement rather than a limitation of the decision — but it pins what these
 specific files contained, so a number in a milestone document traces to a file rather than to
 somebody's memory. The counts are the part a re-run can be compared against.
@@ -1394,4 +1458,4 @@ measured evidence; that remains a separate statement.
 | `campaigns/` | Every campaign this project has run, minus its captures. See "The evidence" |
 | `tools/m1-run/` | M1's by-hand driver, kept as the evidence behind the host lifecycle findings |
 | `contract/` | Vendored from EXT-08. Read-only |
-| `docs/` | The client brief, the PRD it is written against, `escalations.md` (every question that went to somebody else and what came back), `determinism-notes.md` (the brief's fifth deliverable), and `clean-room.md` — the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included. The internal working documents were dropped at handover |
+| `docs/` | The client brief (**untracked — proprietary, `*.docx` is gitignored; read it off disk**), the PRD it is written against, `escalations.md` (every question that went to somebody else and what came back), `determinism-notes.md` (the brief's fifth deliverable), and `clean-room.md` — the cross-repo pair test: both repositories cloned cold and both READMEs walked literally, in both orders, failures included. The internal working documents were dropped at handover |

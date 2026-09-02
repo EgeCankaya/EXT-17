@@ -1,4 +1,4 @@
-# Escalations and questions out
+# Escalations — questions out, and questions in
 
 One row per question that leaves this project — **and, since the fifth pin, every question that
 arrives at it.** A question is only ever marked **Answered** when a reply exists; "asked" and
@@ -8,16 +8,23 @@ a ruling it never received.
 **The file used to hold only outbound questions, and that was a gap rather than a scope.** E-7,
 E-8 and E-9 were raised by EXT-08 **against this project** as the consumer of `n8ro-capture/1`;
 EXT-17's author settled all three; EXT-08 wrote the answers into the frozen specification and
-closed them. None of it was recorded here, so for three weeks this project had ruled on three
-questions about the format it vendors and was reading a `contract/` copy that predated its own
-rulings. **An escalation this project ANSWERS makes `contract/` stale exactly as one it raises
+closed them. None of it was recorded here, so this project had ruled on three questions about
+the format it vendors and was reading a `contract/` copy that predated its own rulings. **The
+exposure was one day** — raised, answered, landed upstream at `dd13a5f` and vendored here at the
+fifth pin, all on 2026-09-01 — and it is stated as one day rather than rounded up, because the
+finding is about a gap nothing watches and not about how long the gap lasted. In a project that
+ran three days the same blind spot lasts as long as the project does. **An escalation this project ANSWERS makes `contract/` stale exactly as one it raises
 does** — F-38's mirror image, and the reason the fifth pin exists. Inbound rows carry `in` in the
 direction column and are as much this file's business as outbound ones.
 
-**Four states, not two.** `drafted` means written and **not delivered** — nobody has been told.
-`sent` means delivered and awaiting a reply. `answered` means a reply exists. A finding that is
-written down but not delivered is *recorded*, not *raised*, and the difference is the whole reason
-this file has a status column.
+**Six states, not two, and they were added one at a time as a row needed one.** `drafted` means
+written and **not delivered** — nobody has been told. `sent` means delivered and awaiting a reply.
+`answered` means a reply exists. `decided`, `concurred` and `fixed` are the three added on
+2026-09-01 and each has its own paragraph below. A finding that is written down but not delivered
+is *recorded*, not *raised*, and the difference is the whole reason this file has a status column.
+**This sentence read "Three states" and then "Four", and was not bumped when the last two
+arrived** — which is worth leaving on the record, because the states are this file's product and
+its own count of them is the first thing a reader calibrates against.
 
 **`decided` was added on 2026-09-01, and it is the one to read carefully.** It means *a person
 entitled to decide it did, on stated evidence, and the original recipient still has not spoken*.
@@ -36,10 +43,12 @@ replied, so the two cannot drift apart.
 
 **`fixed` was added on 2026-09-01 too, and it is the strongest state in this file.** It means
 the recipient changed the thing, the change is on their `main`, and the correction has been
-vendored back here. Four rows carry it — E-3, E-4, E-5 and E-6, all against EXT-08 — and they
-are the first questions this project has asked that came back as edits rather than as replies.
+vendored back here. **Five rows carry it** — E-3, E-4, E-5 and E-6 on 2026-09-01, and E-10 at
+handover — all against EXT-08, and they are the questions this project has asked that came back
+as edits rather than as replies.
 
-**As of the end of 2026-09-01 four rows are `fixed`, one is CLOSED and one is `decided`.**
+**As of 2026-09-02 five rows are `fixed`, one is CLOSED, one is `decided`, three inbound rows
+are `answered`, and one is `sent` — eleven rows, all of them.**
 **E-1 (OQ-3) is closed — all six parts answered**, the last two on the second relay. **E-2
 (OQ-2) is decided, concurred with by the mentor, and has still never been answered by [B]'s
 author**, which is where it stays: the mentor is not the person the question was addressed to,
@@ -53,7 +62,12 @@ stated beside the text it disagreed with. What changed is that four inferences b
 sentences — see `contract/PROVENANCE.md`, "The fourth pin".
 
 Sections below are in the order they were last written, not in numerical order; the table is the
-index.
+index. **Five rows have a section and six do not**, and the difference is not an omission:
+E-1 to E-5 needed the evidence written out to be forwarded at all, whereas E-6 and E-10 went
+straight to EXT-08 with the row as their text and came back fixed the same day, the three
+inbound rows were **answered** here rather than raised here and their full text lives in
+EXT-08's own ledger, and R7 is carried in the PRD's risk table where it has been since rev 1.
+A row without a section is complete where it stands.
 
 | # | Question | To / from | Raised | Status |
 |---|---|---|---|---|
@@ -63,9 +77,11 @@ index.
 | E-5 | **A gap in `contract/`** — `condition-file-schema.md` is a verbatim excerpt of EXT-08's README that stops one heading before *"How distance is computed"* and *"Boundary semantics"*, the two sections every geometric verdict rests on | EXT-08 | 2026-09-01 (M6) | **FIXED, 2026-09-01, and not by the fix that was asked for** — [issue #3](https://github.com/EgeCankaya/EXT-08/issues/3), closed. EXT-08 created `docs/condition-file-schema.md` carrying all four sections, rather than replying "take those two as well", and added a test that fails if it drifts from its README. So the digest is now **vendored by identity** — which closes **F-19** as well. The geodesy here is unchanged and still this project's own decision; it now agrees with a vendored sentence instead of with an inference |
 | E-6 | **A third defect in `contract/`'s source** - EXT-08's `README.md` documents the R8 headless invocation **without** `N8RO_RELEASE`. Following it exactly produces a host that refuses every 42-entity scenario load **while sitting idle rather than failing** | EXT-08 | 2026-09-01 (M7) | **FIXED, 2026-09-01** - [issue #4](https://github.com/EgeCankaya/EXT-08/issues/4), closed. EXT-08's R8 block now states both preconditions and both failure modes. Fixed against the **corrected** citation: the issue as first filed named `PROVENANCE.md` finding 6, which is **not an EXT-08 file** (F-37), and the correction went as a comment rather than a silent edit. `contract/PROVENANCE.md` finding 6 - **ours** - carried the same omission and is corrected at the fourth pin |
 | E-4 | **A second imprecision in `contract/`** — §5.1's frozen-clock test is said to detect a reset clock; measured here it also fires on a *duplicated publication of identical values* inside a segment whose clock did not reset | EXT-08 | 2026-08-31 (M4) | **FIXED, 2026-09-01, and wider than it was raised** — [issue #2](https://github.com/EgeCankaya/EXT-08/issues/2), closed. EXT-08 took option (a) and folded in the **third** shape M5 found afterwards, which the issue never carried: §5.1 now states what a positive result establishes and lists all three. §14 gained the consequence this project pays — an emptied self-test is a **refusal, not a pass**, and retrying would make it a silent one. **No code changed here**; R12 and R14 are now upstream text |
-| E-7 **(in)** | **From EXT-08.** §14's host-dependent exclusion list named `platform.model_path` alone. `header.continues_from` and `trailer.continued_in` are host-dependent the same way — both embed the run label, which defaults to an ordinal derived from `--out-dir` | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17, and the answer is now specification.** EXT-17 took EXT-08's recommended option: name all three in §14, documentation-only, no version bump. Landed at EXT-08 `dd13a5f`; **vendored here at the fifth pin, three weeks late, because nothing recorded that the question had ever been asked.** It is the one of the three that did **not** confirm existing behaviour — `src/compare/` masks one field and still masks one — and that gap is **F-50**, open by decision with its bound stated |
+| E-7 **(in)** | **From EXT-08.** §14's host-dependent exclusion list named `platform.model_path` alone. `header.continues_from` and `trailer.continued_in` are host-dependent the same way — both embed the run label, which defaults to an ordinal derived from `--out-dir` | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17, and the answer is now specification.** EXT-17 took EXT-08's recommended option: name all three in §14, documentation-only, no version bump. Landed at EXT-08 `dd13a5f`; **vendored here at the fifth pin the same day, and only because a clean-room clone happened to run — nothing recorded that the question had ever been asked.** It is the one of the three that did **not** confirm existing behaviour — `src/compare/` masks one field and still masks one — and that gap is **F-50**, open by decision with its bound stated |
 | E-8 **(in)** | **From EXT-08.** BTB-BP-4 AC3 asked for per-topic drop counts; the producer counts per **kind**, with the two event topics merged under one number | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17: make the requirement say what the producer does, and DECLINE per-topic keys rather than defer them** — they would be keys nobody reads, and the data-versus-structure split is the distinction a reader acts on. §16 now states the merge in writing. Landed at `dd13a5f`, vendored at the fifth pin. **Nothing here changed**: the reader reads `trailer.drops.samples_not_recorded` and the merge changes no obligation |
 | E-9 **(in)** | **From EXT-08.** §10 governs a not-met verdict's `segment` anchor, which in a **rotated** set may name a segment in an *earlier part* — and §7 said segment-carrying records fall inside an open segment of their own part, flatly | **From** EXT-08 | 2026-09-01 (in) | **ANSWERED by EXT-17: §10 governs, and say so in both places** — including why the producer does not restamp, which is that a replay can reach only that anchor and restamping would make a live run and a replay of its own capture disagree. Landed at `dd13a5f`, vendored at the fifth pin. **Nothing here changed**: `SegmentKey` has been `(part, segment)` since M3 and `src/capture/CaptureSet.h` already said a per-segment statistic must key on it, in those words |
+| E-10 | **A defect in `contract/` itself, and the first one visible without leaving this directory** — `condition-file-schema.md` carries two links, `conditions/atacama.conditions.json` and `src/Geodesy.h`, and **neither resolves from anywhere the file lives**. They are written relative to EXT-08's root `README.md`, where the sections are maintained; upstream the file is published under `docs/`, and here it is vendored into a repository with no `src/Geodesy.h` at all — which is the sentence E-5 exists to deliver | EXT-08 | 2026-09-02 (handover) | **FIXED, 2026-09-02.** EXT-08 made both links absolute URLs, the only form correct in all three places the text lives, and `check_schema_digest.py` still reports 100 lines identical so the byte-identity F-19 bought is intact. Vendored back at the **sixth pin**, `7fe7dec`, in the same breath — F-38. **Nothing here changed**: `src/assert/Geodesy.h` is unchanged and still this project's own decision. **What it teaches is about by-identity vendoring**: a byte check cannot see a broken relative path, because both copies are identically broken. Only following the link from the copy finds it |
+| **R7** | **A defect in [B] itself.** `EXT-17-Headless-Campaign-Runner.docx`'s surface table cites `include\n8ro-sim\infrastructure\EntityStateSample.h` as *"what a run publishes"*. **Verified absent** from release 2.1.328 — that directory holds `SimulationEngineClient.h` and `SimulationEngineHost.h`, and a tree-wide search returns nothing | Owner of [B] | 2026-08-31 (rev 1) | **SENT — raised by EXT-08 as its E-2 on 2026-08-31, which cites BOTH briefs by name, and no reply has come back.** Not a separate escalation and deliberately not given an E-number here: one finding with two numbers is the thing the numbering gap exists to prevent. It carries a row because the correction is committed to in this project's own PRD (R7, *"the correction goes back to the brief's owner"*) and a commitment whose status lives only in the other repository is not visible from here. **Nothing here is blocked by it** — EXT-17 consumes `n8ro-capture/1` captures and never needs the type |
 
 ---
 
